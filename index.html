@@ -1,0 +1,1250 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VIP 도네이터 관리 — 열혈시스템</title>
+<style>
+:root{
+  --ground:#0d0e13; --surface:#171922; --surface-2:#20232e; --surface-3:#2a2e3c;
+  --line:rgba(255,255,255,.08); --line-strong:rgba(255,255,255,.14);
+  --text:#e9eaf0; --muted:#8b8fa3; --muted-2:#6a6e80;
+  --accent:#ff3d68; --accent-soft:rgba(255,61,104,.14); --accent-press:#e62a54;
+  --live:#ff4646; --on:#33d69f; --warn:#ffb020;
+  --vvip:#ffcb45; --vvip-soft:rgba(255,203,69,.14);
+  --vip:#a45bff; --vip-soft:rgba(164,91,255,.15);
+  --yeol:#5b8cff; --yeol-soft:rgba(91,140,255,.15);
+  --kakao:#fee500; --kakao-txt:#3c1e1e;
+  --r:14px; --r-sm:9px;
+  --font:"Pretendard","Pretendard Variable",-apple-system,BlinkMacSystemFont,"Malgun Gothic","Apple SD Gothic Neo","Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ground);color:var(--text);font-family:var(--font);
+  font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.tnum{font-variant-numeric:tabular-nums}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:6px;border:2px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:#3a3f52;background-clip:padding-box}
+
+.app{display:flex;flex-direction:column;min-height:100vh}
+
+/* ===== GNB ===== */
+.gnb{display:flex;align-items:center;gap:22px;height:56px;padding:0 20px;flex:none;position:sticky;top:0;
+  background:var(--surface);border-bottom:1px solid var(--line);z-index:40}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em;font-size:16px;cursor:pointer}
+.logo .mark{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--accent),#ff8a5c);
+  display:grid;place-items:center;font-size:15px;color:#fff;box-shadow:0 2px 10px rgba(255,61,104,.35)}
+.logo .sub{font-size:11px;color:var(--muted);font-weight:600;margin-top:1px}
+.gnb .spacer{flex:1}
+.gnb-chip{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--muted);
+  background:var(--surface-2);border:1px solid var(--line);padding:7px 12px;border-radius:9px}
+.gnb-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--on);box-shadow:0 0 0 3px rgba(51,214,159,.18)}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#5b6cff,#a45bff);flex:none;
+  display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff;cursor:pointer}
+
+/* ===== Tabs ===== */
+.tabbar{display:flex;align-items:center;gap:6px;height:52px;padding:0 20px;flex:none;position:sticky;top:56px;
+  background:var(--ground);border-bottom:1px solid var(--line);z-index:35}
+.tab{display:flex;align-items:center;gap:8px;padding:9px 15px;border-radius:10px;color:var(--muted);
+  font-weight:700;font-size:14px;transition:.14s}
+.tab:hover{color:var(--text);background:var(--surface)}
+.tab.on{color:var(--text);background:var(--surface-2);border:1px solid var(--line)}
+.tab .ic{width:17px;height:17px}
+.tab .cnt{font-size:11px;font-weight:800;padding:1px 7px;border-radius:20px;background:var(--surface-3);color:var(--muted)}
+.tab.on .cnt{background:var(--accent-soft);color:var(--accent)}
+
+/* ===== Layout ===== */
+.wrap{max-width:1240px;margin:0 auto;width:100%;padding:26px 20px 60px}
+.page-head{display:flex;align-items:flex-end;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.page-head h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.page-head p{margin:5px 0 0;color:var(--muted);font-size:13.5px}
+.page-head .spacer{flex:1}
+
+/* Stat row */
+.stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.stat{flex:1;min-width:150px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.stat .k{font-size:12px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px}
+.stat .v{font-size:26px;font-weight:800;letter-spacing:-.02em;margin-top:6px}
+.stat .v small{font-size:14px;color:var(--muted);font-weight:600;margin-left:3px}
+.stat .badge-mini{font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;margin-left:auto}
+
+/* Search */
+.searchbar{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);
+  border-radius:11px;padding:9px 14px;color:var(--muted);min-width:280px;flex:1;max-width:420px}
+.searchbar:focus-within{border-color:var(--line-strong)}
+.searchbar input{background:none;border:none;color:var(--text);width:100%;font-size:14px;outline:none}
+.searchbar input::placeholder{color:var(--muted-2)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;padding:10px 16px;
+  border-radius:10px;transition:.14s;border:1px solid transparent}
+.btn.primary{background:var(--accent);color:#fff;box-shadow:0 3px 14px rgba(255,61,104,.3)}
+.btn.primary:hover{background:var(--accent-press);transform:translateY(-1px)}
+.btn.ghost{background:var(--surface);border-color:var(--line);color:var(--text)}
+.btn.ghost:hover{border-color:var(--line-strong);background:var(--surface-2)}
+.btn.sm{padding:7px 12px;font-size:12.5px;border-radius:8px}
+.btn.danger{color:#ff6b81}
+.btn.danger:hover{background:rgba(255,70,70,.1)}
+.btn:disabled{opacity:.4;pointer-events:none}
+
+/* Grade badge */
+.gb{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:7px;white-space:nowrap}
+.gb .d{width:6px;height:6px;border-radius:50%}
+.gb.vvip{background:var(--vvip-soft);color:var(--vvip)} .gb.vvip .d{background:var(--vvip)}
+.gb.vip{background:var(--vip-soft);color:#c79bff} .gb.vip .d{background:var(--vip)}
+.gb.yeol{background:var(--yeol-soft);color:#9fbaff} .gb.yeol .d{background:var(--yeol)}
+.gb.none{background:var(--surface-3);color:var(--muted)} .gb.none .d{background:var(--muted-2)}
+
+/* ===== Cards / panels ===== */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.panel-head{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--line)}
+.panel-head h3{margin:0;font-size:15px;font-weight:800}
+.panel-head .hint{font-size:12px;color:var(--muted);font-weight:500}
+.panel-head .spacer{flex:1}
+.panel-body{padding:18px}
+
+.cols{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:start}
+@media(max-width:900px){.cols{grid-template-columns:1fr}}
+
+/* Grade list rows */
+.grade-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);
+  border-radius:12px;margin-bottom:10px;background:var(--surface-2);transition:.14s}
+.grade-row:hover{border-color:var(--line-strong)}
+.grade-row .gicon{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:17px;flex:none}
+.grade-row .meta{flex:1;min-width:0}
+.grade-row .meta .nm{font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px}
+.grade-row .meta .rg{font-size:12.5px;color:var(--muted);margin-top:3px}
+.grade-row .cntpill{font-size:12px;font-weight:800;color:var(--muted);background:var(--surface-3);padding:4px 10px;border-radius:20px}
+.grade-row .acts{display:flex;gap:4px}
+.icobtn{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--muted);transition:.12s}
+.icobtn:hover{background:var(--surface-3);color:var(--text)}
+.icobtn.del:hover{color:#ff6b81;background:rgba(255,70,70,.12)}
+
+/* Form */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:7px}
+.field label .req{color:var(--accent)}
+.inp{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;
+  color:var(--text);font-size:14px;outline:none;transition:.12s}
+.inp:focus{border-color:var(--accent)}
+.inp::placeholder{color:var(--muted-2)}
+select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%238b8fa3' stroke-width='2'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.seg{display:flex;gap:4px;background:var(--surface-2);border:1px solid var(--line);padding:4px;border-radius:11px}
+.seg button{flex:1;padding:8px 10px;border-radius:8px;color:var(--muted);font-weight:700;font-size:13px;transition:.12s}
+.seg button.on{background:var(--surface-3);color:var(--text)}
+.amt-wrap{display:flex;align-items:center;gap:8px}
+.amt-wrap .inp{text-align:right}
+.amt-wrap .to{color:var(--muted);font-weight:700}
+.helper{font-size:12px;color:var(--muted-2);margin-top:7px;line-height:1.5}
+.form-actions{display:flex;gap:10px;margin-top:20px}
+.form-actions .btn{flex:1;justify-content:center}
+.swatches{display:flex;gap:8px}
+.swatch{width:30px;height:30px;border-radius:9px;cursor:pointer;border:2px solid transparent;transition:.12s}
+.swatch.on{border-color:#fff;transform:scale(1.08)}
+
+/* ===== Table ===== */
+.toolbar-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.toolbar-row .spacer{flex:1}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead th{text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;
+  padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0;background:var(--surface)}
+thead th.sortable{cursor:pointer;user-select:none}
+thead th.sortable:hover{color:var(--text)}
+thead th .arr{opacity:.4;margin-left:3px}
+thead th.act .arr{opacity:1;color:var(--accent)}
+tbody td{padding:13px 14px;border-bottom:1px solid var(--line)}
+tbody tr{transition:.1s}
+tbody tr:hover{background:var(--surface-2)}
+tbody tr{cursor:pointer}
+.rank{font-weight:800;font-size:15px;width:34px;text-align:center;color:var(--muted)}
+.rank.top{color:var(--vvip)}
+.dn-cell{display:flex;align-items:center;gap:11px}
+.dn-cell .ava{width:36px;height:36px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px}
+.dn-cell .nm{font-weight:700}
+.dn-cell .al{font-size:11.5px;color:var(--muted)}
+.cash{font-weight:800;font-variant-numeric:tabular-nums}
+.cash small{color:var(--muted);font-weight:600;font-size:11px}
+.gsel{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:6px 8px;color:var(--text);
+  font-size:12px;font-weight:700;cursor:pointer;outline:none}
+.alias-inp{background:transparent;border:1px solid transparent;border-radius:7px;padding:5px 8px;color:var(--text);
+  font-size:12.5px;width:110px;outline:none;transition:.12s}
+.alias-inp:hover{border-color:var(--line)}
+.alias-inp:focus{border-color:var(--accent);background:var(--surface-2)}
+.alias-inp::placeholder{color:var(--muted-2)}
+.limit-note{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.limit-note b{color:var(--text)}
+
+/* ===== Automation ===== */
+.auto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.auto-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px;transition:.14s}
+.auto-card:hover{border-color:var(--line-strong)}
+.auto-card.off{opacity:.6}
+.auto-card .ac-top{display:flex;align-items:flex-start;gap:11px}
+.auto-card .ac-ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex:none}
+.auto-card .ac-tt{flex:1;min-width:0}
+.auto-card .ac-tt .t{font-weight:800;font-size:14.5px;line-height:1.35}
+.auto-card .ac-tt .s{font-size:12px;color:var(--muted);margin-top:3px}
+.auto-card .ac-flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}
+.flow-chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);
+  padding:5px 10px;border-radius:8px;font-weight:700}
+.flow-chip.trig{color:#9fbaff} .flow-chip.act{color:var(--accent)}
+.flow-arrow{color:var(--muted-2)}
+.auto-card .ac-foot{display:flex;align-items:center;gap:8px;margin-top:2px;padding-top:12px;border-top:1px solid var(--line)}
+.auto-card .ac-foot .spacer{flex:1}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:700;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);padding:3px 8px;border-radius:6px}
+
+/* toggle */
+.tgl{width:40px;height:23px;border-radius:20px;background:var(--surface-3);position:relative;transition:.18s;flex:none}
+.tgl.on{background:var(--on)}
+.tgl::after{content:"";position:absolute;top:2.5px;left:2.5px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.18s}
+.tgl.on::after{transform:translateX(17px)}
+
+/* empty */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty .ic{font-size:40px;margin-bottom:12px;opacity:.5}
+.empty .t{font-weight:700;font-size:15px;color:var(--text)}
+.empty .s{font-size:13px;margin-top:6px}
+
+/* ===== Modal / Drawer ===== */
+.overlay{position:fixed;inset:0;background:rgba(6,7,11,.66);backdrop-filter:blur(3px);z-index:80;
+  display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:.18s}
+.overlay.show{opacity:1;pointer-events:auto}
+.modal{background:var(--surface);border:1px solid var(--line-strong);border-radius:18px;width:100%;max-width:640px;
+  max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.6);transform:translateY(10px);transition:.18s}
+.overlay.show .modal{transform:none}
+.modal.wide{max-width:760px}
+.modal-head{display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line);flex:none}
+.modal-head h2{margin:0;font-size:17px;font-weight:800}
+.modal-head .spacer{flex:1}
+.modal-body{padding:22px;overflow-y:auto}
+.modal-foot{display:flex;gap:10px;padding:16px 22px;border-top:1px solid var(--line);flex:none}
+.modal-foot .spacer{flex:1}
+.xbtn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--muted)}
+.xbtn:hover{background:var(--surface-3);color:var(--text)}
+
+/* Wizard steps */
+.steps{display:flex;align-items:center;gap:0;margin-bottom:8px}
+.step{display:flex;align-items:center;gap:9px;color:var(--muted-2)}
+.step .n{width:26px;height:26px;border-radius:50%;background:var(--surface-3);display:grid;place-items:center;
+  font-weight:800;font-size:12.5px;color:var(--muted);flex:none}
+.step .lb{font-weight:700;font-size:13px}
+.step.on .n{background:var(--accent);color:#fff}.step.on{color:var(--text)}
+.step.done .n{background:var(--on);color:#08301f}
+.step-line{flex:1;height:2px;background:var(--surface-3);margin:0 12px}
+.step-line.done{background:var(--on)}
+
+.opt-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.opt{display:flex;align-items:center;gap:13px;padding:15px 16px;border:1.5px solid var(--line);border-radius:13px;
+  cursor:pointer;transition:.13s;background:var(--surface-2)}
+.opt:hover{border-color:var(--line-strong)}
+.opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.opt .oic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:20px;flex:none;background:var(--surface-3)}
+.opt .otx{flex:1}
+.opt .otx .t{font-weight:800;font-size:14.5px}
+.opt .otx .s{font-size:12.5px;color:var(--muted);margin-top:3px}
+.opt .chk{width:22px;height:22px;border-radius:50%;border:2px solid var(--line-strong);flex:none;display:grid;place-items:center;transition:.12s}
+.opt.on .chk{border-color:var(--accent);background:var(--accent)}
+.opt.on .chk::after{content:"✓";color:#fff;font-size:12px;font-weight:900}
+
+.section-lbl{font-size:12.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:22px 0 12px}
+.section-lbl:first-child{margin-top:0}
+
+/* target chips (직접 선택) */
+.pick-list{max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:6px;background:var(--surface-2)}
+.pick-row{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:9px;cursor:pointer}
+.pick-row:hover{background:var(--surface-3)}
+.pick-row .ava{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:12px;flex:none}
+.pick-row .nm{font-weight:700;font-size:13px}.pick-row .al{font-size:11px;color:var(--muted)}
+.pick-row .cb{margin-left:auto;width:20px;height:20px;border-radius:6px;border:2px solid var(--line-strong);display:grid;place-items:center;transition:.12s}
+.pick-row.on .cb{background:var(--accent);border-color:var(--accent)}
+.pick-row.on .cb::after{content:"✓";color:#fff;font-size:11px;font-weight:900}
+
+/* preview */
+.preview-box{background:var(--surface-2);border:1px dashed var(--line-strong);border-radius:13px;padding:16px;margin-top:8px}
+.preview-lbl{font-size:11.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+/* kakao bubble */
+.kakao{background:var(--kakao);border-radius:4px 16px 16px 16px;padding:14px 16px;max-width:300px;color:var(--kakao-txt)}
+.kakao .kt{font-weight:800;font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.kakao .kb{font-size:13px;line-height:1.5}
+.kakao .kbtn{margin-top:12px;background:rgba(0,0,0,.08);border-radius:8px;padding:9px;text-align:center;font-weight:700;font-size:12.5px}
+/* remote toast */
+.remote{background:#1b1d27;border:1px solid var(--line-strong);border-radius:14px;padding:13px 15px;max-width:320px;display:flex;gap:11px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.remote .ri{width:38px;height:38px;border-radius:11px;background:var(--accent-soft);display:grid;place-items:center;flex:none}
+.remote .rb{font-size:13px;line-height:1.45}.remote .rb b{color:var(--accent)}
+/* widget preview */
+.widget-prev{position:relative;height:120px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#101018,#1a1424);display:grid;place-items:center}
+.widget-prev .wtxt{font-weight:900;font-size:22px;letter-spacing:-.02em;z-index:2;text-shadow:0 2px 14px rgba(0,0,0,.6)}
+.confetti{position:absolute;width:9px;height:9px;border-radius:2px;animation:fall 2.4s linear infinite}
+@keyframes fall{0%{transform:translateY(-30px) rotate(0)}100%{transform:translateY(150px) rotate(360deg)}}
+
+/* voice picker */
+.voice-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.voice{display:flex;align-items:center;gap:9px;padding:11px 13px;border:1.5px solid var(--line);border-radius:11px;cursor:pointer;background:var(--surface-2);transition:.12s}
+.voice.on{border-color:var(--accent);background:var(--accent-soft)}
+.voice .vic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:15px;flex:none;background:var(--surface-3)}
+.voice .vn{font-weight:700;font-size:13px}
+.url-copy{display:flex;gap:8px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:4px 4px 4px 13px}
+.url-copy code{flex:1;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:ui-monospace,monospace}
+
+/* ===== Donator profile drawer ===== */
+.drawer{position:fixed;top:0;right:0;bottom:0;width:440px;max-width:100vw;background:var(--surface);
+  border-left:1px solid var(--line-strong);z-index:85;transform:translateX(100%);transition:.24s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;box-shadow:-16px 0 50px rgba(0,0,0,.4)}
+.drawer.show{transform:none}
+.dr-hero{padding:24px 22px 20px;position:relative;background:linear-gradient(160deg,var(--surface-2),var(--surface));border-bottom:1px solid var(--line)}
+.dr-hero .close{position:absolute;top:16px;right:16px}
+.dr-remote{position:absolute;top:16px;right:60px;font-size:11px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:5px;background:var(--surface-3);padding:5px 9px;border-radius:7px}
+.dr-avatar{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:26px;margin-bottom:14px}
+.dr-name{font-size:20px;font-weight:800;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.dr-alias{color:var(--muted);font-size:13.5px;margin-top:3px}
+.dr-meta{display:flex;gap:20px;margin-top:16px}
+.dr-meta .m .k{font-size:11px;color:var(--muted);font-weight:600}
+.dr-meta .m .v{font-size:14px;font-weight:800;margin-top:3px}
+.dr-cash{margin-top:18px;background:var(--ground);border:1px solid var(--line);border-radius:13px;padding:14px 16px;display:flex;align-items:center;gap:12px}
+.dr-cash .lbl{font-size:12px;color:var(--muted);font-weight:600}
+.dr-cash .val{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.dr-cash .val small{font-size:13px;color:var(--muted);margin-left:2px}
+.dr-body{flex:1;overflow-y:auto;padding:20px 22px}
+.dr-sec{margin-bottom:24px}
+.dr-sec .h{font-size:12.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.dtypes{display:flex;gap:8px;flex-wrap:wrap}
+.dtype{display:flex;align-items:center;gap:7px;padding:9px 13px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);font-size:12.5px;font-weight:700}
+.dtype .di{font-size:15px}
+.dtype.dim{opacity:.4}
+.titles{display:flex;flex-direction:column;gap:8px}
+.title-row{display:flex;align-items:center;gap:11px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:var(--surface-2)}
+.title-row .ti{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:16px;background:var(--vvip-soft);flex:none}
+.title-row .tn{font-weight:800;font-size:13.5px}
+.title-row .td{font-size:11.5px;color:var(--muted);margin-left:auto}
+.hist{display:flex;flex-direction:column}
+.hist-row{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.hist-row:last-child{border:none}
+.hist-row .ht{font-size:11.5px;color:var(--muted-2);width:74px;flex:none;font-variant-numeric:tabular-nums;line-height:1.4}
+.hist-row .hk{font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px;height:fit-content;background:var(--surface-3);color:var(--muted)}
+.hist-row .hc{flex:1;min-width:0}
+.hist-row .hc .msg{font-size:13px}
+.hist-row .hc .amt{font-size:12px;color:var(--accent);font-weight:800;margin-top:2px}
+
+/* toast */
+.toast-wrap{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:8px;align-items:center}
+.toast{background:var(--surface-3);border:1px solid var(--line-strong);border-radius:11px;padding:11px 18px;font-size:13px;font-weight:700;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);display:flex;align-items:center;gap:9px;animation:toastin .25s}
+.toast .ti{color:var(--on)}
+@keyframes toastin{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+
+@media(max-width:640px){
+  .wrap{padding:18px 14px 50px}
+  .tab .cnt{display:none}
+  .drawer{width:100vw}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- GNB -->
+  <div class="gnb">
+    <div class="logo">
+      <div class="mark">♥</div>
+      <div>투네이션<div class="sub">VIP 도네이터 관리 · 열혈시스템</div></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="gnb-chip"><span class="dot"></span>리모컨 연동됨</div>
+    <div class="avatar" title="크리에이터">CR</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabbar">
+    <button class="tab on" data-tab="grade">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 6 .5-4.5 4 1.5 6-6-3.5L6 18.5 7.5 12.5 3 8.5 9 8z"/></svg>
+      등급 관리 <span class="cnt" id="tabCntGrade">3</span>
+    </button>
+    <button class="tab" data-tab="donator">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 6.5a3 3 0 0 1 0 5.6M20.5 20a4.8 4.8 0 0 0-3-4.4"/></svg>
+      도네이터 관리 <span class="cnt" id="tabCntDon">0</span>
+    </button>
+    <button class="tab" data-tab="auto">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 13a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 6.6 19a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H2a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 3.7 6.6a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>
+      자동화 설정 <span class="cnt" id="tabCntAuto">0</span>
+    </button>
+  </div>
+
+  <div class="wrap">
+    <!-- ============ TAB: 등급 관리 ============ -->
+    <section id="page-grade">
+      <div class="page-head">
+        <div>
+          <h1>등급 관리</h1>
+          <p>누적 후원 금액 기준으로 도네이터 등급을 설정하고 자동 분류합니다.</p>
+        </div>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="k">👥 전체 후원 도네이터</div><div class="v tnum" id="stDonTotal">0<small>명</small></div></div>
+        <div class="stat"><div class="k"><span class="gb vvip"><span class="d"></span>VVIP</span></div><div class="v tnum" id="stVVIP">0<small>명</small></div></div>
+        <div class="stat"><div class="k"><span class="gb vip"><span class="d"></span>VIP</span></div><div class="v tnum" id="stVIP">0<small>명</small></div></div>
+        <div class="stat"><div class="k"><span class="gb yeol"><span class="d"></span>열혈</span></div><div class="v tnum" id="stYeol">0<small>명</small></div></div>
+      </div>
+
+      <div class="cols">
+        <div class="panel">
+          <div class="panel-head"><h3>등록 등급</h3><span class="hint">누적 금액 순 자동 정렬</span><div class="spacer"></div></div>
+          <div class="panel-body"><div id="gradeList"></div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3 id="gradeFormTitle">신규 등급 등록</h3></div>
+          <div class="panel-body">
+            <div class="field">
+              <label>등급 명 <span class="req">*</span></label>
+              <input class="inp" id="gfName" placeholder="예: VVIP, VIP, 열혈, 새싹…" maxlength="12">
+            </div>
+            <div class="field">
+              <label>등급 색상</label>
+              <div class="swatches" id="gfSwatches"></div>
+            </div>
+            <div class="field">
+              <label>총 누적 후원 금액 기준 <span class="req">*</span></label>
+              <div class="seg" id="gfMode">
+                <button data-mode="range" class="on">범위 (최소~최대)</button>
+                <button data-mode="over">이상</button>
+              </div>
+            </div>
+            <div class="field">
+              <div class="amt-wrap">
+                <input class="inp tnum" id="gfMin" inputmode="numeric" placeholder="10,000">
+                <span class="to" id="gfTo">~</span>
+                <input class="inp tnum" id="gfMax" inputmode="numeric" placeholder="100,000">
+                <span class="to">원</span>
+              </div>
+              <div class="helper" id="gfHelper">지정한 누적 후원 금액 범위에 해당하면 도네이터가 자동으로 이 등급으로 분류됩니다.</div>
+            </div>
+            <div class="form-actions">
+              <button class="btn ghost" id="gfCancel">취소</button>
+              <button class="btn primary" id="gfSave">저장</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB: 도네이터 관리 ============ -->
+    <section id="page-donator" class="hidden">
+      <div class="page-head">
+        <div>
+          <h1>도네이터 관리</h1>
+          <p>후원 순위·등급별로 도네이터를 정렬하고 등급·별칭을 관리합니다.</p>
+        </div>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="toolbar-row">
+        <div class="searchbar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+          <input id="donSearch" placeholder="도네이터 명 또는 별칭 검색 (Like 검색)">
+        </div>
+        <div class="seg" id="donSort" style="flex:none">
+          <button data-sort="rank" class="on">후원 순위별</button>
+          <button data-sort="grade">등급별</button>
+        </div>
+        <div class="spacer"></div>
+        <div class="limit-note">등급 지정 <b id="assignedCount">0</b> / 100명</div>
+      </div>
+
+      <div class="panel">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:34px">#</th>
+                <th>도네이터</th>
+                <th class="sortable" data-col="cash">누적 후원 캐시 <span class="arr">↓</span></th>
+                <th class="sortable" data-col="count">누적 후원 건수 <span class="arr"></span></th>
+                <th>등급</th>
+                <th>별칭</th>
+              </tr>
+            </thead>
+            <tbody id="donTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB: 자동화 설정 ============ -->
+    <section id="page-auto" class="hidden">
+      <div class="page-head">
+        <div>
+          <h1>자동화 설정</h1>
+          <p>특정 상황이 발생하면 자동으로 액션을 발동합니다. VIP 도네이터의 로그인·후원 시 특별한 경험을 제공하세요.</p>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn primary" id="addAutoBtn">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+          자동화 추가
+        </button>
+      </div>
+      <div id="autoGrid" class="auto-grid"></div>
+      <div id="autoEmpty" class="empty hidden">
+        <div class="ic">⚡</div>
+        <div class="t">설정된 자동화가 없습니다</div>
+        <div class="s">‘자동화 추가’를 눌러 첫 자동화를 만들어 보세요.</div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ============ 자동화 추가 마법사 ============ -->
+<div class="overlay" id="wizOverlay">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h2 id="wizTitle">자동화 추가</h2>
+      <div class="spacer"></div>
+      <button class="xbtn" id="wizClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="steps" id="wizSteps">
+        <div class="step on" data-s="1"><div class="n">1</div><div class="lb">상황 · 대상 선택</div></div>
+        <div class="step-line"></div>
+        <div class="step" data-s="2"><div class="n">2</div><div class="lb">액션 설정</div></div>
+      </div>
+
+      <!-- STEP 1 -->
+      <div id="wizStep1">
+        <div class="section-lbl">어떤 상황에서 발동하나요?</div>
+        <div class="opt-grid" id="situList"></div>
+
+        <div id="targetWrap" class="hidden">
+          <div class="section-lbl" id="targetLbl">누구에게 적용하나요?</div>
+          <div class="seg" id="targetMode">
+            <button data-t="class" class="on">분류에서 선택</button>
+            <button data-t="pick">직접 선택</button>
+          </div>
+          <div id="targetClass" style="margin-top:12px">
+            <div class="opt-grid" id="classList"></div>
+          </div>
+          <div id="targetPick" class="hidden" style="margin-top:12px">
+            <div class="searchbar" style="max-width:none;margin-bottom:10px">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+              <input id="pickSearch" placeholder="도네이터 명 또는 별칭 검색">
+            </div>
+            <div class="pick-list" id="pickList"></div>
+          </div>
+        </div>
+
+        <div id="amountWrap" class="hidden">
+          <div class="section-lbl">후원 금액 기준</div>
+          <div class="seg" id="amtMode" style="max-width:280px">
+            <button data-mode="range" class="on">범위 (최소~최대)</button>
+            <button data-mode="over">이상</button>
+          </div>
+          <div class="amt-wrap" style="margin-top:12px;max-width:360px">
+            <input class="inp tnum" id="amtMin" inputmode="numeric" placeholder="10,000">
+            <span class="to" id="amtTo">~</span>
+            <input class="inp tnum" id="amtMax" inputmode="numeric" placeholder="100,000">
+            <span class="to">원</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div id="wizStep2" class="hidden">
+        <div class="section-lbl">발동할 액션을 선택하세요</div>
+        <div class="opt-grid" id="actionList"></div>
+
+        <div id="actionConfig" class="hidden">
+          <div class="section-lbl" id="cfgLbl">액션 상세 설정</div>
+          <div id="cfgBody"></div>
+          <div class="preview-box">
+            <div class="preview-lbl">👁 미리보기</div>
+            <div id="cfgPreview"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="wizBack" style="visibility:hidden">이전</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" id="wizCancel">취소</button>
+      <button class="btn primary" id="wizNext" disabled>다음 단계</button>
+    </div>
+  </div>
+</div>
+
+<!-- 등급 삭제 확인 -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-body" style="text-align:center;padding:28px 24px">
+      <div style="font-size:34px;margin-bottom:10px">🗑️</div>
+      <div style="font-weight:800;font-size:16px" id="confirmTitle">삭제할까요?</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:8px" id="confirmMsg"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="confirmCancel" style="flex:1;justify-content:center">취소</button>
+      <button class="btn primary" id="confirmOk" style="flex:1;justify-content:center;background:#e2415a">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 도네이터 프로필 드로어 ============ -->
+<div class="overlay" id="drawerOverlay" style="background:rgba(6,7,11,.5)"></div>
+<div class="drawer" id="donDrawer">
+  <div class="dr-hero">
+    <div class="dr-remote">🎛 리모컨 연동</div>
+    <button class="xbtn close" id="drClose">✕</button>
+    <div class="dr-avatar" id="drAva">D</div>
+    <div class="dr-name" id="drName">도네이터 명 <span id="drGrade"></span></div>
+    <div class="dr-alias" id="drAlias"></div>
+    <div class="dr-meta">
+      <div class="m"><div class="k">최근 후원일</div><div class="v" id="drLast">-</div></div>
+      <div class="m"><div class="k">가입일</div><div class="v" id="drJoin">-</div></div>
+      <div class="m"><div class="k">후원 건수</div><div class="v" id="drCount">-</div></div>
+    </div>
+    <div class="dr-cash">
+      <div>
+        <div class="lbl">누적 후원 캐시</div>
+        <div class="val tnum" id="drCash">0<small>캐시</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="dr-body">
+    <div class="dr-sec">
+      <div class="h">💫 자주하는 후원</div>
+      <div class="dtypes" id="drTypes"></div>
+    </div>
+    <div class="dr-sec">
+      <div class="h">🏆 획득한 칭호</div>
+      <div class="titles" id="drTitles"></div>
+    </div>
+    <div class="dr-sec">
+      <div class="h">🧾 최근 후원 이력</div>
+      <div class="hist" id="drHist"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* =========================================================
+   VIP 도네이터 관리 — 열혈시스템 (프로토타입)
+   데이터는 localStorage에 저장됩니다.
+   ========================================================= */
+const LS = 'toon_vip_v1';
+const won = n => (n||0).toLocaleString('ko-KR');
+const uid = () => 'id'+Math.random().toString(36).slice(2,9);
+const avaColor = s => { let h=0; for(const c of s) h=(h*31+c.charCodeAt(0))%360; return `linear-gradient(135deg,hsl(${h},62%,55%),hsl(${(h+40)%360},62%,48%))`; };
+
+/* ---------- seed data ---------- */
+const KO_NAMES=['톰하디','모아이','순정남','달빛여우','치킨마요','코딩하는곰','별헤는밤','라면요정','무지개송어','밤샘전사','고구마맛탕','파스텔','겨울나그네','핑크덤보','왕눈이','초코나무숲','빙수','한여름밤','노을','청포도','까망','하양이','불꽃남자','물빛','산들바람','도토리','은하수','민들레','참치캔','솜사탕'];
+function seed(){
+  const donators = KO_NAMES.map((nm,i)=>{
+    const cash = Math.round((Math.random()*480000 + 3000)/100)*100;
+    const cnt = Math.max(1, Math.round(cash/ (2000+Math.random()*6000)));
+    const y=2023+(i%2), m=1+(i*3%12), d=1+(i*7%27);
+    return {
+      id:uid(), name:nm, alias:'', cash, count:cnt,
+      join:`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`,
+      last:`2024-${String(1+(i%10)).padStart(2,'0')}-${String(1+(i*5%27)).padStart(2,'0')}`,
+      types:['text','signature','voice','quest'].filter(()=>Math.random()>.4),
+      titles: Math.random()>.4 ? [
+        {name:'첫 후원',date:'2023-05-11'},
+        ...(Math.random()>.5?[{name:'열혈팬',date:'2024-01-02'}]:[]),
+        ...(Math.random()>.7?[{name:'만원의 행복',date:'2024-06-18'}]:[]),
+      ] : [{name:'첫 후원',date:'2024-02-01'}],
+      history: Array.from({length:3+Math.round(Math.random()*3)},(_,k)=>({
+        time:`2024-10-${String(10-k).padStart(2,'0')} ${String(10+k).padStart(2,'0')}:${String(k*7%60).padStart(2,'0')}:00`,
+        kind:['텍스트','음성','시그니처','퀘스트'][k%4],
+        amt: [1000,5000,10000,3000,50000][k%5],
+        msg:['후원합니다!','오늘도 화이팅','방송 잘보고있어요','1일 1후원','고생 많으셨어요'][k%5]
+      }))
+    };
+  });
+  return {
+    grades:[
+      {id:'g_vvip',name:'VVIP',cls:'vvip',color:'#ffcb45',mode:'over',min:300000,max:0},
+      {id:'g_vip', name:'VIP', cls:'vip', color:'#a45bff',mode:'range',min:100000,max:299999},
+      {id:'g_yeol',name:'열혈',cls:'yeol',color:'#5b8cff',mode:'range',min:30000,max:99999},
+    ],
+    donators,
+    autos:[
+      {id:uid(),on:true,situ:'login',targetMode:'class',classes:['g_vvip'],action:'kakao_send',
+       cfg:{msg:'{크리에이터} 님이 방송을 시작하였습니다'}},
+      {id:uid(),on:true,situ:'amount',amt:{mode:'range',min:10000,max:100000},action:'widget',
+       cfg:{widget:'팡파르'}},
+    ]
+  };
+}
+let DB = load();
+function load(){ try{ const r=localStorage.getItem(LS); if(r) return JSON.parse(r);}catch(e){} return seed(); }
+function save(){ localStorage.setItem(LS, JSON.stringify(DB)); }
+
+/* ---------- grade helpers ---------- */
+const clsOf = g => g.cls || 'none';
+function gradeForCash(cash){
+  // sorted by min desc, pick first matching
+  const gs=[...DB.grades].sort((a,b)=>b.min-a.min);
+  for(const g of gs){
+    if(g.mode==='over'){ if(cash>=g.min) return g; }
+    else { if(cash>=g.min && (g.max<=0 || cash<=g.max)) return g; }
+  }
+  return null;
+}
+function gradeBadge(g){
+  if(!g) return `<span class="gb none"><span class="d"></span>미분류</span>`;
+  return `<span class="gb ${clsOf(g)}"><span class="d"></span>${g.name}</span>`;
+}
+
+/* =========================================================
+   Tabs
+   ========================================================= */
+const pages={grade:byId('page-grade'),donator:byId('page-donator'),auto:byId('page-auto')};
+function byId(id){return document.getElementById(id);}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
+  const tab=t.dataset.tab;
+  Object.entries(pages).forEach(([k,el])=>el.classList.toggle('hidden',k!==tab));
+  if(tab==='donator') renderDonators();
+  if(tab==='auto') renderAutos();
+  if(tab==='grade') renderGrades();
+});
+
+/* =========================================================
+   TAB 1 — 등급 관리
+   ========================================================= */
+const SWATCH_COLORS=['#ffcb45','#a45bff','#5b8cff','#33d69f','#ff8a5c','#ff5c7a','#4fc0e8','#c084fc'];
+let gfState={id:null,mode:'range',color:SWATCH_COLORS[0]};
+
+function renderSwatches(){
+  const box=byId('gfSwatches'); box.innerHTML='';
+  SWATCH_COLORS.forEach(c=>{
+    const s=document.createElement('div');
+    s.className='swatch'+(c===gfState.color?' on':''); s.style.background=c;
+    s.onclick=()=>{gfState.color=c;renderSwatches();};
+    box.appendChild(s);
+  });
+}
+byId('gfMode').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  gfState.mode=b.dataset.mode;
+  byId('gfMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  const over=gfState.mode==='over';
+  byId('gfMax').classList.toggle('hidden',over);
+  byId('gfTo').textContent=over?'':'~';
+  byId('gfHelper').textContent = over
+    ? '지정한 누적 후원 금액 이상이면 도네이터가 자동으로 이 등급으로 분류됩니다.'
+    : '지정한 누적 후원 금액 범위에 해당하면 도네이터가 자동으로 이 등급으로 분류됩니다.';
+});
+['gfMin','gfMax'].forEach(id=>{
+  byId(id).addEventListener('input',e=>{
+    const v=e.target.value.replace(/[^\d]/g,'');
+    e.target.value = v? won(+v):'';
+  });
+});
+byId('gfSave').onclick=()=>{
+  const name=byId('gfName').value.trim();
+  const min=+byId('gfMin').value.replace(/[^\d]/g,'')||0;
+  const max=+byId('gfMax').value.replace(/[^\d]/g,'')||0;
+  if(!name) return toast('등급 명을 입력하세요','!');
+  if(!min && gfState.mode==='over') return toast('기준 금액을 입력하세요','!');
+  if(gfState.mode==='range' && max && min>max) return toast('최소 금액이 최대보다 큽니다','!');
+  const clsGuess = {'#ffcb45':'vvip','#a45bff':'vip','#5b8cff':'yeol'}[gfState.color]||'custom';
+  if(gfState.id){
+    const g=DB.grades.find(x=>x.id===gfState.id);
+    Object.assign(g,{name,color:gfState.color,mode:gfState.mode,min,max:gfState.mode==='over'?0:max});
+  }else{
+    DB.grades.push({id:uid(),name,cls:clsGuess,color:gfState.color,mode:gfState.mode,min,max:gfState.mode==='over'?0:max});
+  }
+  save(); resetGradeForm(); renderGrades(); toast(gfState.id?'등급이 수정되었습니다':'등급이 등록되었습니다');
+};
+byId('gfCancel').onclick=resetGradeForm;
+function resetGradeForm(){
+  gfState={id:null,mode:'range',color:SWATCH_COLORS[0]};
+  byId('gfName').value='';byId('gfMin').value='';byId('gfMax').value='';
+  byId('gradeFormTitle').textContent='신규 등급 등록';
+  byId('gfMax').classList.remove('hidden');byId('gfTo').textContent='~';
+  byId('gfMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.mode==='range'));
+  byId('gfSave').textContent='저장';
+  renderSwatches();
+}
+function editGrade(id){
+  const g=DB.grades.find(x=>x.id===id); if(!g)return;
+  gfState={id:g.id,mode:g.mode,color:g.color};
+  byId('gfName').value=g.name;
+  byId('gfMin').value=won(g.min); byId('gfMax').value=g.max?won(g.max):'';
+  byId('gradeFormTitle').textContent='등급 수정';
+  byId('gfSave').textContent='수정 저장';
+  byId('gfMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.mode===g.mode));
+  const over=g.mode==='over'; byId('gfMax').classList.toggle('hidden',over); byId('gfTo').textContent=over?'':'~';
+  renderSwatches();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function countInGrade(gid){
+  return DB.donators.filter(d=>{const g=gradeForCash(d.cash);return g&&g.id===gid;}).length;
+}
+function renderGrades(){
+  const list=byId('gradeList'); list.innerHTML='';
+  const gs=[...DB.grades].sort((a,b)=>b.min-a.min);
+  gs.forEach(g=>{
+    const cnt=countInGrade(g.id);
+    const rangeTxt = g.mode==='over' ? `${won(g.min)}원 이상` : `${won(g.min)} ~ ${g.max?won(g.max):'∞'}원`;
+    const row=document.createElement('div'); row.className='grade-row';
+    row.innerHTML=`
+      <div class="gicon" style="background:${g.color}22;color:${g.color}">★</div>
+      <div class="meta">
+        <div class="nm">${g.name} ${gradeBadge(g)}</div>
+        <div class="rg">누적 후원 ${rangeTxt}</div>
+      </div>
+      <div class="cntpill">${cnt}명</div>
+      <div class="acts">
+        <button class="icobtn" title="수정" data-e="${g.id}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+        </button>
+        <button class="icobtn del" title="삭제" data-d="${g.id}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
+        </button>
+      </div>`;
+    row.querySelector('[data-e]').onclick=()=>editGrade(g.id);
+    row.querySelector('[data-d]').onclick=()=>askConfirm(`‘${g.name}’ 등급 삭제`,'이 등급에 속한 도네이터는 다시 자동 분류됩니다.',()=>{
+      DB.grades=DB.grades.filter(x=>x.id!==g.id); save(); renderGrades(); toast('등급이 삭제되었습니다');
+    });
+    list.appendChild(row);
+  });
+  // stats
+  const total=DB.donators.length;
+  byId('stDonTotal').innerHTML=`${won(total)}<small>명</small>`;
+  const by=c=>DB.donators.filter(d=>{const g=gradeForCash(d.cash);return g&&clsOf(g)===c;}).length;
+  byId('stVVIP').innerHTML=`${by('vvip')}<small>명</small>`;
+  byId('stVIP').innerHTML=`${by('vip')}<small>명</small>`;
+  byId('stYeol').innerHTML=`${by('yeol')}<small>명</small>`;
+  byId('tabCntGrade').textContent=DB.grades.length;
+  byId('tabCntDon').textContent=won(total);
+}
+
+/* =========================================================
+   TAB 2 — 도네이터 관리
+   ========================================================= */
+let donSort='rank', donCol='cash', donDir=-1, donQuery='';
+byId('donSearch').addEventListener('input',e=>{donQuery=e.target.value.trim().toLowerCase();renderDonators();});
+byId('donSort').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  donSort=b.dataset.sort;
+  byId('donSort').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  renderDonators();
+});
+document.querySelectorAll('th.sortable').forEach(th=>th.onclick=()=>{
+  const c=th.dataset.col;
+  if(donCol===c) donDir*=-1; else {donCol=c;donDir=-1;}
+  document.querySelectorAll('th.sortable').forEach(x=>{x.classList.remove('act');x.querySelector('.arr').textContent='';});
+  th.classList.add('act'); th.querySelector('.arr').textContent=donDir<0?'↓':'↑';
+  renderDonators();
+});
+function renderDonators(){
+  const tb=byId('donTbody'); tb.innerHTML='';
+  let rows=DB.donators.filter(d=>{
+    if(!donQuery) return true;
+    return d.name.toLowerCase().includes(donQuery) || (d.alias||'').toLowerCase().includes(donQuery);
+  });
+  if(donSort==='grade'){
+    rows.sort((a,b)=>{
+      const ga=gradeForCash(a.cash), gb=gradeForCash(b.cash);
+      const ma=ga?ga.min:-1, mb=gb?gb.min:-1;
+      return mb-ma || b.cash-a.cash;
+    });
+  }else{
+    rows.sort((a,b)=> donDir*((a[donCol]||0)-(b[donCol]||0)) );
+  }
+  const assigned=DB.donators.filter(d=>gradeForCash(d.cash)).length;
+  byId('assignedCount').textContent=Math.min(assigned,100);
+  byId('tabCntDon').textContent=won(DB.donators.length);
+
+  rows.forEach((d,i)=>{
+    const g=gradeForCash(d.cash);
+    const tr=document.createElement('tr');
+    const rank=donSort==='rank'&&donCol==='cash'&&donDir===-1 ? i+1 : (DB.donators.slice().sort((a,b)=>b.cash-a.cash).findIndex(x=>x.id===d.id)+1);
+    tr.innerHTML=`
+      <td><div class="rank ${rank<=3?'top':''}">${rank}</div></td>
+      <td>
+        <div class="dn-cell">
+          <div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+          <div><div class="nm">${d.name}</div><div class="al">${d.alias?'@'+d.alias:'별칭 없음'}</div></div>
+        </div>
+      </td>
+      <td><div class="cash">${won(d.cash)}<small> 캐시</small></div></td>
+      <td class="tnum">${won(d.count)}건</td>
+      <td>${gradeBadge(g)}</td>
+      <td></td>`;
+    // alias input
+    const aliasTd=tr.lastElementChild;
+    const inp=document.createElement('input');
+    inp.className='alias-inp'; inp.placeholder='별칭 입력'; inp.value=d.alias||'';
+    inp.onclick=e=>e.stopPropagation();
+    inp.onchange=()=>{d.alias=inp.value.trim();save();toast('별칭이 저장되었습니다');};
+    aliasTd.appendChild(inp);
+    tr.onclick=()=>openDrawer(d.id);
+    tb.appendChild(tr);
+  });
+  if(!rows.length){
+    tb.innerHTML=`<tr><td colspan="6"><div class="empty" style="padding:40px"><div class="t">검색 결과가 없습니다</div></div></td></tr>`;
+  }
+}
+
+/* =========================================================
+   TAB 3 — 자동화 설정
+   ========================================================= */
+const SITU={
+  login:{label:'방송 시작 시',icon:'📡',desc:'방송을 켜면 도네이터에게 알림',target:true},
+  donate:{label:'특정 도네이터 후원 시',icon:'💝',desc:'지정한 도네이터가 후원하면 발동',target:true},
+  amount:{label:'특정 금액 이상 후원 시',icon:'💰',desc:'설정 금액대의 후원이 오면 발동',target:false,amount:true},
+};
+const ACTIONS={
+  kakao_send:{label:'도네이터 카카오 알림톡 발송',icon:'💬',desc:'도네이터에게 알림톡을 보냅니다',for:['login']},
+  kakao_recv:{label:'카카오 알림톡 받기',icon:'📩',desc:'크리에이터가 알림톡을 받습니다',for:['donate','amount']},
+  remote:{label:'리모컨 알림 받기',icon:'🎛',desc:'리모컨 앱으로 실시간 알림',for:['donate','amount']},
+  widget:{label:'위젯 효과 추가하기',icon:'🎉',desc:'방송 화면에 위젯 효과 재생',for:['donate','amount']},
+  tts:{label:'TTS 음성 알림',icon:'🔊',desc:'음성으로 후원을 읽어줍니다',for:['login','donate','amount']},
+};
+const ACTION_LABEL=k=>ACTIONS[k]?.label||k;
+const WIDGETS=['팡파르','네온','폭죽','하트비',' 골드러시'];
+const VOICES=[{k:'ara',n:'아라',i:'👧'},{k:'jinho',n:'진호',i:'👦'},{k:'nara',n:'나라',i:'👩'},{k:'shin',n:'신우',i:'🧑'}];
+
+function situText(a){
+  const s=SITU[a.situ];
+  if(a.situ==='amount'){
+    const m=a.amt||{}; return m.mode==='over'?`${won(m.min)}원 이상 후원 시`:`${won(m.min)}~${won(m.max)}원 후원 시`;
+  }
+  if(a.targetMode==='class'){
+    const names=(a.classes||[]).map(id=>DB.grades.find(g=>g.id===id)?.name).filter(Boolean);
+    return `${names.join(', ')||'대상'} ${s.label==='방송 시작 시'?'에게 방송 시작 시':'후원 시'}`;
+  }
+  if(a.targetMode==='pick'){
+    const names=(a.picks||[]).map(id=>{const d=DB.donators.find(x=>x.id===id);return d?(d.alias||d.name):'';}).filter(Boolean);
+    return `${names.slice(0,3).join(', ')}${names.length>3?` 외 ${names.length-3}명`:''} ${a.situ==='login'?'에게 방송 시작 시':'후원 시'}`;
+  }
+  return s.label;
+}
+function renderAutos(){
+  const grid=byId('autoGrid'); grid.innerHTML='';
+  byId('autoEmpty').classList.toggle('hidden',DB.autos.length>0);
+  byId('tabCntAuto').textContent=DB.autos.length;
+  DB.autos.forEach(a=>{
+    const s=SITU[a.situ], act=ACTIONS[a.action];
+    const card=document.createElement('div'); card.className='auto-card'+(a.on?'':' off');
+    const tags=[];
+    if(a.targetMode==='class')(a.classes||[]).forEach(id=>{const g=DB.grades.find(x=>x.id===id);if(g)tags.push(g.name);});
+    if(a.action==='widget')tags.push('효과: '+(a.cfg?.widget||''));
+    if(a.action==='tts')tags.push('보이스: '+(VOICES.find(v=>v.k===a.cfg?.voice)?.n||'기본'));
+    card.innerHTML=`
+      <div class="ac-top">
+        <div class="ac-ic" style="background:var(--accent-soft)">${act?.icon||'⚡'}</div>
+        <div class="ac-tt"><div class="t">${situText(a)}</div><div class="s">${act?.label||''}</div></div>
+        <div class="tgl ${a.on?'on':''}" data-t="${a.id}"></div>
+      </div>
+      <div class="ac-flow">
+        <span class="flow-chip trig">${s?.icon||''} ${s?.label||''}</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-chip act">${act?.icon||''} ${act?.label||''}</span>
+      </div>
+      <div class="ac-foot">
+        <div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+        <div class="spacer"></div>
+        <button class="btn ghost sm" data-edit="${a.id}">수정</button>
+        <button class="btn ghost sm danger" data-del="${a.id}">삭제</button>
+      </div>`;
+    card.querySelector('[data-t]').onclick=()=>{a.on=!a.on;save();renderAutos();};
+    card.querySelector('[data-edit]').onclick=()=>openWizard(a.id);
+    card.querySelector('[data-del]').onclick=()=>askConfirm('자동화 삭제','이 자동화를 삭제할까요?',()=>{
+      DB.autos=DB.autos.filter(x=>x.id!==a.id);save();renderAutos();toast('자동화가 삭제되었습니다');
+    });
+    grid.appendChild(card);
+  });
+}
+
+/* ---------- Wizard ---------- */
+let W={step:1,id:null,situ:null,targetMode:'class',classes:[],picks:[],amt:{mode:'range',min:0,max:0},action:null,cfg:{}};
+const wizOv=byId('wizOverlay');
+byId('addAutoBtn').onclick=()=>openWizard(null);
+byId('wizClose').onclick=byId('wizCancel').onclick=closeWizard;
+wizOv.onclick=e=>{if(e.target===wizOv)closeWizard();};
+
+function openWizard(id){
+  if(id){
+    const a=DB.autos.find(x=>x.id===id);
+    W={step:1,id,situ:a.situ,targetMode:a.targetMode||'class',classes:[...(a.classes||[])],picks:[...(a.picks||[])],
+       amt:{...(a.amt||{mode:'range',min:0,max:0})},action:a.action,cfg:{...(a.cfg||{})}};
+    byId('wizTitle').textContent='자동화 수정';
+  }else{
+    W={step:1,id:null,situ:null,targetMode:'class',classes:[],picks:[],amt:{mode:'range',min:0,max:0},action:null,cfg:{}};
+    byId('wizTitle').textContent='자동화 추가';
+  }
+  renderWizard();
+  wizOv.classList.add('show');
+}
+function closeWizard(){wizOv.classList.remove('show');}
+
+function renderWizard(){
+  // steps ui
+  byId('wizSteps').querySelectorAll('.step').forEach(el=>{
+    const n=+el.dataset.s;
+    el.classList.toggle('on',n===W.step);
+    el.classList.toggle('done',n<W.step);
+  });
+  byId('wizSteps').querySelector('.step-line').classList.toggle('done',W.step>1);
+  byId('wizStep1').classList.toggle('hidden',W.step!==1);
+  byId('wizStep2').classList.toggle('hidden',W.step!==2);
+  byId('wizBack').style.visibility=W.step===1?'hidden':'visible';
+  byId('wizNext').textContent=W.step===2?'완료':'다음 단계';
+
+  if(W.step===1) renderStep1(); else renderStep2();
+  updateWizNext();
+}
+
+/* --- STEP 1 --- */
+function renderStep1(){
+  const list=byId('situList'); list.innerHTML='';
+  Object.entries(SITU).forEach(([k,s])=>{
+    const o=document.createElement('div'); o.className='opt'+(W.situ===k?' on':'');
+    o.innerHTML=`<div class="oic">${s.icon}</div><div class="otx"><div class="t">${s.label}</div><div class="s">${s.desc}</div></div><div class="chk"></div>`;
+    o.onclick=()=>{W.situ=k;W.action=null;W.cfg={};renderStep1();updateWizNext();};
+    list.appendChild(o);
+  });
+  const s=W.situ?SITU[W.situ]:null;
+  byId('targetWrap').classList.toggle('hidden',!(s&&s.target));
+  byId('amountWrap').classList.toggle('hidden',!(s&&s.amount));
+  if(s&&s.target) renderTarget();
+  if(s&&s.amount) renderAmount();
+}
+byId('targetMode').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  W.targetMode=b.dataset.t;
+  byId('targetMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  renderTarget();updateWizNext();
+});
+function renderTarget(){
+  byId('targetMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.t===W.targetMode));
+  byId('targetClass').classList.toggle('hidden',W.targetMode!=='class');
+  byId('targetPick').classList.toggle('hidden',W.targetMode!=='pick');
+  byId('targetLbl').textContent = W.situ==='login'?'누구에게 방송 시작을 알릴까요?':'누구의 후원에 반응할까요?';
+  // classes
+  const cl=byId('classList'); cl.innerHTML='';
+  DB.grades.forEach(g=>{
+    const on=W.classes.includes(g.id);
+    const o=document.createElement('div'); o.className='opt'+(on?' on':'');
+    o.innerHTML=`<div class="oic" style="background:${g.color}22;color:${g.color}">★</div><div class="otx"><div class="t">${g.name}</div><div class="s">${g.mode==='over'?won(g.min)+'원 이상':won(g.min)+'~'+(g.max?won(g.max):'∞')+'원'}</div></div><div class="chk"></div>`;
+    o.onclick=()=>{W.classes=on?W.classes.filter(x=>x!==g.id):[...W.classes,g.id];renderTarget();updateWizNext();};
+    cl.appendChild(o);
+  });
+  renderPickList();
+}
+function renderPickList(q=''){
+  const box=byId('pickList'); box.innerHTML='';
+  const rows=DB.donators.slice().sort((a,b)=>b.cash-a.cash)
+    .filter(d=>!q||d.name.toLowerCase().includes(q)||(d.alias||'').toLowerCase().includes(q));
+  rows.forEach(d=>{
+    const on=W.picks.includes(d.id);
+    const r=document.createElement('div'); r.className='pick-row'+(on?' on':'');
+    const g=gradeForCash(d.cash);
+    r.innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+      <div><div class="nm">${d.name} ${g?`<span class="gb ${clsOf(g)}" style="font-size:10px"><span class="d"></span>${g.name}</span>`:''}</div><div class="al">${d.alias?'@'+d.alias:won(d.cash)+' 캐시'}</div></div>
+      <div class="cb"></div>`;
+    r.onclick=()=>{W.picks=on?W.picks.filter(x=>x!==d.id):[...W.picks,d.id];renderPickList(byId('pickSearch').value.trim().toLowerCase());updateWizNext();};
+    box.appendChild(r);
+  });
+}
+byId('pickSearch').addEventListener('input',e=>renderPickList(e.target.value.trim().toLowerCase()));
+
+byId('amtMode').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  W.amt.mode=b.dataset.mode;
+  byId('amtMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  byId('amtMax').classList.toggle('hidden',W.amt.mode==='over');
+  byId('amtTo').textContent=W.amt.mode==='over'?'':'~';
+  updateWizNext();
+});
+function renderAmount(){
+  byId('amtMin').value=W.amt.min?won(W.amt.min):'';
+  byId('amtMax').value=W.amt.max?won(W.amt.max):'';
+  byId('amtMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.mode===W.amt.mode));
+  byId('amtMax').classList.toggle('hidden',W.amt.mode==='over');
+  byId('amtTo').textContent=W.amt.mode==='over'?'':'~';
+}
+['amtMin','amtMax'].forEach(id=>byId(id).addEventListener('input',e=>{
+  const v=e.target.value.replace(/[^\d]/g,''); e.target.value=v?won(+v):'';
+  W.amt[id==='amtMin'?'min':'max']=+v||0; updateWizNext();
+}));
+
+/* --- STEP 2 --- */
+function renderStep2(){
+  const list=byId('actionList'); list.innerHTML='';
+  const avail=Object.entries(ACTIONS).filter(([k,a])=>a.for.includes(W.situ));
+  avail.forEach(([k,a])=>{
+    const o=document.createElement('div'); o.className='opt'+(W.action===k?' on':'');
+    o.innerHTML=`<div class="oic">${a.icon}</div><div class="otx"><div class="t">${a.label}</div><div class="s">${a.desc}</div></div><div class="chk"></div>`;
+    o.onclick=()=>{W.action=k;if(W.id&&DB.autos.find(x=>x.id===W.id)?.action!==k)W.cfg={};initCfg(k);renderStep2();updateWizNext();};
+    list.appendChild(o);
+  });
+  byId('actionConfig').classList.toggle('hidden',!W.action);
+  if(W.action) renderActionConfig();
+}
+function initCfg(k){
+  if(k==='kakao_send'&&!W.cfg.msg) W.cfg.msg='{크리에이터} 님이 방송을 시작하였습니다';
+  if(k==='widget'&&!W.cfg.widget) W.cfg.widget=WIDGETS[0].trim();
+  if(k==='tts'&&!W.cfg.voice) W.cfg.voice=VOICES[0].k;
+}
+function renderActionConfig(){
+  const body=byId('cfgBody'); const k=W.action; body.innerHTML='';
+  byId('cfgLbl').textContent=ACTIONS[k].label+' 설정';
+  if(k==='kakao_send'){
+    body.innerHTML=`<div class="field"><label>알림톡 메시지</label>
+      <textarea class="inp" id="cfgMsg" rows="2" placeholder="메시지를 입력하세요">${W.cfg.msg||''}</textarea>
+      <div class="helper">{크리에이터} 는 방송 시 크리에이터 닉네임으로 자동 치환됩니다.</div></div>`;
+    byId('cfgMsg').addEventListener('input',e=>{W.cfg.msg=e.target.value;renderPreview();});
+  }
+  else if(k==='widget'){
+    body.innerHTML=`<div class="field"><label>적용 위젯 효과</label><div class="voice-grid" id="wg"></div></div>`;
+    const wg=byId('wg');
+    WIDGETS.forEach(w=>{const wt=w.trim();const el=document.createElement('div');el.className='voice'+(W.cfg.widget===wt?' on':'');
+      el.innerHTML=`<div class="vic">🎉</div><div class="vn">${wt}</div>`;
+      el.onclick=()=>{W.cfg.widget=wt;renderActionConfig();};wg.appendChild(el);});
+  }
+  else if(k==='tts'){
+    body.innerHTML=`<div class="field"><label>보이스 선택</label><div class="voice-grid" id="vv"></div></div>
+      <div class="field"><label>음성 알림 위젯 URL <span class="helper" style="display:inline">· 음성 알림 전용 위젯 추가 필수</span></label>
+      <div class="url-copy"><code>https://toon.at/w/${uid()}${uid().slice(2)}</code><button class="btn ghost sm" id="copyUrl">복사</button></div></div>`;
+    const vv=byId('vv');
+    VOICES.forEach(v=>{const el=document.createElement('div');el.className='voice'+(W.cfg.voice===v.k?' on':'');
+      el.innerHTML=`<div class="vic">${v.i}</div><div class="vn">${v.n}</div>`;
+      el.onclick=()=>{W.cfg.voice=v.k;renderActionConfig();};vv.appendChild(el);});
+    byId('copyUrl').onclick=()=>{navigator.clipboard?.writeText(byId('cfgBody').querySelector('code').textContent);toast('URL이 복사되었습니다');};
+  }
+  else if(k==='kakao_recv'){
+    body.innerHTML=`<div class="field"><label>알림 받을 전화번호</label>
+      <input class="inp tnum" id="cfgPhone" placeholder="010-0000-0000" value="${W.cfg.phone||''}">
+      <div class="helper">후원 발생 시 이 번호로 카카오 알림톡이 발송됩니다.</div></div>`;
+    byId('cfgPhone').addEventListener('input',e=>{W.cfg.phone=e.target.value;});
+  }
+  else if(k==='remote'){
+    body.innerHTML=`<div class="helper" style="margin:0">연동된 리모컨 앱으로 실시간 후원 알림이 전송됩니다. 추가 설정이 필요 없습니다.</div>`;
+  }
+  renderPreview();
+}
+function sampleDonator(){
+  if(W.targetMode==='pick'&&W.picks.length){const d=DB.donators.find(x=>x.id===W.picks[0]);if(d)return d;}
+  if(W.targetMode==='class'&&W.classes.length){const gid=W.classes[0];const d=DB.donators.find(x=>{const g=gradeForCash(x.cash);return g&&g.id===gid;});if(d)return d;}
+  return DB.donators.slice().sort((a,b)=>b.cash-a.cash)[0];
+}
+function renderPreview(){
+  const box=byId('cfgPreview'); const k=W.action; const d=sampleDonator();
+  const g=d?gradeForCash(d.cash):null; const gname=g?g.name:'VIP';
+  const dn=d?(d.alias||d.name):'도네이터';
+  const amt = W.situ==='amount' ? (W.amt.min||10000) : 10000;
+  if(k==='kakao_send'){
+    box.innerHTML=`<div class="kakao"><div class="kt">💬 알림톡</div><div class="kb">${(W.cfg.msg||'').replace('{크리에이터}','크리에이터 닉네임')||'메시지를 입력하세요'}</div><div class="kbtn">바로 가기</div></div>`;
+  }else if(k==='kakao_recv'){
+    box.innerHTML=`<div class="kakao"><div class="kt">📩 후원 알림톡</div><div class="kb">${d?d.name:'도네이터'} <b>(${gname})</b> 님이 ${won(amt)} 캐시 후원</div><div class="kbtn">프로필 보기</div></div>`;
+  }else if(k==='remote'){
+    box.innerHTML=`<div class="remote"><div class="ri">🎛</div><div class="rb"><b>${dn} (${gname})</b> 님이 ${won(amt)} 캐시를<br>후원해 주셨습니다.</div></div>`;
+  }else if(k==='widget'){
+    const colors=['#ff3d68','#ffcb45','#5b8cff','#33d69f','#a45bff'];
+    let conf='';for(let i=0;i<14;i++)conf+=`<div class="confetti" style="left:${5+i*7}%;background:${colors[i%5]};animation-delay:${(i*0.15).toFixed(2)}s"></div>`;
+    box.innerHTML=`<div class="widget-prev">${conf}<div class="wtxt">🎉 ${W.cfg.widget||'팡파르'} 효과</div></div>`;
+  }else if(k==='tts'){
+    const v=VOICES.find(x=>x.k===W.cfg.voice)||VOICES[0];
+    box.innerHTML=`<div class="remote"><div class="ri">🔊</div><div class="rb"><b>${v.i} ${v.n} 보이스</b><br>“${dn} 님이 ${won(amt)} 캐시 후원해 주셨습니다”</div></div>`;
+  }else box.innerHTML='';
+}
+
+function updateWizNext(){
+  let ok=false;
+  if(W.step===1){
+    if(!W.situ) ok=false;
+    else{
+      const s=SITU[W.situ];
+      if(s.amount) ok = W.amt.min>0 && (W.amt.mode==='over' || W.amt.max>=W.amt.min);
+      else if(s.target) ok = (W.targetMode==='class'&&W.classes.length>0)||(W.targetMode==='pick'&&W.picks.length>0);
+      else ok=true;
+    }
+  }else{
+    ok = !!W.action;
+    if(W.action==='kakao_send') ok = ok && !!(W.cfg.msg||'').trim();
+  }
+  byId('wizNext').disabled=!ok;
+}
+byId('wizBack').onclick=()=>{W.step=1;renderWizard();};
+byId('wizNext').onclick=()=>{
+  if(W.step===1){W.step=2;renderWizard();return;}
+  // save
+  const obj={id:W.id||uid(),on:true,situ:W.situ,action:W.action,cfg:{...W.cfg}};
+  const s=SITU[W.situ];
+  if(s.amount) obj.amt={...W.amt};
+  if(s.target){obj.targetMode=W.targetMode;obj.classes=[...W.classes];obj.picks=[...W.picks];}
+  if(W.id){const idx=DB.autos.findIndex(x=>x.id===W.id);DB.autos[idx]={...DB.autos[idx],...obj};}
+  else DB.autos.push(obj);
+  save();closeWizard();renderAutos();toast(W.id?'자동화가 수정되었습니다':'자동화가 추가되었습니다');
+};
+
+/* =========================================================
+   Donator Profile Drawer
+   ========================================================= */
+const TYPE_META={text:{i:'📝',n:'텍스트'},signature:{i:'✍️',n:'시그니처'},voice:{i:'🎤',n:'음성'},quest:{i:'🎯',n:'퀘스트'}};
+function openDrawer(id){
+  const d=DB.donators.find(x=>x.id===id); if(!d)return;
+  const g=gradeForCash(d.cash);
+  byId('drAva').textContent=d.name.slice(0,2); byId('drAva').style.background=avaColor(d.name);
+  byId('drName').innerHTML=`${d.name} ${gradeBadge(g)}`;
+  byId('drAlias').textContent=d.alias?'@'+d.alias:'별칭 없음';
+  byId('drLast').textContent=d.last; byId('drJoin').textContent=d.join; byId('drCount').textContent=won(d.count)+'건';
+  byId('drCash').innerHTML=`${won(d.cash)}<small>캐시</small>`;
+  // types
+  byId('drTypes').innerHTML=Object.entries(TYPE_META).map(([k,m])=>{
+    const has=d.types.includes(k);
+    return `<div class="dtype ${has?'':'dim'}"><span class="di">${m.i}</span>${m.n}</div>`;
+  }).join('');
+  // titles
+  byId('drTitles').innerHTML=(d.titles||[]).map(t=>`
+    <div class="title-row"><div class="ti">🏅</div><div class="tn">${t.name}</div><div class="td">${t.date} 획득</div></div>`).join('')||'<div class="helper">획득한 칭호가 없습니다</div>';
+  // history
+  byId('drHist').innerHTML=(d.history||[]).map(h=>{
+    const [dt,tm]=h.time.split(' ');
+    return `<div class="hist-row"><div class="ht">${dt}<br>${tm}</div><div class="hk">${h.kind}</div>
+      <div class="hc"><div class="msg">${h.msg}</div><div class="amt">${won(h.amt)} 캐시</div></div></div>`;
+  }).join('');
+  byId('drawerOverlay').classList.add('show');
+  byId('donDrawer').classList.add('show');
+}
+function closeDrawer(){byId('drawerOverlay').classList.remove('show');byId('donDrawer').classList.remove('show');}
+byId('drClose').onclick=closeDrawer; byId('drawerOverlay').onclick=closeDrawer;
+
+/* =========================================================
+   Confirm + Toast
+   ========================================================= */
+let confirmCb=null;
+function askConfirm(title,msg,cb){
+  byId('confirmTitle').textContent=title; byId('confirmMsg').textContent=msg; confirmCb=cb;
+  byId('confirmOverlay').classList.add('show');
+}
+byId('confirmCancel').onclick=()=>byId('confirmOverlay').classList.remove('show');
+byId('confirmOk').onclick=()=>{byId('confirmOverlay').classList.remove('show');confirmCb&&confirmCb();};
+byId('confirmOverlay').onclick=e=>{if(e.target===byId('confirmOverlay'))byId('confirmOverlay').classList.remove('show');};
+
+function toast(msg,ic='✓'){
+  const t=document.createElement('div'); t.className='toast';
+  t.innerHTML=`<span class="ti">${ic}</span>${msg}`;
+  byId('toastWrap').appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();byId('confirmOverlay').classList.remove('show');}});
+
+/* ---------- init ---------- */
+renderSwatches();
+renderGrades();
+renderDonators();
+renderAutos();
+</script>
+</body>
+</html>
