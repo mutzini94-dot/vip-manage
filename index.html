@@ -280,10 +280,19 @@ tbody tr{cursor:pointer}
 .remote .ri{width:38px;height:38px;border-radius:11px;background:var(--accent-soft);display:grid;place-items:center;flex:none}
 .remote .rb{font-size:13px;line-height:1.45}.remote .rb b{color:var(--accent)}
 /* widget preview */
-.widget-prev{position:relative;height:120px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#101018,#1a1424);display:grid;place-items:center}
+.widget-prev{position:relative;height:130px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#101018,#1a1424);display:grid;place-items:center}
 .widget-prev .wtxt{font-weight:900;font-size:22px;letter-spacing:-.02em;z-index:2;text-shadow:0 2px 14px rgba(0,0,0,.6)}
-.confetti{position:absolute;width:9px;height:9px;border-radius:2px;animation:fall 2.4s linear infinite}
-@keyframes fall{0%{transform:translateY(-30px) rotate(0)}100%{transform:translateY(150px) rotate(360deg)}}
+.widget-prev .p{position:absolute;top:-24px;pointer-events:none;line-height:1;will-change:transform}
+.widget-prev .conf{width:9px;height:9px;border-radius:2px;animation:fall linear infinite}
+.widget-prev .emo{animation:floatdown linear infinite}
+.widget-prev .spark{width:7px;height:7px;border-radius:50%;top:0;box-shadow:0 0 8px currentColor;animation:burst 1.7s ease-out infinite}
+.widget-prev.neon .wtxt{color:#5efce8;text-shadow:0 0 6px #5efce8,0 0 16px #22d3ee,0 0 30px #0891b2;animation:neonpulse 1.4s ease-in-out infinite}
+.widget-prev.neon::after{content:"";position:absolute;inset:12px;border:2px solid #22d3ee;border-radius:12px;
+  box-shadow:0 0 12px #22d3ee,inset 0 0 12px #22d3ee;animation:neonpulse 1.4s ease-in-out infinite;z-index:1}
+@keyframes fall{0%{transform:translateY(-24px) rotate(0)}100%{transform:translateY(150px) rotate(360deg)}}
+@keyframes floatdown{0%{transform:translateY(-24px) rotate(0);opacity:0}12%{opacity:1}88%{opacity:1}100%{transform:translateY(150px) rotate(24deg);opacity:0}}
+@keyframes burst{0%{transform:translate(0,0) scale(.4);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1);opacity:0}}
+@keyframes neonpulse{0%,100%{opacity:.55}50%{opacity:1}}
 
 /* voice picker */
 .voice-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
@@ -911,7 +920,39 @@ const ACTIONS={
   tts:{label:'TTS 음성 알림',icon:'🔊',desc:'음성으로 후원을 읽어줍니다',for:['login','donate','amount']},
 };
 const ACTION_LABEL=k=>ACTIONS[k]?.label||k;
-const WIDGETS=['팡파르','네온','폭죽','하트비',' 골드러시'];
+const WIDGETS=[
+  {k:'팡파르',  i:'🎉', bg:'linear-gradient(135deg,#2a1030,#0f0e18)', fx:'confetti'},
+  {k:'네온',    i:'💠', bg:'linear-gradient(135deg,#04121c,#0a0420)', fx:'neon'},
+  {k:'폭죽',    i:'🎆', bg:'linear-gradient(135deg,#0a0a18,#1a0a2a)', fx:'firework'},
+  {k:'하트비',  i:'💕', bg:'linear-gradient(135deg,#2a0a1a,#12000a)', fx:'hearts'},
+  {k:'골드러시',i:'🪙', bg:'linear-gradient(135deg,#241a02,#0f0c02)', fx:'gold'},
+  {k:'스노우',  i:'❄️', bg:'linear-gradient(135deg,#08131f,#0a0f1a)', fx:'snow'},
+];
+/* 위젯별 파티클 효과 마크업 생성 */
+function widgetFx(fx){
+  const R=(a,b)=>a+Math.random()*(b-a);
+  let h='';
+  if(fx==='confetti'){
+    const c=['#ff3d68','#ffcb45','#5b8cff','#33d69f','#a45bff'];
+    for(let i=0;i<16;i++)h+=`<span class="p conf" style="left:${R(2,96).toFixed(1)}%;background:${c[i%5]};animation-delay:${R(0,2).toFixed(2)}s;animation-duration:${R(1.8,3).toFixed(2)}s"></span>`;
+  }else if(fx==='hearts'){
+    for(let i=0;i<14;i++)h+=`<span class="p emo" style="left:${R(2,94).toFixed(1)}%;font-size:${R(12,22).toFixed(0)}px;animation-delay:${R(0,2.4).toFixed(2)}s;animation-duration:${R(2.4,4).toFixed(2)}s">💗</span>`;
+  }else if(fx==='gold'){
+    for(let i=0;i<14;i++)h+=`<span class="p emo" style="left:${R(2,94).toFixed(1)}%;font-size:${R(13,22).toFixed(0)}px;animation-delay:${R(0,2.4).toFixed(2)}s;animation-duration:${R(2,3.4).toFixed(2)}s">🪙</span>`;
+  }else if(fx==='snow'){
+    for(let i=0;i<16;i++)h+=`<span class="p emo" style="left:${R(2,96).toFixed(1)}%;font-size:${R(10,18).toFixed(0)}px;opacity:${R(.5,1).toFixed(2)};animation-delay:${R(0,3).toFixed(2)}s;animation-duration:${R(3,5).toFixed(2)}s">❄</span>`;
+  }else if(fx==='firework'){
+    const c=['#ff3d68','#ffcb45','#5b8cff','#33d69f','#ff8a5c'];
+    for(let b=0;b<3;b++){
+      const cx=R(20,80).toFixed(0), cy=R(24,66).toFixed(0), col=c[b%5], delay=R(0,1.6).toFixed(2);
+      for(let s=0;s<10;s++){
+        const a=s/10*Math.PI*2;
+        h+=`<span class="p spark" style="left:${cx}%;top:${cy}%;--dx:${(Math.cos(a)*34).toFixed(1)}px;--dy:${(Math.sin(a)*34).toFixed(1)}px;background:${col};animation-delay:${delay}s"></span>`;
+      }
+    }
+  }
+  return h;
+}
 const VOICES=[{k:'ara',n:'아라',i:'👧'},{k:'jinho',n:'진호',i:'👦'},{k:'nara',n:'나라',i:'👩'},{k:'shin',n:'신우',i:'🧑'}];
 
 function situText(a){
@@ -1092,7 +1133,7 @@ function renderStep2(){
 }
 function initCfg(k){
   if(k==='kakao_send'&&!W.cfg.msg) W.cfg.msg='{크리에이터} 님이 방송을 시작하였습니다';
-  if(k==='widget'&&!W.cfg.widget) W.cfg.widget=WIDGETS[0].trim();
+  if(k==='widget'&&!W.cfg.widget) W.cfg.widget=WIDGETS[0].k;
   if(k==='tts'&&!W.cfg.voice) W.cfg.voice=VOICES[0].k;
 }
 function renderActionConfig(){
@@ -1107,9 +1148,9 @@ function renderActionConfig(){
   else if(k==='widget'){
     body.innerHTML=`<div class="field"><label>적용 위젯 효과</label><div class="voice-grid" id="wg"></div></div>`;
     const wg=byId('wg');
-    WIDGETS.forEach(w=>{const wt=w.trim();const el=document.createElement('div');el.className='voice'+(W.cfg.widget===wt?' on':'');
-      el.innerHTML=`<div class="vic">🎉</div><div class="vn">${wt}</div>`;
-      el.onclick=()=>{W.cfg.widget=wt;renderActionConfig();};wg.appendChild(el);});
+    WIDGETS.forEach(w=>{const el=document.createElement('div');el.className='voice'+(W.cfg.widget===w.k?' on':'');
+      el.innerHTML=`<div class="vic">${w.i}</div><div class="vn">${w.k}</div>`;
+      el.onclick=()=>{W.cfg.widget=w.k;renderActionConfig();};wg.appendChild(el);});
   }
   else if(k==='tts'){
     body.innerHTML=`<div class="field"><label>보이스 선택</label><div class="voice-grid" id="vv"></div></div>
@@ -1149,9 +1190,8 @@ function renderPreview(){
   }else if(k==='remote'){
     box.innerHTML=`<div class="remote"><div class="ri">🎛</div><div class="rb"><b>${dn} (${gname})</b> 님이 ${won(amt)} 캐시를<br>후원해 주셨습니다.</div></div>`;
   }else if(k==='widget'){
-    const colors=['#ff3d68','#ffcb45','#5b8cff','#33d69f','#a45bff'];
-    let conf='';for(let i=0;i<14;i++)conf+=`<div class="confetti" style="left:${5+i*7}%;background:${colors[i%5]};animation-delay:${(i*0.15).toFixed(2)}s"></div>`;
-    box.innerHTML=`<div class="widget-prev">${conf}<div class="wtxt">🎉 ${W.cfg.widget||'팡파르'} 효과</div></div>`;
+    const w=WIDGETS.find(x=>x.k===W.cfg.widget)||WIDGETS[0];
+    box.innerHTML=`<div class="widget-prev ${w.fx==='neon'?'neon':''}" style="background:${w.bg}">${widgetFx(w.fx)}<div class="wtxt">${w.i} ${w.k} 효과</div></div>`;
   }else if(k==='tts'){
     const v=VOICES.find(x=>x.k===W.cfg.voice)||VOICES[0];
     box.innerHTML=`<div class="remote"><div class="ri">🔊</div><div class="rb"><b>${v.i} ${v.n} 보이스</b><br>“${dn} 님이 ${won(amt)} 캐시 후원해 주셨습니다”</div></div>`;
