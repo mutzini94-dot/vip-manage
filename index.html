@@ -400,6 +400,36 @@ tbody tr{cursor:pointer}
 .re-target .nm{font-weight:800;font-size:15px;display:flex;gap:7px;align-items:center}
 .re-target .info{font-size:12px;color:var(--muted);margin-top:3px}
 
+/* ===== 승급 게이지 ===== */
+.gauge-box{margin-top:14px}
+.gauge-head{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:8px}
+.gauge-head b{font-weight:800}
+.gauge-head .gauge-amt{font-weight:800;color:var(--text);font-variant-numeric:tabular-nums}
+.gauge{height:9px;border-radius:6px;background:var(--surface-3);overflow:hidden;position:relative}
+.gauge i{display:block;height:100%;border-radius:6px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.gauge.mini{height:5px;margin-top:6px;max-width:120px}
+.gauge-top{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--vvip);
+  background:var(--vvip-soft);border:1px solid rgba(255,203,69,.2);border-radius:10px;padding:9px 13px}
+/* ===== 태그 / 메모 ===== */
+.tag-edit{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.tagchip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 9px;border-radius:7px;white-space:nowrap;border:1px solid transparent}
+.tagchip .tx{width:15px;height:15px;border-radius:50%;display:grid;place-items:center;font-size:12px;line-height:1;opacity:.65}
+.tagchip .tx:hover{opacity:1;background:rgba(0,0,0,.25)}
+.tag-add{background:var(--surface-2);border:1px dashed var(--line-strong);border-radius:7px;padding:5px 10px;color:var(--text);
+  font-size:12px;font-weight:600;width:96px;outline:none}
+.tag-add:focus{border-color:var(--accent);border-style:solid}
+.tag-add::placeholder{color:var(--muted-2)}
+.tag-suggest{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag-suggest .sg{font-size:11.5px;font-weight:700;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);
+  padding:4px 9px;border-radius:7px;cursor:pointer;transition:.12s}
+.tag-suggest .sg:hover{color:var(--text);border-color:var(--line-strong)}
+.tag-suggest .sg::before{content:"+ ";color:var(--muted-2)}
+.memo-inp{resize:vertical;min-height:64px;line-height:1.5}
+/* 도네이터 표 태그 */
+.dn-tags{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.dn-tags .tc{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:6px;white-space:nowrap}
+.dn-tags .more{font-size:10.5px;font-weight:700;color:var(--muted-2)}
+
 @media(max-width:640px){
   .wrap{padding:18px 14px 50px}
   .tab .cnt{display:none}
@@ -719,8 +749,18 @@ tbody tr{cursor:pointer}
         <div class="val tnum" id="drCash">0<small>캐시</small></div>
       </div>
     </div>
+    <div class="gauge-box" id="drGauge"></div>
   </div>
   <div class="dr-body">
+    <div class="dr-sec">
+      <div class="h">🏷 태그</div>
+      <div class="tag-edit" id="drTags"></div>
+      <div class="tag-suggest" id="drTagSuggest"></div>
+    </div>
+    <div class="dr-sec">
+      <div class="h">📝 크리에이터 메모</div>
+      <textarea class="inp memo-inp" id="drMemo" rows="3" placeholder="이 도네이터에 대한 메모… (예: 게임 좋아함, 존댓말 선호, 롤 듀오 약속)"></textarea>
+    </div>
     <div class="dr-sec">
       <div class="h">💫 자주하는 후원</div>
       <div class="dtypes" id="drTypes"></div>
@@ -781,8 +821,11 @@ function seed(){
     const cash = Math.round((Math.random()*480000 + 3000)/100)*100;
     const cnt = Math.max(1, Math.round(cash/ (2000+Math.random()*6000)));
     const y=2023+(i%2), m=1+(i*3%12), d=1+(i*7%27);
+    const tagPool=['단골','게임팬','매너좋음','고정닉','이벤트참여','생일챙기기'];
     return {
       id:uid(), name:nm, alias:'', cash, count:cnt,
+      tags: tagPool.filter(()=>Math.random()>.74),
+      memo: Math.random()>.85 ? '방송 시작 시 인사 꼭 챙기기' : '',
       join:`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`,
       last:`2024-${String(1+(i%10)).padStart(2,'0')}-${String(1+(i*5%27)).padStart(2,'0')}`,
       types:['text','signature','voice','quest'].filter(()=>Math.random()>.4),
@@ -833,6 +876,24 @@ function gradeBadge(g){
   if(!g) return `<span class="gb none"><span class="d"></span>미분류</span>`;
   return `<span class="gb ${clsOf(g)}"><span class="d"></span>${g.name}</span>`;
 }
+/* 다음 등급 & 승급 게이지 */
+function nextGrade(cash){
+  const gs=[...DB.grades].sort((a,b)=>a.min-b.min);
+  for(const g of gs){ if(g.min>cash) return g; }
+  return null;
+}
+function gaugeData(d){
+  const cur=gradeForCash(d.cash), nx=nextGrade(d.cash);
+  if(!nx) return {top:true,cur};
+  const base=cur?cur.min:0;
+  const span=(nx.min-base)||1;
+  const pct=Math.max(3,Math.min(100,(d.cash-base)/span*100));
+  return {top:false,cur,nx,remaining:Math.max(0,nx.min-d.cash),pct};
+}
+/* 태그 색상(문자열 해시 → 색조) */
+function tagHue(t){let h=0;for(const c of t)h=(h*31+c.charCodeAt(0))%360;return h;}
+function tagStyle(t){const h=tagHue(t);return `background:hsla(${h},58%,55%,.16);color:hsl(${h},72%,74%);border-color:hsla(${h},58%,55%,.28)`;}
+const TAG_PRESETS=['단골','게임팬','매너좋음','고정닉','이벤트참여','생일챙기기','첫후원감사','복귀유도'];
 
 /* =========================================================
    Tabs
@@ -981,7 +1042,8 @@ function renderDonators(){
   const tb=byId('donTbody'); tb.innerHTML='';
   let rows=DB.donators.filter(d=>{
     if(!donQuery) return true;
-    return d.name.toLowerCase().includes(donQuery) || (d.alias||'').toLowerCase().includes(donQuery);
+    return d.name.toLowerCase().includes(donQuery) || (d.alias||'').toLowerCase().includes(donQuery)
+      || (d.tags||[]).some(t=>t.toLowerCase().includes(donQuery)) || (d.memo||'').toLowerCase().includes(donQuery);
   });
   if(donSort==='grade'){
     rows.sort((a,b)=>{
@@ -1000,17 +1062,21 @@ function renderDonators(){
     const g=gradeForCash(d.cash);
     const tr=document.createElement('tr');
     const rank=donSort==='rank'&&donCol==='cash'&&donDir===-1 ? i+1 : (DB.donators.slice().sort((a,b)=>b.cash-a.cash).findIndex(x=>x.id===d.id)+1);
+    const gg=gaugeData(d);
+    const tags=d.tags||[];
+    const tagHtml=tags.length?`<div class="dn-tags">${tags.slice(0,3).map(t=>`<span class="tc" style="${tagStyle(t)}">${t}</span>`).join('')}${tags.length>3?`<span class="more">+${tags.length-3}</span>`:''}</div>`:'';
+    const gaugeHtml=gg.top?'':`<div class="gauge mini" title="다음 등급 ${gg.nx.name}까지 ${won(gg.remaining)}원"><i style="width:${gg.pct}%;background:${gg.nx.color}"></i></div>`;
     tr.innerHTML=`
       <td><div class="rank ${rank<=3?'top':''}">${rank}</div></td>
       <td>
         <div class="dn-cell">
           <div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
-          <div><div class="nm">${d.name}</div><div class="al">${d.alias?'@'+d.alias:'별칭 없음'}</div></div>
+          <div><div class="nm">${d.name}</div><div class="al">${d.alias?'@'+d.alias:'별칭 없음'}</div>${tagHtml}</div>
         </div>
       </td>
       <td><div class="cash">${won(d.cash)}<small> 캐시</small></div></td>
       <td class="tnum">${won(d.count)}건</td>
-      <td>${gradeBadge(g)}</td>
+      <td>${gradeBadge(g)}${gaugeHtml}</td>
       <td></td>`;
     // alias input
     const aliasTd=tr.lastElementChild;
@@ -1354,6 +1420,38 @@ byId('wizNext').onclick=()=>{
    Donator Profile Drawer
    ========================================================= */
 const TYPE_META={text:{i:'📝',n:'텍스트'},signature:{i:'✍️',n:'시그니처'},voice:{i:'🎤',n:'음성'},quest:{i:'🎯',n:'퀘스트'}};
+let drId=null;
+function renderDrTags(d){
+  drId=d.id;
+  const box=byId('drTags'); box.innerHTML='';
+  (d.tags||[]).forEach(t=>{
+    const el=document.createElement('span');
+    el.className='tagchip'; el.style.cssText=tagStyle(t);
+    el.innerHTML=`${t}<button class="tx" title="삭제">×</button>`;
+    el.querySelector('.tx').onclick=()=>{d.tags=(d.tags||[]).filter(x=>x!==t);save();renderDrTags(d);renderDonators();};
+    box.appendChild(el);
+  });
+  const inp=document.createElement('input');
+  inp.className='tag-add'; inp.maxLength=10; inp.placeholder=(d.tags&&d.tags.length)?'+ 태그':'+ 태그 추가';
+  inp.onkeydown=e=>{
+    if(e.key==='Enter'){e.preventDefault();addTag(d,e.target.value);e.target.value='';}
+    else if(e.key==='Backspace'&&!e.target.value&&(d.tags||[]).length){d.tags.pop();save();renderDrTags(d);renderDonators();}
+  };
+  box.appendChild(inp);
+  // 프리셋 제안(아직 없는 것만)
+  const sg=byId('drTagSuggest'); sg.innerHTML='';
+  TAG_PRESETS.filter(t=>!(d.tags||[]).includes(t)).forEach(t=>{
+    const b=document.createElement('button'); b.className='sg'; b.textContent=t;
+    b.onclick=()=>addTag(d,t);
+    sg.appendChild(b);
+  });
+}
+function addTag(d,val){
+  const v=(val||'').trim(); if(!v) return;
+  if((d.tags||[]).includes(v)) return toast('이미 있는 태그입니다','!');
+  if((d.tags||[]).length>=8) return toast('태그는 최대 8개까지','!');
+  d.tags=[...(d.tags||[]),v]; save(); renderDrTags(d); renderDonators();
+}
 function openDrawer(id){
   const d=DB.donators.find(x=>x.id===id); if(!d)return;
   const g=gradeForCash(d.cash);
@@ -1362,6 +1460,16 @@ function openDrawer(id){
   byId('drAlias').textContent=d.alias?'@'+d.alias:'별칭 없음';
   byId('drLast').textContent=d.last; byId('drJoin').textContent=d.join; byId('drCount').textContent=won(d.count)+'건';
   byId('drCash').innerHTML=`${won(d.cash)}<small>캐시</small>`;
+  // 승급 게이지
+  const gg=gaugeData(d);
+  byId('drGauge').innerHTML = gg.top
+    ? `<div class="gauge-top">🏆 최고 등급 달성 — 최상위 VIP 팬이에요</div>`
+    : `<div class="gauge-head"><span>다음 등급 <b class="gb ${clsOf(gg.nx)}" style="padding:2px 7px">${gg.nx.name}</b> 까지</span><span class="gauge-amt">${won(gg.remaining)}원</span></div>
+       <div class="gauge"><i style="width:${gg.pct}%;background:${gg.nx.color}"></i></div>`;
+  // 태그 & 메모
+  renderDrTags(d);
+  const memo=byId('drMemo'); memo.value=d.memo||'';
+  memo.onchange=()=>{d.memo=memo.value.trim();save();toast('메모가 저장되었습니다');};
   // types
   byId('drTypes').innerHTML=Object.entries(TYPE_META).map(([k,m])=>{
     const has=d.types.includes(k);
