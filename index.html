@@ -459,6 +459,47 @@ tbody tr{cursor:pointer}
 .grant-row .gt:hover{color:var(--text);border-color:var(--accent);border-style:solid}
 .grant-row .gt::before{content:"+";color:var(--muted-2);font-weight:800}
 
+/* ===== 라이브 VIP 뷰 ===== */
+.tab-live .live-dot{width:8px;height:8px;border-radius:50%;background:var(--muted-2)}
+.tab-live .live-dot.on{background:var(--live);box-shadow:0 0 0 3px rgba(255,70,70,.22);animation:pulse 1.4s infinite}
+.btn.golive.live{background:var(--live);box-shadow:0 3px 14px rgba(255,70,70,.35)}
+.live-badge{display:inline-flex;align-items:center;gap:5px;background:var(--live);color:#fff;font-weight:800;font-size:10px;letter-spacing:.05em;padding:2px 7px;border-radius:5px}
+.live-badge .pulse{width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1.4s infinite}
+@keyframes pulse{0%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(1.35)}100%{opacity:1;transform:scale(1)}}
+.live-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:11px}
+.live-card{border:1px solid var(--line);border-radius:13px;padding:13px;background:var(--surface-2);display:flex;flex-direction:column;gap:10px;transition:.14s;animation:cardin .3s}
+.live-card:hover{border-color:var(--line-strong)}
+@keyframes cardin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.live-card .lc-top{display:flex;align-items:center;gap:10px}
+.live-card .ava{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px;position:relative}
+.live-card .ava::after{content:"";position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;background:var(--on);border:2px solid var(--surface-2)}
+.live-card .nm{font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.live-card .mins{font-size:11.5px;color:var(--muted);margin-top:2px}
+.live-card .lc-acts{display:flex;gap:6px}
+.live-card .lc-acts .btn{flex:1;justify-content:center;padding:7px}
+.live-feed{display:flex;flex-direction:column;gap:2px;max-height:460px;overflow-y:auto}
+.feed-row{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line);font-size:13px;animation:feedin .3s}
+@keyframes feedin{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
+.feed-row .fi{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:13px;flex:none;background:var(--surface-3)}
+.feed-row.donate .fi{background:var(--accent-soft)}
+.feed-row.login .fi{background:rgba(51,214,159,.15)}
+.feed-row .ft{flex:1;min-width:0}
+.feed-row .ft b{font-weight:800}
+.feed-row .fa{font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap}
+.feed-row .fw{font-size:11px;color:var(--muted-2);white-space:nowrap}
+/* ===== 블랙리스트 / 차단 ===== */
+.status-seg .bad{color:#ff6b81}
+tbody tr.blocked{opacity:.5}
+tbody tr.blocked:hover{opacity:.72}
+.block-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:6px;background:rgba(255,70,70,.14);color:#ff6b81;white-space:nowrap}
+.dr-blockbanner{margin-top:14px;background:rgba(255,70,70,.1);border:1px solid rgba(255,70,70,.28);border-radius:12px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px}
+.dr-blockbanner .bi{font-size:16px}
+.dr-blockbanner .bt{flex:1;font-size:12.5px;line-height:1.5}
+.dr-blockbanner .bt b{color:#ff8aa2}
+.dr-blockbanner .br{font-size:11.5px;color:var(--muted);margin-top:2px}
+.btn.block-btn{margin-top:14px;width:100%;justify-content:center;background:transparent;border:1px solid rgba(255,70,70,.3);color:#ff6b81}
+.btn.block-btn:hover{background:rgba(255,70,70,.1)}
+
 @media(max-width:640px){
   .wrap{padding:18px 14px 50px}
   .tab .cnt{display:none}
@@ -501,6 +542,10 @@ tbody tr{cursor:pointer}
     <button class="tab" data-tab="auto">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 13a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 6.6 19a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H2a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 3.7 6.6a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>
       자동화 설정 <span class="cnt" id="tabCntAuto">0</span>
+    </button>
+    <button class="tab tab-live" data-tab="live">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="M8 3v3M16 3v3"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>
+      라이브 <span class="live-dot" id="liveDot"></span>
     </button>
   </div>
 
@@ -683,6 +728,11 @@ tbody tr{cursor:pointer}
           <button data-sort="rank" class="on">후원 순위별</button>
           <button data-sort="grade">등급별</button>
         </div>
+        <div class="seg status-seg" id="donStatus" style="flex:none">
+          <button data-st="active" class="on">활성</button>
+          <button data-st="all">전체</button>
+          <button data-st="blocked" class="bad">⛔ 차단</button>
+        </div>
         <div class="spacer"></div>
         <div class="limit-note">등급 지정 <b id="assignedCount">0</b> / 100명</div>
       </div>
@@ -724,6 +774,49 @@ tbody tr{cursor:pointer}
         <div class="ic">⚡</div>
         <div class="t">설정된 자동화가 없습니다</div>
         <div class="s">‘자동화 추가’를 눌러 첫 자동화를 만들어 보세요.</div>
+      </div>
+    </section>
+
+    <!-- ============ TAB: 라이브 VIP 뷰 ============ -->
+    <section id="page-live" class="hidden">
+      <div class="page-head">
+        <div>
+          <h1>라이브 VIP 뷰</h1>
+          <p>방송 중 접속한 VIP를 실시간으로 확인하고 바로 인사하세요. 로그인·후원이 실시간으로 표시됩니다.</p>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn primary golive" id="goLiveBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5v14l11-7z"/></svg>
+          방송 시작
+        </button>
+      </div>
+
+      <!-- 오프라인 상태 -->
+      <div id="liveOff" class="empty">
+        <div class="ic">📺</div>
+        <div class="t">방송이 꺼져 있습니다</div>
+        <div class="s">‘방송 시작’을 누르면 접속한 VIP가 실시간으로 표시됩니다.</div>
+      </div>
+
+      <!-- 라이브 상태 -->
+      <div id="liveOn" class="hidden">
+        <div class="stats">
+          <div class="stat"><div class="k"><span class="live-badge"><span class="pulse"></span>LIVE</span> 방송 시간</div><div class="v tnum" id="liveElapsed">00:00</div></div>
+          <div class="stat"><div class="k">🟢 현재 접속 VIP</div><div class="v tnum" id="liveOnline">0<small>명</small></div></div>
+          <div class="stat"><div class="k"><span class="gb vvip"><span class="d"></span>VVIP</span> 접속</div><div class="v tnum" id="liveVVIP">0<small>명</small></div></div>
+          <div class="stat"><div class="k">💰 이번 방송 후원</div><div class="v tnum" id="liveDonation">0<small>캐시</small></div></div>
+        </div>
+
+        <div class="ins-grid" style="grid-template-columns:1.5fr 1fr">
+          <div class="panel">
+            <div class="panel-head"><h3>현재 접속 중인 VIP</h3><span class="hint">등급·접속시간 순</span><div class="spacer"></div><button class="btn ghost sm" id="stopLiveBtn">방송 종료</button></div>
+            <div class="panel-body"><div id="liveGrid" class="live-grid"></div></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>실시간 피드</h3><span class="hint">입장 · 후원 · 퇴장</span></div>
+            <div class="panel-body"><div id="liveFeed" class="live-feed"></div></div>
+          </div>
+        </div>
       </div>
     </section>
   </div>
@@ -842,6 +935,7 @@ tbody tr{cursor:pointer}
       </div>
     </div>
     <div class="gauge-box" id="drGauge"></div>
+    <div id="drBlock"></div>
   </div>
   <div class="dr-body">
     <div class="dr-sec">
@@ -895,6 +989,28 @@ tbody tr{cursor:pointer}
   </div>
 </div>
 
+<!-- ============ 도네이터 차단 ============ -->
+<div class="overlay" id="blockOverlay">
+  <div class="modal" style="max-width:430px">
+    <div class="modal-head">
+      <h2>도네이터 차단</h2><div class="spacer"></div><button class="xbtn" id="blockClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="re-target" id="blockTarget"></div>
+      <div class="field">
+        <label>차단 사유 <span class="helper" style="display:inline;font-weight:500">(선택)</span></label>
+        <textarea class="inp" id="blockReason" rows="3" placeholder="예: 부적절한 후원 메시지 반복, 도배, 욕설…"></textarea>
+        <div class="helper">차단된 도네이터는 <b>라이브 뷰·이탈 관리·자동화 대상에서 제외</b>됩니다. 언제든 해제할 수 있어요.</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="blockCancel">취소</button>
+      <div class="spacer"></div>
+      <button class="btn primary" id="blockConfirm" style="background:#e2415a">차단하기</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
@@ -931,6 +1047,7 @@ function seed(){
       }))
     };
   });
+  if(donators[22]){donators[22].blocked=true;donators[22].blockReason='부적절한 후원 메시지 반복';donators[22].blockedAt='2024-09-14';}
   return {
     grades:[
       {id:'g_vvip',name:'VVIP',cls:'vvip',color:'#ffcb45',mode:'over',min:300000,max:0},
@@ -960,7 +1077,7 @@ let DB = load(); normalize();
 function load(){ try{ const r=localStorage.getItem(LS); if(r) return JSON.parse(r);}catch(e){} return seed(); }
 function normalize(){
   if(!DB.titles) DB.titles=seedTitles();
-  (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];});
+  (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;});
 }
 function save(){ localStorage.setItem(LS, JSON.stringify(DB)); }
 
@@ -1033,7 +1150,7 @@ function titleBadge(t){return `<span class="tbadge" style="--tc:${t.color}"><spa
 /* =========================================================
    Tabs
    ========================================================= */
-const pages={insight:byId('page-insight'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),auto:byId('page-auto')};
+const pages={insight:byId('page-insight'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),auto:byId('page-auto'),live:byId('page-live')};
 function byId(id){return document.getElementById(id);}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
@@ -1044,6 +1161,7 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   if(tab==='auto') renderAutos();
   if(tab==='grade') renderGrades();
   if(tab==='title') renderTitles();
+  if(tab==='live') renderLive();
 });
 
 /* =========================================================
@@ -1160,11 +1278,16 @@ function renderGrades(){
 /* =========================================================
    TAB 2 — 도네이터 관리
    ========================================================= */
-let donSort='rank', donCol='cash', donDir=-1, donQuery='';
+let donSort='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active';
 byId('donSearch').addEventListener('input',e=>{donQuery=e.target.value.trim().toLowerCase();renderDonators();});
 byId('donSort').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   donSort=b.dataset.sort;
   byId('donSort').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  renderDonators();
+});
+byId('donStatus').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  donStatus=b.dataset.st;
+  byId('donStatus').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
   renderDonators();
 });
 document.querySelectorAll('th.sortable').forEach(th=>th.onclick=()=>{
@@ -1177,6 +1300,8 @@ document.querySelectorAll('th.sortable').forEach(th=>th.onclick=()=>{
 function renderDonators(){
   const tb=byId('donTbody'); tb.innerHTML='';
   let rows=DB.donators.filter(d=>{
+    if(donStatus==='active' && d.blocked) return false;
+    if(donStatus==='blocked' && !d.blocked) return false;
     if(!donQuery) return true;
     return d.name.toLowerCase().includes(donQuery) || (d.alias||'').toLowerCase().includes(donQuery)
       || (d.tags||[]).some(t=>t.toLowerCase().includes(donQuery)) || (d.memo||'').toLowerCase().includes(donQuery);
@@ -1201,13 +1326,14 @@ function renderDonators(){
     const gg=gaugeData(d);
     const tags=d.tags||[];
     const tagHtml=tags.length?`<div class="dn-tags">${tags.slice(0,3).map(t=>`<span class="tc" style="${tagStyle(t)}">${t}</span>`).join('')}${tags.length>3?`<span class="more">+${tags.length-3}</span>`:''}</div>`:'';
-    const gaugeHtml=gg.top?'':`<div class="gauge mini" title="다음 등급 ${gg.nx.name}까지 ${won(gg.remaining)}원"><i style="width:${gg.pct}%;background:${gg.nx.color}"></i></div>`;
+    const gaugeHtml=(gg.top||d.blocked)?'':`<div class="gauge mini" title="다음 등급 ${gg.nx.name}까지 ${won(gg.remaining)}원"><i style="width:${gg.pct}%;background:${gg.nx.color}"></i></div>`;
+    if(d.blocked) tr.classList.add('blocked');
     tr.innerHTML=`
       <td><div class="rank ${rank<=3?'top':''}">${rank}</div></td>
       <td>
         <div class="dn-cell">
           <div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
-          <div><div class="nm">${d.name}</div><div class="al">${d.alias?'@'+d.alias:'별칭 없음'}</div>${tagHtml}</div>
+          <div><div class="nm">${d.name}${d.blocked?' <span class="block-badge">⛔ 차단</span>':''}</div><div class="al">${d.alias?'@'+d.alias:'별칭 없음'}</div>${tagHtml}</div>
         </div>
       </td>
       <td><div class="cash">${won(d.cash)}<small> 캐시</small></div></td>
@@ -1602,6 +1728,8 @@ function openDrawer(id){
     ? `<div class="gauge-top">🏆 최고 등급 달성 — 최상위 VIP 팬이에요</div>`
     : `<div class="gauge-head"><span>다음 등급 <b class="gb ${clsOf(gg.nx)}" style="padding:2px 7px">${gg.nx.name}</b> 까지</span><span class="gauge-amt">${won(gg.remaining)}원</span></div>
        <div class="gauge"><i style="width:${gg.pct}%;background:${gg.nx.color}"></i></div>`;
+  // 차단 상태
+  renderDrBlock(d);
   // 태그 & 메모
   renderDrTags(d);
   const memo=byId('drMemo'); memo.value=d.memo||'';
@@ -1736,7 +1864,7 @@ function renderPareto(){
 let churnThreshold=30;
 function churnData(th){
   return DB.donators.map(d=>({d,dorm:daysAgo(d),g:gradeForCash(d.cash)}))
-    .filter(x=>x.g&&x.dorm>=th)
+    .filter(x=>x.g&&!x.d.blocked&&x.dorm>=th)
     .sort((a,b)=>(b.d.cash-a.d.cash)||(b.dorm-a.dorm));
 }
 function riskOf(dorm){if(dorm>=60)return['high','위험'];if(dorm>=30)return['mid','주의'];return['low','관찰'];}
@@ -1908,6 +2036,157 @@ function renderDrTitles(d){
   });
 }
 
+/* =========================================================
+   블랙리스트 (도네이터 차단)
+   ========================================================= */
+let blockId=null;
+function renderDrBlock(d){
+  const box=byId('drBlock');
+  if(d.blocked){
+    box.innerHTML=`<div class="dr-blockbanner">
+      <div class="bi">⛔</div>
+      <div class="bt"><b>차단된 도네이터</b>${d.blockedAt?` · ${d.blockedAt}`:''}
+        <div class="br">${d.blockReason?'사유: '+d.blockReason:'사유 미기재'}</div></div>
+      <button class="btn ghost sm" id="drUnblock">차단 해제</button></div>`;
+    byId('drUnblock').onclick=()=>{d.blocked=false;delete d.blockReason;delete d.blockedAt;save();renderDrBlock(d);renderDonators();if(LIVE.on)renderLive();toast('차단을 해제했습니다');};
+  }else{
+    box.innerHTML=`<button class="btn block-btn" id="drBlockBtn">⛔ 이 도네이터 차단</button>`;
+    byId('drBlockBtn').onclick=()=>openBlock(d.id);
+  }
+}
+function openBlock(id){
+  const d=DB.donators.find(x=>x.id===id);if(!d)return;blockId=id;
+  const g=gradeForCash(d.cash);
+  byId('blockTarget').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+    <div><div class="nm">${d.alias||d.name} ${gradeBadge(g)}</div><div class="info">누적 ${won(d.cash)}캐시 · ${won(d.count)}건</div></div>`;
+  byId('blockReason').value='';
+  byId('blockOverlay').classList.add('show');
+}
+byId('blockClose').onclick=byId('blockCancel').onclick=()=>byId('blockOverlay').classList.remove('show');
+byId('blockOverlay').onclick=e=>{if(e.target===byId('blockOverlay'))byId('blockOverlay').classList.remove('show');};
+byId('blockConfirm').onclick=()=>{
+  const d=DB.donators.find(x=>x.id===blockId);
+  if(d){d.blocked=true;d.blockReason=byId('blockReason').value.trim();d.blockedAt=todayStr();save();
+    renderDrBlock(d);renderDonators();renderInsights();
+    if(LIVE.on){LIVE.online.delete(d.id);renderLive();}
+  }
+  byId('blockOverlay').classList.remove('show');
+  toast('도네이터를 차단했습니다');
+};
+function todayStr(){const t=refNow();const dt=new Date(t);return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;}
+
+/* =========================================================
+   TAB — 라이브 VIP 뷰
+   ========================================================= */
+const LIVE={on:false,online:new Map(),feed:[],donation:0,elapsed:0,tick:null,clock:null};
+const DONATE_AMTS=[1000,3000,5000,10000,30000,50000];
+function liveEligible(){return DB.donators.filter(d=>!d.blocked && gradeForCash(d.cash));}
+function pick(arr){return arr.length?arr[Math.floor(Math.random()*arr.length)]:null;}
+
+byId('goLiveBtn').onclick=()=>{ LIVE.on?stopLive():goLive(); };
+byId('stopLiveBtn').onclick=stopLive;
+
+function goLive(){
+  LIVE.on=true; LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0;
+  const pool=liveEligible().sort(()=>Math.random()-.5);
+  pool.slice(0,Math.min(6,pool.length)).forEach(d=>LIVE.online.set(d.id,{mins:1+Math.floor(Math.random()*35)}));
+  pushFeed('start',null,'방송을 시작했습니다');
+  LIVE.tick=setInterval(liveTick,3000);
+  LIVE.clock=setInterval(()=>{LIVE.elapsed++;updateElapsed();},1000);
+  renderLive();
+}
+function stopLive(){
+  LIVE.on=false; clearInterval(LIVE.tick); clearInterval(LIVE.clock);
+  LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0;
+  renderLive();
+}
+function liveTick(){
+  // 접속 시간 증가
+  LIVE.online.forEach(v=>v.mins++);
+  const onlineIds=[...LIVE.online.keys()];
+  const offline=liveEligible().filter(d=>!LIVE.online.has(d.id));
+  const r=Math.random();
+  if(LIVE.online.size<3 && offline.length){ loginRandom(offline); }
+  else if(r<0.45 && offline.length){ loginRandom(offline); }
+  else if(r<0.62 && LIVE.online.size>2){ // 퇴장
+    const id=pick(onlineIds); const d=DB.donators.find(x=>x.id===id);
+    LIVE.online.delete(id); pushFeed('logout',d,'퇴장했습니다');
+  }else if(onlineIds.length){ // 후원
+    const d=DB.donators.find(x=>x.id===pick(onlineIds));
+    const amt=pick(DONATE_AMTS); LIVE.donation+=amt;
+    pushFeed('donate',d,null,amt);
+  }
+  renderLive();
+}
+function loginRandom(offline){
+  const d=pick(offline); if(!d)return;
+  LIVE.online.set(d.id,{mins:0}); pushFeed('login',d,'입장했습니다');
+}
+function pushFeed(type,d,msg,amt){
+  LIVE.feed.unshift({type,name:d?(d.alias||d.name):'',gid:d?d.id:null,
+    grade:d?gradeForCash(d.cash):null,msg,amt,at:LIVE.elapsed});
+  if(LIVE.feed.length>40)LIVE.feed.pop();
+}
+function fmtElapsed(s){const m=Math.floor(s/60),ss=s%60;return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;}
+function updateElapsed(){ if(byId('liveElapsed')) byId('liveElapsed').textContent=fmtElapsed(LIVE.elapsed); }
+
+function renderLive(){
+  byId('liveDot').classList.toggle('on',LIVE.on);
+  const btn=byId('goLiveBtn');
+  btn.classList.toggle('live',LIVE.on);
+  btn.innerHTML = LIVE.on
+    ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg> 방송 중 · 종료`
+    : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5v14l11-7z"/></svg> 방송 시작`;
+  byId('liveOff').classList.toggle('hidden',LIVE.on);
+  byId('liveOn').classList.toggle('hidden',!LIVE.on);
+  if(!LIVE.on) return;
+  // stats
+  const onl=[...LIVE.online.entries()].map(([id,v])=>({d:DB.donators.find(x=>x.id===id),v})).filter(x=>x.d);
+  const vvip=onl.filter(x=>{const g=gradeForCash(x.d.cash);return g&&g.cls==='vvip';}).length;
+  byId('liveElapsed').textContent=fmtElapsed(LIVE.elapsed);
+  byId('liveOnline').innerHTML=`${onl.length}<small>명</small>`;
+  byId('liveVVIP').innerHTML=`${vvip}<small>명</small>`;
+  byId('liveDonation').innerHTML=`${won(LIVE.donation)}<small>캐시</small>`;
+  // grid
+  onl.sort((a,b)=>{const ga=gradeForCash(a.d.cash),gb=gradeForCash(b.d.cash);return (gb?gb.min:0)-(ga?ga.min:0)||b.v.mins-a.v.mins;});
+  const grid=byId('liveGrid');
+  grid.innerHTML = onl.length ? '' : '<div class="helper">접속 중인 VIP가 없습니다. 곧 입장할 거예요.</div>';
+  onl.forEach(({d,v})=>{
+    const g=gradeForCash(d.cash);
+    const card=document.createElement('div');card.className='live-card';
+    card.innerHTML=`<div class="lc-top">
+        <div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+        <div style="min-width:0"><div class="nm">${d.alias||d.name} ${gradeBadge(g)}</div><div class="mins">🟢 접속 ${v.mins}분</div></div>
+      </div>
+      <div class="lc-acts">
+        <button class="btn primary sm greet" data-id="${d.id}">👋 인사</button>
+        <button class="btn ghost sm prof" data-id="${d.id}">프로필</button>
+      </div>`;
+    card.querySelector('.greet').onclick=()=>greetVIP(d.id);
+    card.querySelector('.prof').onclick=()=>openDrawer(d.id);
+    grid.appendChild(card);
+  });
+  // feed
+  const FEED_ICON={login:'🟢',logout:'⚪',donate:'💰',greet:'👋',start:'📡'};
+  byId('liveFeed').innerHTML=LIVE.feed.map(f=>{
+    const gname=f.grade?`(${f.grade.name})`:'';
+    const body = f.type==='donate'
+      ? `<b>${f.name}</b> <span style="color:var(--muted)">${gname}</span> 님이 후원했습니다`
+      : (f.type==='greet' ? `<b>${f.name}</b> 님에게 인사했습니다`
+      : (f.name?`<b>${f.name}</b> <span style="color:var(--muted)">${gname}</span> 님이 ${f.msg}` : f.msg));
+    return `<div class="feed-row ${f.type}"><div class="fi">${FEED_ICON[f.type]||'•'}</div>
+      <div class="ft">${body}</div>
+      ${f.amt?`<div class="fa">+${won(f.amt)}</div>`:''}
+      <div class="fw">${fmtElapsed(f.at)}</div></div>`;
+  }).join('');
+}
+function greetVIP(id){
+  const d=DB.donators.find(x=>x.id===id);if(!d)return;
+  pushFeed('greet',d,null);
+  renderLive();
+  toast(`${d.alias||d.name}님에게 인사를 전했어요 👋`);
+}
+
 /* ---------- init ---------- */
 renderSwatches();
 renderGrades();
@@ -1916,6 +2195,7 @@ renderAutos();
 renderInsights();
 resetTitleForm();
 renderTitles();
+renderLive();
 </script>
 </body>
 </html>
