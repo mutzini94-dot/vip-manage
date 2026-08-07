@@ -189,6 +189,18 @@ tbody tr{cursor:pointer}
 .auto-card .ac-top{display:flex;align-items:flex-start;gap:11px}
 .auto-card .ac-ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex:none;position:relative}
 .auto-card .ac-ic .act-count{position:absolute;right:-4px;top:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;border:2px solid var(--surface)}
+/* 추천 템플릿 */
+.tpl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(max-width:640px){.tpl-grid{grid-template-columns:1fr}}
+.tpl-card{border:1px solid var(--line);border-radius:14px;padding:15px;background:var(--surface-2);display:flex;flex-direction:column;gap:12px;transition:.13s}
+.tpl-card:hover{border-color:var(--line-strong)}
+.tpl-top{display:flex;align-items:flex-start;gap:12px}
+.tpl-ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:20px;flex:none;background:var(--accent-soft)}
+.tpl-t{font-weight:800;font-size:14.5px}
+.tpl-d{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.45}
+.tpl-card .ac-flow{margin-top:auto}
+.tpl-acts{display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--line)}
+.tpl-acts .btn{flex:1;justify-content:center}
 /* STEP2 다중 액션 */
 .act-item{border:1.5px solid var(--line);border-radius:13px;overflow:hidden;background:var(--surface-2);transition:.13s}
 .act-item.sel{border-color:var(--accent)}
@@ -829,6 +841,10 @@ tbody tr.blocked:hover{opacity:.72}
           <p>특정 상황이 발생하면 자동으로 액션을 발동합니다. VIP 도네이터의 로그인·후원 시 특별한 경험을 제공하세요.</p>
         </div>
         <div class="spacer"></div>
+        <button class="btn ghost" id="tplBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.09 4.26L19 8l-3.5 3.4.8 4.6L12 14l-4.3 2 .8-4.6L5 8l4.91-.74z"/></svg>
+          추천 템플릿
+        </button>
         <button class="btn primary" id="addAutoBtn">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
           자동화 추가
@@ -838,7 +854,8 @@ tbody tr.blocked:hover{opacity:.72}
       <div id="autoEmpty" class="empty hidden">
         <div class="ic">⚡</div>
         <div class="t">설정된 자동화가 없습니다</div>
-        <div class="s">‘자동화 추가’를 눌러 첫 자동화를 만들어 보세요.</div>
+        <div class="s">추천 템플릿으로 빠르게 시작하거나, 직접 만들어 보세요.</div>
+        <button class="btn primary" id="emptyTplBtn" style="margin-top:14px">✨ 추천 템플릿에서 시작</button>
       </div>
 
       <div class="panel" style="margin-top:22px">
@@ -890,6 +907,19 @@ tbody tr.blocked:hover{opacity:.72}
         </div>
       </div>
     </section>
+  </div>
+</div>
+
+<!-- ============ 추천 템플릿 ============ -->
+<div class="overlay" id="tplOverlay">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h2>✨ 추천 자동화 템플릿</h2><div class="spacer"></div><button class="xbtn" id="tplClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="helper" style="margin:0 0 16px">완성형 자동화를 원클릭으로 추가하세요. ‘설정하며 추가’로 대상·문구를 먼저 다듬을 수도 있어요.</div>
+      <div class="tpl-grid" id="tplGrid"></div>
+    </div>
   </div>
 </div>
 
@@ -1822,6 +1852,58 @@ byId('wizNext').onclick=()=>{
   save();closeWizard();renderAutos();toast(W.id?'자동화가 수정되었습니다':'자동화가 추가되었습니다');
 };
 
+/* --- 추천 템플릿 프리셋 --- */
+function gradeIdByCls(cls){const g=DB.grades.find(x=>clsOf(x)===cls);return g?g.id:(DB.grades[0]?.id);}
+function clsIds(...cls){return [...new Set(cls.map(gradeIdByCls).filter(Boolean))];}
+const AUTO_PRESETS=[
+  {key:'vvip_live',icon:'📡',title:'VVIP 방송 시작 알림',desc:'방송을 켜면 VVIP에게 카카오 알림톡으로 알려요.',
+    make:()=>({situ:'login',targetMode:'class',classes:clsIds('vvip'),actions:[{type:'kakao_send',cfg:{msg:'{크리에이터} 님이 방송을 시작하였습니다! 보러 오세요 💜'}}]})},
+  {key:'welcome',icon:'🌱',title:'신규 팬 환영 패키지',desc:'첫 후원한 팬에게 하트비 위젯 + 환영 알림톡.',
+    make:()=>({situ:'first',actions:[{type:'widget',cfg:{widget:'하트비'}},{type:'kakao_send',cfg:{msg:'{닉네임}님, 첫 후원 감사합니다! 앞으로 잘 부탁드려요 💕'}}]})},
+  {key:'bighand',icon:'💎',title:'큰손 축포',desc:'5만원 이상 후원 시 폭죽 위젯 + TTS 낭독.',
+    make:()=>({situ:'amount',amt:{mode:'over',min:50000,max:0},actions:[{type:'widget',cfg:{widget:'폭죽'}},{type:'tts',cfg:{voice:VOICES[0].k}}]})},
+  {key:'vvip_remote',icon:'🎛',title:'VVIP 후원 즉시 알림',desc:'VVIP가 후원하면 리모컨 + 알림톡으로 바로 알려요.',
+    make:()=>({situ:'donate',targetMode:'class',classes:clsIds('vvip'),actions:[{type:'remote',cfg:{}},{type:'kakao_recv',cfg:{phone:''}}]})},
+  {key:'promote',icon:'🎖️',title:'등급 승급 축하',desc:'VIP·VVIP로 승급하면 팡파르 + 축하 알림톡.',
+    make:()=>({situ:'promote',targetMode:'class',classes:clsIds('vip','vvip'),actions:[{type:'widget',cfg:{widget:'팡파르'}},{type:'kakao_send',cfg:{msg:'{닉네임}님, {등급} 등급 승급을 축하합니다! 🎉'}}]})},
+  {key:'anniv',icon:'🎂',title:'가입 기념일 축하',desc:'VIP 기념일에 골드러시 위젯 + 축하 알림톡.',
+    make:()=>({situ:'anniv',targetMode:'class',classes:clsIds('vvip','vip'),actions:[{type:'kakao_send',cfg:{msg:'{닉네임}님, 가입 {주년}주년을 축하해요! 늘 함께해 주셔서 감사합니다 🎂'}},{type:'widget',cfg:{widget:'골드러시'}}]})},
+];
+const tplOv=byId('tplOverlay');
+function openTpl(){renderTpl();tplOv.classList.add('show');}
+function closeTpl(){tplOv.classList.remove('show');}
+byId('tplBtn').onclick=openTpl;
+byId('emptyTplBtn').onclick=openTpl;
+byId('tplClose').onclick=closeTpl;
+tplOv.onclick=e=>{if(e.target===tplOv)closeTpl();};
+function renderTpl(){
+  const grid=byId('tplGrid');grid.innerHTML='';
+  AUTO_PRESETS.forEach(p=>{
+    const obj=p.make(),s=SITU[obj.situ];
+    const actChips=obj.actions.map(ac=>{const A=ACTIONS[ac.type];return `<span class="flow-chip act">${A.icon} ${A.label}</span>`;}).join('<span class="flow-arrow">+</span>');
+    const card=document.createElement('div');card.className='tpl-card';
+    card.innerHTML=`
+      <div class="tpl-top"><div class="tpl-ic">${p.icon}</div><div><div class="tpl-t">${p.title}</div><div class="tpl-d">${p.desc}</div></div></div>
+      <div class="ac-flow"><span class="flow-chip trig">${s.icon} ${s.label}</span><span class="flow-arrow">→</span>${actChips}</div>
+      <div class="tpl-acts"><button class="btn ghost sm" data-edit="${p.key}">설정하며 추가</button><button class="btn primary sm" data-add="${p.key}">바로 추가</button></div>`;
+    card.querySelector('[data-add]').onclick=()=>addPreset(p.key);
+    card.querySelector('[data-edit]').onclick=()=>openPresetWizard(p.key);
+    grid.appendChild(card);
+  });
+}
+function addPreset(key){
+  const p=AUTO_PRESETS.find(x=>x.key===key);if(!p)return;
+  DB.autos.push({id:uid(),on:true,...p.make()});
+  save();closeTpl();renderAutos();toast(`‘${p.title}’ 자동화를 추가했습니다`);
+}
+function openPresetWizard(key){
+  const p=AUTO_PRESETS.find(x=>x.key===key);if(!p)return;const obj=p.make();
+  W={step:1,id:null,situ:obj.situ,targetMode:obj.targetMode||'class',classes:[...(obj.classes||[])],picks:[...(obj.picks||[])],
+     amt:{...(obj.amt||{mode:'range',min:0,max:0})},actions:obj.actions.map(a=>({type:a.type,cfg:{...a.cfg}}))};
+  byId('wizTitle').textContent='자동화 추가';
+  closeTpl();renderWizard();wizOv.classList.add('show');
+}
+
 /* =========================================================
    Donator Profile Drawer
    ========================================================= */
@@ -1916,7 +1998,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();byId('confirmOverlay').classList.remove('show');}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();byId('confirmOverlay').classList.remove('show');}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
