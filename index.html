@@ -201,6 +201,28 @@ tbody tr{cursor:pointer}
 .tpl-card .ac-flow{margin-top:auto}
 .tpl-acts{display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--line)}
 .tpl-acts .btn{flex:1;justify-content:center}
+/* 고급 설정 (쿨다운·스케줄) */
+.adv-sec{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+.adv-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 12px;border-radius:10px;
+  background:var(--surface-2);border:1px solid var(--line);font-weight:700;font-size:13.5px;color:var(--text)}
+.adv-toggle:hover{border-color:var(--line-strong)}
+.adv-toggle .chev{color:var(--muted)}
+.adv-body{margin-top:12px;display:flex;flex-direction:column;gap:12px}
+.adv-block{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--surface-2)}
+.adv-head{display:flex;align-items:center;gap:12px}
+.adv-head>div:first-child{flex:1}
+.adv-t{font-weight:800;font-size:13.5px}
+.adv-d{font-size:12px;color:var(--muted);margin-top:2px}
+.adv-opts{margin-top:14px;display:flex;flex-direction:column;gap:11px;border-top:1px dashed var(--line-strong);padding-top:14px}
+.adv-row{display:flex;align-items:center;gap:10px;font-size:13px;flex-wrap:wrap}
+.adv-row .adv-lbl{width:110px;flex:none;color:var(--muted);font-weight:700}
+.adv-row .unit{color:var(--muted)}
+.sm-inp{width:auto;min-width:70px;padding:8px 11px}
+input.tnum.sm-inp{width:80px;text-align:right}
+.daypick{display:flex;gap:5px;flex-wrap:wrap}
+.daypick .day{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--surface-3);color:var(--muted);font-weight:700;font-size:12.5px;transition:.12s}
+.daypick .day:hover{color:var(--text);border-color:var(--line-strong)}
+.daypick .day.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 /* STEP2 다중 액션 */
 .act-item{border:1.5px solid var(--line);border-radius:13px;overflow:hidden;background:var(--surface-2);transition:.13s}
 .act-item.sel{border-color:var(--accent)}
@@ -981,6 +1003,32 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="section-lbl">발동할 액션을 선택하세요 <span style="color:var(--muted-2);font-weight:600">· 복수 선택 가능</span></div>
         <div class="opt-grid" id="actionList"></div>
 
+        <div class="adv-sec">
+          <button class="adv-toggle" id="advToggle" type="button">
+            <span>⚙️ 고급 설정 <span class="adv-sum" style="color:var(--muted);font-weight:600">선택</span></span>
+            <span class="chev">▾</span>
+          </button>
+          <div class="adv-body hidden" id="advBody">
+            <div class="adv-block">
+              <div class="adv-head"><div><div class="adv-t">쿨다운 · 빈도 제한</div><div class="adv-d">같은 알림이 너무 자주 발동되지 않게 제한합니다.</div></div><div class="tgl" id="cdTgl"></div></div>
+              <div class="adv-opts hidden" id="cdOpts">
+                <div class="adv-row"><span class="adv-lbl">적용 범위</span>
+                  <div class="seg" id="cdScope" style="flex:none"><button data-s="donator" class="on">도네이터별</button><button data-s="global">전체</button></div></div>
+                <div class="adv-row"><span class="adv-lbl">최소 재발동 간격</span><input class="inp tnum sm-inp" id="cdMin" inputmode="numeric"> <span class="unit">분</span></div>
+                <div class="adv-row"><span class="adv-lbl">하루 최대 횟수</span><input class="inp tnum sm-inp" id="cdCap" inputmode="numeric"> <span class="unit">회</span> <span class="helper" style="display:inline;margin:0">0 = 무제한</span></div>
+              </div>
+            </div>
+            <div class="adv-block">
+              <div class="adv-head"><div><div class="adv-t">스케줄 · 기간 한정</div><div class="adv-d">지정한 요일·시간대·기간에만 발동합니다.</div></div><div class="tgl" id="scTgl"></div></div>
+              <div class="adv-opts hidden" id="scOpts">
+                <div class="adv-row"><span class="adv-lbl">요일</span><div class="daypick" id="scDays"></div></div>
+                <div class="adv-row"><span class="adv-lbl">시간대</span><input type="time" class="inp sm-inp" id="scStart"> <span class="unit">~</span> <input type="time" class="inp sm-inp" id="scEnd"></div>
+                <div class="adv-row"><span class="adv-lbl">기간</span><input type="date" class="inp sm-inp" id="scFrom"> <span class="unit">~</span> <input type="date" class="inp sm-inp" id="scTo"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div id="actionConfig" class="hidden">
           <div class="section-lbl" id="cfgLbl">액션 상세 설정</div>
           <div id="cfgBody"></div>
@@ -1591,6 +1639,8 @@ function renderAutos(){
     const tags=[];
     if(a.targetMode==='class')(a.classes||[]).forEach(id=>{const g=DB.grades.find(x=>x.id===id);if(g)tags.push(g.name);});
     acts.forEach(ac=>{ if(ac.type==='widget')tags.push('효과: '+(ac.cfg?.widget||'')); if(ac.type==='tts')tags.push('보이스: '+(VOICES.find(v=>v.k===ac.cfg?.voice)?.n||'기본')); });
+    if(a.cooldown?.on)tags.push(`⏱ ${a.cooldown.minutes}분`+(a.cooldown.dailyCap>0?` · ${a.cooldown.dailyCap}회/일`:''));
+    if(a.schedule?.on){const dc=(a.schedule.days||[]).length;tags.push('📅 '+(dc?`${dc}개 요일`:'스케줄'));}
     const summary=acts.map(ac=>ACTIONS[ac.type]?.label).filter(Boolean).join(' + ')||'액션 없음';
     const actChips=acts.map(ac=>{const A=ACTIONS[ac.type];return `<span class="flow-chip act">${A?.icon||''} ${A?.label||''}</span>`;}).join('<span class="flow-arrow">+</span>');
     card.innerHTML=`
@@ -1630,12 +1680,14 @@ function openWizard(id){
   if(id){
     const a=DB.autos.find(x=>x.id===id);
     W={step:1,id,situ:a.situ,targetMode:a.targetMode||'class',classes:[...(a.classes||[])],picks:[...(a.picks||[])],
-       amt:{...(a.amt||{mode:'range',min:0,max:0})},actions:(a.actions||[]).map(x=>({type:x.type,cfg:{...x.cfg}}))};
+       amt:{...(a.amt||{mode:'range',min:0,max:0})},actions:(a.actions||[]).map(x=>({type:x.type,cfg:{...x.cfg}})),
+       cooldown:{...defCooldown(),...(a.cooldown||{})},schedule:{...defSchedule(),...(a.schedule||{}),days:[...((a.schedule||{}).days||[])]}};
     byId('wizTitle').textContent='자동화 수정';
   }else{
-    W={step:1,id:null,situ:null,targetMode:'class',classes:[],picks:[],amt:{mode:'range',min:0,max:0},actions:[]};
+    W={step:1,id:null,situ:null,targetMode:'class',classes:[],picks:[],amt:{mode:'range',min:0,max:0},actions:[],cooldown:defCooldown(),schedule:defSchedule()};
     byId('wizTitle').textContent='자동화 추가';
   }
+  advOpen=W.cooldown.on||W.schedule.on;
   renderWizard();
   wizOv.classList.add('show');
 }
@@ -1769,7 +1821,43 @@ function renderStep2(){
     }
     list.appendChild(item);
   });
+  renderAdvanced();
 }
+/* --- 고급 설정: 쿨다운 · 스케줄 --- */
+const DAYS=[{d:1,n:'월'},{d:2,n:'화'},{d:3,n:'수'},{d:4,n:'목'},{d:5,n:'금'},{d:6,n:'토'},{d:0,n:'일'}];
+let advOpen=false;
+function defCooldown(){return {on:false,scope:'donator',minutes:5,dailyCap:0};}
+function defSchedule(){return {on:false,days:[],start:'',end:'',from:'',to:''};}
+function renderAdvanced(){
+  const cd=W.cooldown, sc=W.schedule;
+  byId('advBody').classList.toggle('hidden',!advOpen);
+  byId('advToggle').querySelector('.chev').textContent=advOpen?'▴':'▾';
+  const parts=[]; if(cd.on)parts.push('쿨다운'); if(sc.on)parts.push('스케줄');
+  byId('advToggle').querySelector('.adv-sum').textContent=parts.length?parts.join(' · ')+' 적용':'선택';
+  // 쿨다운
+  byId('cdTgl').classList.toggle('on',cd.on);
+  byId('cdOpts').classList.toggle('hidden',!cd.on);
+  byId('cdScope').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.s===cd.scope));
+  byId('cdMin').value=cd.minutes||0; byId('cdCap').value=cd.dailyCap||0;
+  // 스케줄
+  byId('scTgl').classList.toggle('on',sc.on);
+  byId('scOpts').classList.toggle('hidden',!sc.on);
+  byId('scStart').value=sc.start||''; byId('scEnd').value=sc.end||'';
+  byId('scFrom').value=sc.from||''; byId('scTo').value=sc.to||'';
+  const dp=byId('scDays'); dp.innerHTML='';
+  DAYS.forEach(({d,n})=>{const b=document.createElement('button');b.type='button';b.className='day'+(sc.days.includes(d)?' on':'');b.textContent=n;
+    b.onclick=()=>{sc.days=sc.days.includes(d)?sc.days.filter(x=>x!==d):[...sc.days,d];renderAdvanced();};dp.appendChild(b);});
+}
+byId('advToggle').onclick=()=>{advOpen=!advOpen;renderAdvanced();};
+byId('cdTgl').onclick=()=>{W.cooldown.on=!W.cooldown.on;renderAdvanced();};
+byId('scTgl').onclick=()=>{W.schedule.on=!W.schedule.on;renderAdvanced();};
+byId('cdScope').querySelectorAll('button').forEach(b=>b.onclick=()=>{W.cooldown.scope=b.dataset.s;renderAdvanced();});
+byId('cdMin').addEventListener('input',e=>{W.cooldown.minutes=+e.target.value.replace(/[^\d]/g,'')||0;});
+byId('cdCap').addEventListener('input',e=>{W.cooldown.dailyCap=+e.target.value.replace(/[^\d]/g,'')||0;});
+byId('scStart').addEventListener('input',e=>{W.schedule.start=e.target.value;});
+byId('scEnd').addEventListener('input',e=>{W.schedule.end=e.target.value;});
+byId('scFrom').addEventListener('input',e=>{W.schedule.from=e.target.value;});
+byId('scTo').addEventListener('input',e=>{W.schedule.to=e.target.value;});
 function buildActionCfg(type,cfg,fields,prev){
   fields.innerHTML='';
   if(type==='kakao_send'){
@@ -1843,7 +1931,8 @@ byId('wizBack').onclick=()=>{W.step=1;renderWizard();};
 byId('wizNext').onclick=()=>{
   if(W.step===1){W.step=2;renderWizard();return;}
   // save
-  const obj={id:W.id||uid(),on:true,situ:W.situ,actions:W.actions.map(a=>({type:a.type,cfg:{...a.cfg}}))};
+  const obj={id:W.id||uid(),on:true,situ:W.situ,actions:W.actions.map(a=>({type:a.type,cfg:{...a.cfg}})),
+    cooldown:{...W.cooldown},schedule:{...W.schedule,days:[...W.schedule.days]}};
   const s=SITU[W.situ];
   if(s.amount) obj.amt={...W.amt};
   if(s.target){obj.targetMode=W.targetMode;obj.classes=[...W.classes];obj.picks=[...W.picks];}
@@ -1899,8 +1988,9 @@ function addPreset(key){
 function openPresetWizard(key){
   const p=AUTO_PRESETS.find(x=>x.key===key);if(!p)return;const obj=p.make();
   W={step:1,id:null,situ:obj.situ,targetMode:obj.targetMode||'class',classes:[...(obj.classes||[])],picks:[...(obj.picks||[])],
-     amt:{...(obj.amt||{mode:'range',min:0,max:0})},actions:obj.actions.map(a=>({type:a.type,cfg:{...a.cfg}}))};
+     amt:{...(obj.amt||{mode:'range',min:0,max:0})},actions:obj.actions.map(a=>({type:a.type,cfg:{...a.cfg}})),cooldown:defCooldown(),schedule:defSchedule()};
   byId('wizTitle').textContent='자동화 추가';
+  advOpen=false;
   closeTpl();renderWizard();wizOv.classList.add('show');
 }
 
@@ -2428,6 +2518,37 @@ function targetHit(a,d){
 function amtHit(a,amt){const m=a.amt||{};return m.mode==='over'?amt>=m.min:(amt>=m.min&&amt<=m.max);}
 const SITU_LOG={login:'방송 시작 시',first:'첫 후원 시',donate:'후원 시',amount:'후원 시',promote:'등급 승급',anniv:'가입 기념일'};
 const NO_AMT_SITU=['login','promote','anniv'];
+/* 쿨다운·스케줄 게이트 (런타임 상태, 비영속) */
+const AUTO_RT={};
+function ymdTs(ts){const d=new Date(ts);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function autoAllowed(a,d,now){
+  now=now||Date.now();
+  const sc=a.schedule;
+  if(sc&&sc.on){
+    const dt=new Date(now);
+    if((sc.days||[]).length && !sc.days.includes(dt.getDay())) return false;
+    if(sc.start&&sc.end){
+      const cur=dt.getHours()*60+dt.getMinutes();
+      const [sh,sm]=sc.start.split(':').map(Number),[eh,em]=sc.end.split(':').map(Number);
+      const a0=sh*60+sm,a1=eh*60+em;
+      if(a0<=a1){ if(cur<a0||cur>a1) return false; } else { if(cur<a0&&cur>a1) return false; }
+    }
+    const day=ymdTs(now);
+    if(sc.from && day<sc.from) return false;
+    if(sc.to && day>sc.to) return false;
+  }
+  const cd=a.cooldown;
+  if(cd&&cd.on){
+    const rt=AUTO_RT[a.id]||(AUTO_RT[a.id]={last:{},day:'',count:0});
+    const day=ymdTs(now);
+    if(rt.day!==day){rt.day=day;rt.count=0;}
+    if(cd.dailyCap>0 && rt.count>=cd.dailyCap) return false;
+    const key=cd.scope==='donator'?(d?d.id:'g'):'g';
+    if(cd.minutes>0 && now-(rt.last[key]||0) < cd.minutes*60000) return false;
+    rt.last[key]=now; rt.count++;
+  }
+  return true;
+}
 function fireAutos(kind,d,amt){
   if(d.blocked) return;
   DB.autos.filter(a=>a.on).forEach(a=>{
@@ -2438,7 +2559,7 @@ function fireAutos(kind,d,amt){
     else if(a.situ==='amount'&&kind==='donate') match=amtHit(a,amt);
     else if(a.situ==='promote'&&kind==='promote') match=targetHit(a,d);
     else if(a.situ==='anniv'&&kind==='anniv') match=targetHit(a,d);
-    if(match){
+    if(match && autoAllowed(a,d)){
       const g=gradeForCash(d.cash);
       (a.actions||[]).forEach(ac=>{
         DB.autoLogs.unshift({when:nowClock(),situ:a.situ,name:d.alias||d.name,grade:g?g.name:'',action:ac.type,amt:NO_AMT_SITU.includes(a.situ)?0:amt});
