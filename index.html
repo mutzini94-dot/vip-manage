@@ -500,6 +500,37 @@ tbody tr.blocked:hover{opacity:.72}
 .btn.block-btn{margin-top:14px;width:100%;justify-content:center;background:transparent;border:1px solid rgba(255,70,70,.3);color:#ff6b81}
 .btn.block-btn:hover{background:rgba(255,70,70,.1)}
 
+/* ===== 자동화 실행 로그 ===== */
+.log-list{display:flex;flex-direction:column;max-height:420px;overflow-y:auto}
+.log-row{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--line);font-size:13px}
+.log-row:last-child{border:none}
+.log-row .lw{font-size:11.5px;color:var(--muted-2);width:88px;flex:none;font-variant-numeric:tabular-nums}
+.log-row .li{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-size:14px;flex:none;background:var(--surface-3)}
+.log-row .lc{flex:1;min-width:0}
+.log-row .lc .who{font-weight:700}
+.log-row .lc .act{font-size:11.5px;color:var(--muted);margin-top:1px}
+.log-row .la{font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap}
+.log-empty{padding:34px;text-align:center;color:var(--muted);font-size:13px}
+/* ===== CSV / 일괄 작업 ===== */
+.cbx{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;margin:0}
+.bulk-bar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--accent);
+  border-radius:12px;padding:10px 14px;margin-bottom:14px;box-shadow:0 4px 16px rgba(255,61,104,.12)}
+.bulk-bar b{font-size:13px}.bulk-bar b span{color:var(--accent)}
+.bulk-sep{width:1px;height:20px;background:var(--line-strong)}
+.bulk-bar .tag-add{width:110px}
+/* ===== 기념일 ===== */
+.auto-toggle{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer}
+.anniv-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:11px}
+.anniv-card{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.anniv-card.today{border-color:rgba(255,61,104,.4);background:linear-gradient(180deg,rgba(255,61,104,.08),var(--surface-2))}
+.anniv-card .ava{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px}
+.anniv-card .meta{flex:1;min-width:0}
+.anniv-card .meta .nm{font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.anniv-card .meta .dd{font-size:12px;color:var(--muted);margin-top:2px}
+.anniv-card .dday{font-size:11px;font-weight:800;padding:3px 8px;border-radius:7px;background:var(--surface-3);color:var(--muted);white-space:nowrap}
+.anniv-card .dday.soon{background:var(--accent-soft);color:var(--accent)}
+.anniv-card .celeb-done{font-size:11.5px;font-weight:800;color:var(--on);white-space:nowrap}
+
 @media(max-width:640px){
   .wrap{padding:18px 14px 50px}
   .tab .cnt{display:none}
@@ -588,6 +619,14 @@ tbody tr.blocked:hover{opacity:.72}
           <div class="panel-head"><h3>상위 후원자 기여도</h3><span class="hint">파레토</span></div>
           <div class="panel-body" id="paretoBox"></div>
         </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-head">
+          <h3>🎂 다가오는 기념일</h3><span class="hint" id="annivHint">가입 기념일 30일 이내</span><div class="spacer"></div>
+          <label class="auto-toggle"><span>기념일 자동 축하</span><div class="tgl" id="annivAuto"></div></label>
+        </div>
+        <div class="panel-body"><div id="annivList" class="anniv-list"></div></div>
       </div>
     </section>
 
@@ -734,7 +773,23 @@ tbody tr.blocked:hover{opacity:.72}
           <button data-st="blocked" class="bad">⛔ 차단</button>
         </div>
         <div class="spacer"></div>
+        <button class="btn ghost sm" id="exportAllBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>
+          CSV 내보내기
+        </button>
         <div class="limit-note">등급 지정 <b id="assignedCount">0</b> / 100명</div>
+      </div>
+
+      <div class="bulk-bar hidden" id="bulkBar">
+        <b><span id="bulkCount">0</span>명 선택</b>
+        <div class="bulk-sep"></div>
+        <input class="tag-add" id="bulkTag" placeholder="태그명" maxlength="10">
+        <button class="btn ghost sm" id="bulkTagAdd">태그 추가</button>
+        <button class="btn ghost sm danger" id="bulkBlock">차단</button>
+        <button class="btn ghost sm" id="bulkUnblock">차단 해제</button>
+        <button class="btn ghost sm" id="bulkCsv">선택 CSV</button>
+        <div class="spacer"></div>
+        <button class="btn ghost sm" id="bulkClear">선택 해제</button>
       </div>
 
       <div class="panel">
@@ -742,6 +797,7 @@ tbody tr.blocked:hover{opacity:.72}
           <table>
             <thead>
               <tr>
+                <th style="width:30px"><input type="checkbox" class="cbx" id="selAll"></th>
                 <th style="width:34px">#</th>
                 <th>도네이터</th>
                 <th class="sortable" data-col="cash">누적 후원 캐시 <span class="arr">↓</span></th>
@@ -774,6 +830,12 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="ic">⚡</div>
         <div class="t">설정된 자동화가 없습니다</div>
         <div class="s">‘자동화 추가’를 눌러 첫 자동화를 만들어 보세요.</div>
+      </div>
+
+      <div class="panel" style="margin-top:22px">
+        <div class="panel-head"><h3>🧾 자동화 실행 로그</h3><span class="hint">발동된 자동화 이력 · 라이브 방송 중 실시간 기록</span><div class="spacer"></div>
+          <button class="btn ghost sm" id="clearLogs">기록 지우기</button></div>
+        <div class="panel-body"><div id="autoLogList" class="log-list"></div></div>
       </div>
     </section>
 
@@ -1011,6 +1073,29 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
 </div>
 
+<!-- ============ 기념일 축하 메시지 ============ -->
+<div class="overlay" id="celebOverlay">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <h2>🎂 기념일 축하 메시지</h2><div class="spacer"></div><button class="xbtn" id="celebClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="re-target" id="celebTarget"></div>
+      <div class="field">
+        <label>카카오 알림톡 메시지</label>
+        <textarea class="inp" id="celebMsg" rows="4"></textarea>
+        <div class="helper">프로토타입입니다 — 실제 발송은 되지 않으며, 발송 이력만 기록됩니다.</div>
+      </div>
+      <div class="preview-box"><div class="preview-lbl">👁 미리보기</div><div id="celebPreview"></div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="celebCancel">취소</button>
+      <div class="spacer"></div>
+      <button class="btn primary" id="celebSend">축하 발송</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
@@ -1048,6 +1133,14 @@ function seed(){
     };
   });
   if(donators[22]){donators[22].blocked=true;donators[22].blockReason='부적절한 후원 메시지 반복';donators[22].blockedAt='2024-09-14';}
+  // 기념일 데모: 몇 명은 곧 가입 기념일이 되도록 (기준일 = 최근 후원일 최댓값)
+  const maxLast=donators.reduce((mx,d)=>{const p=d.last.split('-').map(Number);const t=new Date(p[0],p[1]-1,p[2]).getTime();return t>mx?t:mx;},0);
+  const base=new Date(maxLast);
+  [[1,3,2],[4,10,1],[8,18,2],[12,25,1],[18,7,3]].forEach(([idx,addDays,yearsAgo])=>{
+    if(!donators[idx])return;
+    const dt=new Date(base.getFullYear(),base.getMonth(),base.getDate()+addDays);
+    donators[idx].join=`${dt.getFullYear()-yearsAgo}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  });
   return {
     grades:[
       {id:'g_vvip',name:'VVIP',cls:'vvip',color:'#ffcb45',mode:'over',min:300000,max:0},
@@ -1056,6 +1149,8 @@ function seed(){
     ],
     donators,
     titles: seedTitles(),
+    autoLogs: seedLogs(donators),
+    annivAuto: true,
     autos:[
       {id:uid(),on:true,situ:'login',targetMode:'class',classes:['g_vvip'],action:'kakao_send',
        cfg:{msg:'{크리에이터} 님이 방송을 시작하였습니다'}},
@@ -1063,6 +1158,18 @@ function seed(){
        cfg:{widget:'팡파르'}},
     ]
   };
+}
+function seedLogs(donators){
+  const gname=c=>c>=300000?'VVIP':c>=100000?'VIP':c>=30000?'열혈':'';
+  const top=donators.slice().sort((a,b)=>b.cash-a.cash).slice(0,12);
+  const rows=[
+    ['10-31 21:14','donate','remote',50000],['10-31 20:58','amount','widget',30000],
+    ['10-31 20:41','donate','kakao_recv',10000],['10-31 20:22','login','kakao_send',0],
+    ['10-30 22:03','amount','tts',100000],['10-30 21:47','donate','remote',5000],
+    ['10-30 21:20','login','kakao_send',0],['10-29 19:55','amount','widget',20000],
+  ];
+  return rows.map((r,i)=>{const d=top[i%top.length];
+    return {when:r[0],type:r[1]==='login'?'login':'donate',name:d.alias||d.name,grade:gname(d.cash),action:r[2],amt:r[3]};});
 }
 function seedTitles(){return [
   {id:'t_first',  name:'첫 후원',     icon:'🌱', color:'#33d69f', rule:{type:'count',n:1}},
@@ -1077,6 +1184,8 @@ let DB = load(); normalize();
 function load(){ try{ const r=localStorage.getItem(LS); if(r) return JSON.parse(r);}catch(e){} return seed(); }
 function normalize(){
   if(!DB.titles) DB.titles=seedTitles();
+  if(!DB.autoLogs) DB.autoLogs=[];
+  if(DB.annivAuto===undefined) DB.annivAuto=true;
   (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;});
 }
 function save(){ localStorage.setItem(LS, JSON.stringify(DB)); }
@@ -1329,6 +1438,7 @@ function renderDonators(){
     const gaugeHtml=(gg.top||d.blocked)?'':`<div class="gauge mini" title="다음 등급 ${gg.nx.name}까지 ${won(gg.remaining)}원"><i style="width:${gg.pct}%;background:${gg.nx.color}"></i></div>`;
     if(d.blocked) tr.classList.add('blocked');
     tr.innerHTML=`
+      <td><input type="checkbox" class="cbx rowcbx" ${donSelected.has(d.id)?'checked':''}></td>
       <td><div class="rank ${rank<=3?'top':''}">${rank}</div></td>
       <td>
         <div class="dn-cell">
@@ -1340,6 +1450,10 @@ function renderDonators(){
       <td class="tnum">${won(d.count)}건</td>
       <td>${gradeBadge(g)}${gaugeHtml}</td>
       <td></td>`;
+    // checkbox
+    const cb=tr.querySelector('.rowcbx');
+    cb.onclick=e=>e.stopPropagation();
+    cb.onchange=()=>{cb.checked?donSelected.add(d.id):donSelected.delete(d.id);updateBulkBar();};
     // alias input
     const aliasTd=tr.lastElementChild;
     const inp=document.createElement('input');
@@ -1351,8 +1465,9 @@ function renderDonators(){
     tb.appendChild(tr);
   });
   if(!rows.length){
-    tb.innerHTML=`<tr><td colspan="6"><div class="empty" style="padding:40px"><div class="t">검색 결과가 없습니다</div></div></td></tr>`;
+    tb.innerHTML=`<tr><td colspan="7"><div class="empty" style="padding:40px"><div class="t">검색 결과가 없습니다</div></div></td></tr>`;
   }
+  updateBulkBar();
 }
 
 /* =========================================================
@@ -1425,6 +1540,7 @@ function renderAutos(){
   const grid=byId('autoGrid'); grid.innerHTML='';
   byId('autoEmpty').classList.toggle('hidden',DB.autos.length>0);
   byId('tabCntAuto').textContent=DB.autos.length;
+  renderAutoLogs();
   DB.autos.forEach(a=>{
     const s=SITU[a.situ], act=ACTIONS[a.action];
     const card=document.createElement('div'); card.className='auto-card'+(a.on?'':' off');
@@ -1913,7 +2029,7 @@ byId('reSend').onclick=()=>{
   toast('복귀 유도 알림톡을 발송했습니다');
 };
 
-function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderChurn();renderPareto();}
+function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderChurn();renderPareto();renderAnniv();}
 
 /* =========================================================
    TAB — 칭호 관리 (규칙 엔진)
@@ -2115,12 +2231,14 @@ function liveTick(){
     const d=DB.donators.find(x=>x.id===pick(onlineIds));
     const amt=pick(DONATE_AMTS); LIVE.donation+=amt;
     pushFeed('donate',d,null,amt);
+    fireAutos('donate',d,amt);
   }
   renderLive();
 }
 function loginRandom(offline){
   const d=pick(offline); if(!d)return;
   LIVE.online.set(d.id,{mins:0}); pushFeed('login',d,'입장했습니다');
+  fireAutos('login',d,0);
 }
 function pushFeed(type,d,msg,amt){
   LIVE.feed.unshift({type,name:d?(d.alias||d.name):'',gid:d?d.id:null,
@@ -2186,6 +2304,156 @@ function greetVIP(id){
   renderLive();
   toast(`${d.alias||d.name}님에게 인사를 전했어요 👋`);
 }
+
+/* =========================================================
+   자동화 실행 로그
+   ========================================================= */
+function nowClock(){const d=new Date();return `${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;}
+function targetHit(a,d){
+  if(a.targetMode==='class'){const g=gradeForCash(d.cash);return !!(g&&(a.classes||[]).includes(g.id));}
+  if(a.targetMode==='pick') return (a.picks||[]).includes(d.id);
+  return false;
+}
+function amtHit(a,amt){const m=a.amt||{};return m.mode==='over'?amt>=m.min:(amt>=m.min&&amt<=m.max);}
+function fireAutos(kind,d,amt){
+  if(d.blocked) return;
+  DB.autos.filter(a=>a.on).forEach(a=>{
+    let match=false;
+    if(a.situ==='login'&&kind==='login') match=targetHit(a,d);
+    else if(a.situ==='donate'&&kind==='donate') match=targetHit(a,d);
+    else if(a.situ==='amount'&&kind==='donate') match=amtHit(a,amt);
+    if(match){
+      const g=gradeForCash(d.cash);
+      DB.autoLogs.unshift({when:nowClock(),type:a.situ==='login'?'login':'donate',name:d.alias||d.name,grade:g?g.name:'',action:a.action,amt:a.situ==='login'?0:amt});
+      if(DB.autoLogs.length>200) DB.autoLogs.pop();
+    }
+  });
+  save();
+  if(!pages.auto.classList.contains('hidden')) renderAutoLogs();
+}
+function renderAutoLogs(){
+  const box=byId('autoLogList');
+  if(!DB.autoLogs.length){box.innerHTML='<div class="log-empty">아직 실행된 자동화가 없습니다.<br>라이브 방송을 시작하면 실시간으로 기록됩니다.</div>';return;}
+  box.innerHTML=DB.autoLogs.map(l=>{
+    const act=ACTIONS[l.action]||{icon:'⚡',label:l.action};
+    const situ = l.type==='login'?'방송 시작 시':'후원 시';
+    return `<div class="log-row"><div class="lw">${l.when}</div><div class="li">${act.icon}</div>
+      <div class="lc"><div class="who">${l.name} ${l.grade?`<span style="color:var(--muted);font-weight:600">(${l.grade})</span>`:''} · ${situ}</div>
+        <div class="act">${act.label}</div></div>
+      ${l.amt?`<div class="la">${won(l.amt)}캐시</div>`:''}</div>`;
+  }).join('');
+}
+byId('clearLogs').onclick=()=>askConfirm('실행 로그 삭제','모든 자동화 실행 기록을 지울까요?',()=>{DB.autoLogs=[];save();renderAutoLogs();toast('실행 로그를 지웠습니다');});
+
+/* =========================================================
+   CSV 내보내기 · 일괄 작업
+   ========================================================= */
+let donSelected=new Set();
+function csvEscape(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function exportCSV(list,fname){
+  const head=['순위','이름','별칭','누적후원캐시','후원건수','등급','태그','메모','차단','최근후원일','가입일'];
+  const byCash=DB.donators.slice().sort((a,b)=>b.cash-a.cash);
+  const lines=[head.join(',')];
+  list.forEach(d=>{
+    const g=gradeForCash(d.cash);
+    const rank=byCash.findIndex(x=>x.id===d.id)+1;
+    lines.push([rank,d.name,d.alias||'',d.cash,d.count,g?g.name:'미분류',(d.tags||[]).join(' '),d.memo||'',d.blocked?'차단':'',d.last,d.join].map(csvEscape).join(','));
+  });
+  const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=fname;document.body.appendChild(a);a.click();
+  a.remove();URL.revokeObjectURL(url);
+}
+function currentDonatorRows(){
+  return DB.donators.filter(d=>{
+    if(donStatus==='active'&&d.blocked)return false;
+    if(donStatus==='blocked'&&!d.blocked)return false;
+    if(!donQuery)return true;
+    return d.name.toLowerCase().includes(donQuery)||(d.alias||'').toLowerCase().includes(donQuery)||(d.tags||[]).some(t=>t.toLowerCase().includes(donQuery))||(d.memo||'').toLowerCase().includes(donQuery);
+  });
+}
+byId('exportAllBtn').onclick=()=>{const rows=currentDonatorRows();exportCSV(rows,`도네이터_${rows.length}명.csv`);toast(`${rows.length}명을 CSV로 내보냈습니다`);};
+function updateBulkBar(){
+  const n=donSelected.size;
+  byId('bulkBar').classList.toggle('hidden',n===0);
+  byId('bulkCount').textContent=n;
+  const all=byId('selAll'); if(all){const vis=currentDonatorRows();all.checked=vis.length>0&&vis.every(d=>donSelected.has(d.id));}
+}
+function selectedList(){return DB.donators.filter(d=>donSelected.has(d.id));}
+byId('bulkClear').onclick=()=>{donSelected.clear();renderDonators();};
+byId('bulkCsv').onclick=()=>{const l=selectedList();if(!l.length)return;exportCSV(l,`도네이터_선택_${l.length}명.csv`);toast(`선택한 ${l.length}명을 내보냈습니다`);};
+byId('bulkTagAdd').onclick=()=>{
+  const t=byId('bulkTag').value.trim();if(!t)return toast('태그명을 입력하세요','!');
+  let cnt=0;selectedList().forEach(d=>{d.tags=d.tags||[];if(!d.tags.includes(t)){d.tags.push(t);cnt++;}});
+  save();byId('bulkTag').value='';renderDonators();toast(`${cnt}명에게 ‘${t}’ 태그를 추가했습니다`);
+};
+byId('bulkBlock').onclick=()=>{const l=selectedList();askConfirm(`${l.length}명 차단`,'선택한 도네이터를 모두 차단할까요?',()=>{
+  l.forEach(d=>{d.blocked=true;d.blockedAt=todayStr();});save();donSelected.clear();renderDonators();renderInsights();if(LIVE.on){l.forEach(d=>LIVE.online.delete(d.id));renderLive();}toast(`${l.length}명을 차단했습니다`);});};
+byId('bulkUnblock').onclick=()=>{const l=selectedList();l.forEach(d=>{d.blocked=false;delete d.blockReason;delete d.blockedAt;});save();donSelected.clear();renderDonators();renderInsights();toast(`${l.length}명을 차단 해제했습니다`);};
+byId('selAll').onchange=e=>{
+  const vis=currentDonatorRows();
+  if(e.target.checked) vis.forEach(d=>donSelected.add(d.id));
+  else vis.forEach(d=>donSelected.delete(d.id));
+  renderDonators();
+};
+
+/* =========================================================
+   기념일 자동 축하
+   ========================================================= */
+function annivInfo(d){
+  const p=(d.join||'2024-01-01').split('-').map(Number);
+  const jy=p[0],jm=p[1],jd=p[2];
+  const now=new Date(refNow());
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  let next=new Date(now.getFullYear(),jm-1,jd);
+  if(next<today) next=new Date(now.getFullYear()+1,jm-1,jd);
+  const days=Math.round((next-today)/864e5);
+  const years=next.getFullYear()-jy;
+  return {days,years,date:`${jm}월 ${jd}일`};
+}
+function annivList(){
+  return DB.donators.filter(d=>!d.blocked).map(d=>({d,...annivInfo(d)}))
+    .filter(x=>x.days<=30&&x.years>=1)
+    .sort((a,b)=>a.days-b.days);
+}
+function renderAnniv(){
+  const rows=annivList();
+  byId('annivHint').textContent=`가입 기념일 30일 이내 · ${rows.length}명`;
+  byId('annivAuto').classList.toggle('on',!!DB.annivAuto);
+  const box=byId('annivList');
+  if(!rows.length){box.innerHTML='<div class="helper">30일 이내 기념일이 없습니다.</div>';return;}
+  box.innerHTML='';
+  rows.slice(0,9).forEach(({d,days,years,date})=>{
+    const g=gradeForCash(d.cash);
+    const today=days===0;
+    const card=document.createElement('div');card.className='anniv-card'+(today?' today':'');
+    card.innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+      <div class="meta"><div class="nm">${d.alias||d.name} ${gradeBadge(g)}</div><div class="dd">🎉 가입 ${years}주년 · ${date}</div></div>
+      ${d.celebrated?'<div class="celeb-done">✓ 축하함</div>':`<div class="dday ${days<=7?'soon':''}">${today?'오늘!':'D-'+days}</div>`}`;
+    if(!d.celebrated){card.style.cursor='pointer';card.onclick=()=>openCeleb(d.id,years);}
+    box.appendChild(card);
+  });
+}
+byId('annivAuto').onclick=()=>{DB.annivAuto=!DB.annivAuto;save();renderAnniv();toast(DB.annivAuto?'기념일 자동 축하를 켰습니다':'기념일 자동 축하를 껐습니다');};
+let celebId=null;
+function openCeleb(id,years){
+  const d=DB.donators.find(x=>x.id===id);if(!d)return;celebId=id;
+  const g=gradeForCash(d.cash);
+  byId('celebTarget').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+    <div><div class="nm">${d.alias||d.name} ${gradeBadge(g)}</div><div class="info">가입 ${years}주년 · 누적 ${won(d.cash)}캐시</div></div>`;
+  byId('celebMsg').value=`${d.alias||d.name}님, 저와 함께한 지 벌써 ${years}주년이에요! 늘 곁에서 응원해 주셔서 진심으로 감사합니다 🎉🎂`;
+  celebPrev();
+  byId('celebOverlay').classList.add('show');
+}
+function celebPrev(){byId('celebPreview').innerHTML=`<div class="kakao"><div class="kt">🎂 기념일 알림톡</div><div class="kb">${(byId('celebMsg').value||'').replace(/</g,'&lt;')}</div><div class="kbtn">방송 보러가기</div></div>`;}
+byId('celebMsg').addEventListener('input',celebPrev);
+byId('celebClose').onclick=byId('celebCancel').onclick=()=>byId('celebOverlay').classList.remove('show');
+byId('celebOverlay').onclick=e=>{if(e.target===byId('celebOverlay'))byId('celebOverlay').classList.remove('show');};
+byId('celebSend').onclick=()=>{
+  const d=DB.donators.find(x=>x.id===celebId);if(d){d.celebrated=true;save();}
+  byId('celebOverlay').classList.remove('show');renderAnniv();
+  toast('기념일 축하 메시지를 발송했습니다 🎉');
+};
 
 /* ---------- init ---------- */
 renderSwatches();
