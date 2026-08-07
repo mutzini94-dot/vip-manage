@@ -187,7 +187,16 @@ tbody tr{cursor:pointer}
 .auto-card:hover{border-color:var(--line-strong)}
 .auto-card.off{opacity:.6}
 .auto-card .ac-top{display:flex;align-items:flex-start;gap:11px}
-.auto-card .ac-ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex:none}
+.auto-card .ac-ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex:none;position:relative}
+.auto-card .ac-ic .act-count{position:absolute;right:-4px;top:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;border:2px solid var(--surface)}
+/* STEP2 다중 액션 */
+.act-item{border:1.5px solid var(--line);border-radius:13px;overflow:hidden;background:var(--surface-2);transition:.13s}
+.act-item.sel{border-color:var(--accent)}
+.act-item .opt{border:none;border-radius:0;background:transparent}
+.act-item.sel .opt{background:var(--accent-soft)}
+.act-cfg{padding:14px 16px;border-top:1px dashed var(--line-strong);display:flex;flex-direction:column;gap:9px}
+.act-cfg .mini-lbl{font-size:12px;font-weight:700;color:var(--muted)}
+.preview-box.mini{margin-top:2px;padding:12px}
 .auto-card .ac-tt{flex:1;min-width:0}
 .auto-card .ac-tt .t{font-weight:800;font-size:14.5px;line-height:1.35}
 .auto-card .ac-tt .s{font-size:12px;color:var(--muted);margin-top:3px}
@@ -939,7 +948,7 @@ tbody tr.blocked:hover{opacity:.72}
 
       <!-- STEP 2 -->
       <div id="wizStep2" class="hidden">
-        <div class="section-lbl">발동할 액션을 선택하세요</div>
+        <div class="section-lbl">발동할 액션을 선택하세요 <span style="color:var(--muted-2);font-weight:600">· 복수 선택 가능</span></div>
         <div class="opt-grid" id="actionList"></div>
 
         <div id="actionConfig" class="hidden">
@@ -1152,10 +1161,12 @@ function seed(){
     autoLogs: seedLogs(donators),
     annivAuto: true,
     autos:[
-      {id:uid(),on:true,situ:'login',targetMode:'class',classes:['g_vvip'],action:'kakao_send',
-       cfg:{msg:'{크리에이터} 님이 방송을 시작하였습니다'}},
-      {id:uid(),on:true,situ:'amount',amt:{mode:'range',min:10000,max:100000},action:'widget',
-       cfg:{widget:'팡파르'}},
+      {id:uid(),on:true,situ:'login',targetMode:'class',classes:['g_vvip'],
+       actions:[{type:'kakao_send',cfg:{msg:'{크리에이터} 님이 방송을 시작하였습니다'}}]},
+      {id:uid(),on:true,situ:'amount',amt:{mode:'range',min:10000,max:100000},
+       actions:[{type:'widget',cfg:{widget:'팡파르'}},{type:'tts',cfg:{voice:'ara'}}]},
+      {id:uid(),on:true,situ:'first',
+       actions:[{type:'widget',cfg:{widget:'하트비'}},{type:'kakao_send',cfg:{msg:'{닉네임}님, 첫 후원 감사합니다! 앞으로 잘 부탁드려요 💕'}}]},
     ]
   };
 }
@@ -1164,12 +1175,12 @@ function seedLogs(donators){
   const top=donators.slice().sort((a,b)=>b.cash-a.cash).slice(0,12);
   const rows=[
     ['10-31 21:14','donate','remote',50000],['10-31 20:58','amount','widget',30000],
-    ['10-31 20:41','donate','kakao_recv',10000],['10-31 20:22','login','kakao_send',0],
-    ['10-30 22:03','amount','tts',100000],['10-30 21:47','donate','remote',5000],
-    ['10-30 21:20','login','kakao_send',0],['10-29 19:55','amount','widget',20000],
+    ['10-31 20:41','first','kakao_send',3000],['10-31 20:22','login','kakao_send',0],
+    ['10-30 22:03','promote','widget',0],['10-30 21:47','anniv','kakao_send',0],
+    ['10-30 21:20','amount','tts',100000],['10-29 19:55','donate','remote',5000],
   ];
   return rows.map((r,i)=>{const d=top[i%top.length];
-    return {when:r[0],type:r[1]==='login'?'login':'donate',name:d.alias||d.name,grade:gname(d.cash),action:r[2],amt:r[3]};});
+    return {when:r[0],situ:r[1],name:d.alias||d.name,grade:gname(d.cash),action:r[2],amt:r[3]};});
 }
 function seedTitles(){return [
   {id:'t_first',  name:'첫 후원',     icon:'🌱', color:'#33d69f', rule:{type:'count',n:1}},
@@ -1187,6 +1198,9 @@ function normalize(){
   if(!DB.autoLogs) DB.autoLogs=[];
   if(DB.annivAuto===undefined) DB.annivAuto=true;
   (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;});
+  // 구버전 마이그레이션: 단일 action → actions 배열
+  (DB.autos||[]).forEach(a=>{ if(!a.actions){a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[];delete a.action;delete a.cfg;} });
+  (DB.autoLogs||[]).forEach(l=>{ if(!l.situ&&l.type) l.situ=l.type; });
 }
 function save(){ localStorage.setItem(LS, JSON.stringify(DB)); }
 
@@ -1474,16 +1488,19 @@ function renderDonators(){
    TAB 3 — 자동화 설정
    ========================================================= */
 const SITU={
-  login:{label:'방송 시작 시',icon:'📡',desc:'방송을 켜면 도네이터에게 알림',target:true},
-  donate:{label:'특정 도네이터 후원 시',icon:'💝',desc:'지정한 도네이터가 후원하면 발동',target:true},
-  amount:{label:'특정 금액 이상 후원 시',icon:'💰',desc:'설정 금액대의 후원이 오면 발동',target:false,amount:true},
+  login:  {label:'방송 시작 시',      icon:'📡',desc:'방송을 켜면 도네이터에게 알림',target:true},
+  first:  {label:'첫 후원 시',        icon:'🌱',desc:'처음 후원한 신규 팬에게 발동',target:false},
+  donate: {label:'특정 도네이터 후원 시',icon:'💝',desc:'지정한 도네이터가 후원하면 발동',target:true},
+  amount: {label:'특정 금액 이상 후원 시',icon:'💰',desc:'설정 금액대의 후원이 오면 발동',target:false,amount:true},
+  promote:{label:'등급 승급 시',      icon:'🎖️',desc:'도네이터가 상위 등급에 도달하면',target:true},
+  anniv:  {label:'가입 기념일',        icon:'🎂',desc:'가입 기념일이 되면 발동',target:true},
 };
 const ACTIONS={
-  kakao_send:{label:'도네이터 카카오 알림톡 발송',icon:'💬',desc:'도네이터에게 알림톡을 보냅니다',for:['login']},
-  kakao_recv:{label:'카카오 알림톡 받기',icon:'📩',desc:'크리에이터가 알림톡을 받습니다',for:['donate','amount']},
-  remote:{label:'리모컨 알림 받기',icon:'🎛',desc:'리모컨 앱으로 실시간 알림',for:['donate','amount']},
-  widget:{label:'위젯 효과 추가하기',icon:'🎉',desc:'방송 화면에 위젯 효과 재생',for:['donate','amount']},
-  tts:{label:'TTS 음성 알림',icon:'🔊',desc:'음성으로 후원을 읽어줍니다',for:['login','donate','amount']},
+  kakao_send:{label:'도네이터 카카오 알림톡 발송',icon:'💬',desc:'도네이터에게 알림톡을 보냅니다',for:['login','first','donate','amount','promote','anniv']},
+  kakao_recv:{label:'카카오 알림톡 받기',icon:'📩',desc:'크리에이터가 알림톡을 받습니다',for:['first','donate','amount','promote']},
+  remote:{label:'리모컨 알림 받기',icon:'🎛',desc:'리모컨 앱으로 실시간 알림',for:['first','donate','amount','promote']},
+  widget:{label:'위젯 효과 추가하기',icon:'🎉',desc:'방송 화면에 위젯 효과 재생',for:['first','donate','amount','promote','anniv']},
+  tts:{label:'TTS 음성 알림',icon:'🔊',desc:'음성으로 후원을 읽어줍니다',for:['login','first','donate','amount','promote','anniv']},
 };
 const ACTION_LABEL=k=>ACTIONS[k]?.label||k;
 const WIDGETS=[
@@ -1526,15 +1543,12 @@ function situText(a){
   if(a.situ==='amount'){
     const m=a.amt||{}; return m.mode==='over'?`${won(m.min)}원 이상 후원 시`:`${won(m.min)}~${won(m.max)}원 후원 시`;
   }
-  if(a.targetMode==='class'){
-    const names=(a.classes||[]).map(id=>DB.grades.find(g=>g.id===id)?.name).filter(Boolean);
-    return `${names.join(', ')||'대상'} ${s.label==='방송 시작 시'?'에게 방송 시작 시':'후원 시'}`;
-  }
-  if(a.targetMode==='pick'){
-    const names=(a.picks||[]).map(id=>{const d=DB.donators.find(x=>x.id===id);return d?(d.alias||d.name):'';}).filter(Boolean);
-    return `${names.slice(0,3).join(', ')}${names.length>3?` 외 ${names.length-3}명`:''} ${a.situ==='login'?'에게 방송 시작 시':'후원 시'}`;
-  }
-  return s.label;
+  if(a.situ==='first') return '신규 도네이터 첫 후원 시';
+  let who='대상';
+  if(a.targetMode==='class'){const names=(a.classes||[]).map(id=>DB.grades.find(g=>g.id===id)?.name).filter(Boolean);who=names.join(', ')||'대상';}
+  else if(a.targetMode==='pick'){const names=(a.picks||[]).map(id=>{const d=DB.donators.find(x=>x.id===id);return d?(d.alias||d.name):'';}).filter(Boolean);who=`${names.slice(0,3).join(', ')}${names.length>3?` 외 ${names.length-3}명`:''}`;}
+  const suffix={login:'에게 방송 시작 시',donate:'후원 시',promote:'승급 시',anniv:'가입 기념일'}[a.situ]||s.label;
+  return `${who} ${suffix}`;
 }
 function renderAutos(){
   const grid=byId('autoGrid'); grid.innerHTML='';
@@ -1542,22 +1556,23 @@ function renderAutos(){
   byId('tabCntAuto').textContent=DB.autos.length;
   renderAutoLogs();
   DB.autos.forEach(a=>{
-    const s=SITU[a.situ], act=ACTIONS[a.action];
+    const s=SITU[a.situ]; const acts=a.actions||[]; const firstAct=ACTIONS[acts[0]?.type];
     const card=document.createElement('div'); card.className='auto-card'+(a.on?'':' off');
     const tags=[];
     if(a.targetMode==='class')(a.classes||[]).forEach(id=>{const g=DB.grades.find(x=>x.id===id);if(g)tags.push(g.name);});
-    if(a.action==='widget')tags.push('효과: '+(a.cfg?.widget||''));
-    if(a.action==='tts')tags.push('보이스: '+(VOICES.find(v=>v.k===a.cfg?.voice)?.n||'기본'));
+    acts.forEach(ac=>{ if(ac.type==='widget')tags.push('효과: '+(ac.cfg?.widget||'')); if(ac.type==='tts')tags.push('보이스: '+(VOICES.find(v=>v.k===ac.cfg?.voice)?.n||'기본')); });
+    const summary=acts.map(ac=>ACTIONS[ac.type]?.label).filter(Boolean).join(' + ')||'액션 없음';
+    const actChips=acts.map(ac=>{const A=ACTIONS[ac.type];return `<span class="flow-chip act">${A?.icon||''} ${A?.label||''}</span>`;}).join('<span class="flow-arrow">+</span>');
     card.innerHTML=`
       <div class="ac-top">
-        <div class="ac-ic" style="background:var(--accent-soft)">${act?.icon||'⚡'}</div>
-        <div class="ac-tt"><div class="t">${situText(a)}</div><div class="s">${act?.label||''}</div></div>
+        <div class="ac-ic" style="background:var(--accent-soft)">${firstAct?.icon||'⚡'}${acts.length>1?`<span class="act-count">${acts.length}</span>`:''}</div>
+        <div class="ac-tt"><div class="t">${situText(a)}</div><div class="s">${summary}</div></div>
         <div class="tgl ${a.on?'on':''}" data-t="${a.id}"></div>
       </div>
       <div class="ac-flow">
         <span class="flow-chip trig">${s?.icon||''} ${s?.label||''}</span>
         <span class="flow-arrow">→</span>
-        <span class="flow-chip act">${act?.icon||''} ${act?.label||''}</span>
+        ${actChips}
       </div>
       <div class="ac-foot">
         <div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
@@ -1575,7 +1590,7 @@ function renderAutos(){
 }
 
 /* ---------- Wizard ---------- */
-let W={step:1,id:null,situ:null,targetMode:'class',classes:[],picks:[],amt:{mode:'range',min:0,max:0},action:null,cfg:{}};
+let W={step:1,id:null,situ:null,targetMode:'class',classes:[],picks:[],amt:{mode:'range',min:0,max:0},actions:[]};
 const wizOv=byId('wizOverlay');
 byId('addAutoBtn').onclick=()=>openWizard(null);
 byId('wizClose').onclick=byId('wizCancel').onclick=closeWizard;
@@ -1585,10 +1600,10 @@ function openWizard(id){
   if(id){
     const a=DB.autos.find(x=>x.id===id);
     W={step:1,id,situ:a.situ,targetMode:a.targetMode||'class',classes:[...(a.classes||[])],picks:[...(a.picks||[])],
-       amt:{...(a.amt||{mode:'range',min:0,max:0})},action:a.action,cfg:{...(a.cfg||{})}};
+       amt:{...(a.amt||{mode:'range',min:0,max:0})},actions:(a.actions||[]).map(x=>({type:x.type,cfg:{...x.cfg}}))};
     byId('wizTitle').textContent='자동화 수정';
   }else{
-    W={step:1,id:null,situ:null,targetMode:'class',classes:[],picks:[],amt:{mode:'range',min:0,max:0},action:null,cfg:{}};
+    W={step:1,id:null,situ:null,targetMode:'class',classes:[],picks:[],amt:{mode:'range',min:0,max:0},actions:[]};
     byId('wizTitle').textContent='자동화 추가';
   }
   renderWizard();
@@ -1619,7 +1634,7 @@ function renderStep1(){
   Object.entries(SITU).forEach(([k,s])=>{
     const o=document.createElement('div'); o.className='opt'+(W.situ===k?' on':'');
     o.innerHTML=`<div class="oic">${s.icon}</div><div class="otx"><div class="t">${s.label}</div><div class="s">${s.desc}</div></div><div class="chk"></div>`;
-    o.onclick=()=>{W.situ=k;W.action=null;W.cfg={};renderStep1();updateWizNext();};
+    o.onclick=()=>{W.situ=k;W.actions=[];renderStep1();updateWizNext();};
     list.appendChild(o);
   });
   const s=W.situ?SITU[W.situ]:null;
@@ -1637,7 +1652,7 @@ function renderTarget(){
   byId('targetMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.t===W.targetMode));
   byId('targetClass').classList.toggle('hidden',W.targetMode!=='class');
   byId('targetPick').classList.toggle('hidden',W.targetMode!=='pick');
-  byId('targetLbl').textContent = W.situ==='login'?'누구에게 방송 시작을 알릴까요?':'누구의 후원에 반응할까요?';
+  byId('targetLbl').textContent = {login:'누구에게 방송 시작을 알릴까요?',promote:'어떤 등급으로 승급할 때 발동할까요?',anniv:'누구의 가입 기념일에 반응할까요?'}[W.situ]||'누구의 후원에 반응할까요?';
   // classes
   const cl=byId('classList'); cl.innerHTML='';
   DB.grades.forEach(g=>{
@@ -1685,82 +1700,96 @@ function renderAmount(){
   W.amt[id==='amtMin'?'min':'max']=+v||0; updateWizNext();
 }));
 
-/* --- STEP 2 --- */
+/* --- STEP 2 (다중 액션) --- */
+function getAct(type){return W.actions.find(a=>a.type===type);}
+function defaultMsg(situ){
+  return {login:'{크리에이터} 님이 방송을 시작하였습니다',first:'{닉네임}님, 첫 후원 감사합니다! 앞으로 잘 부탁드려요 💕',
+    promote:'{닉네임}님, {등급} 등급 승급을 축하합니다! 🎉',anniv:'{닉네임}님, 가입 {주년}주년을 축하해요 🎂'}[situ]||'{닉네임}님, 후원 감사합니다!';
+}
+function defCfg(type){
+  if(type==='kakao_send') return {msg:defaultMsg(W.situ)};
+  if(type==='widget') return {widget:WIDGETS[0].k};
+  if(type==='tts') return {voice:VOICES[0].k};
+  if(type==='kakao_recv') return {phone:''};
+  return {};
+}
+function toggleAct(type){
+  const i=W.actions.findIndex(a=>a.type===type);
+  if(i>=0) W.actions.splice(i,1); else W.actions.push({type,cfg:defCfg(type)});
+  renderStep2(); updateWizNext();
+}
 function renderStep2(){
+  byId('actionConfig').classList.add('hidden');
   const list=byId('actionList'); list.innerHTML='';
-  const avail=Object.entries(ACTIONS).filter(([k,a])=>a.for.includes(W.situ));
-  avail.forEach(([k,a])=>{
-    const o=document.createElement('div'); o.className='opt'+(W.action===k?' on':'');
-    o.innerHTML=`<div class="oic">${a.icon}</div><div class="otx"><div class="t">${a.label}</div><div class="s">${a.desc}</div></div><div class="chk"></div>`;
-    o.onclick=()=>{W.action=k;if(W.id&&DB.autos.find(x=>x.id===W.id)?.action!==k)W.cfg={};initCfg(k);renderStep2();updateWizNext();};
-    list.appendChild(o);
+  Object.entries(ACTIONS).filter(([k,a])=>a.for.includes(W.situ)).forEach(([k,a])=>{
+    const sel=!!getAct(k);
+    const item=document.createElement('div'); item.className='act-item'+(sel?' sel':'');
+    const opt=document.createElement('div'); opt.className='opt'+(sel?' on':'');
+    opt.innerHTML=`<div class="oic">${a.icon}</div><div class="otx"><div class="t">${a.label}</div><div class="s">${a.desc}</div></div><div class="chk"></div>`;
+    opt.onclick=()=>toggleAct(k);
+    item.appendChild(opt);
+    if(sel){
+      const wrap=document.createElement('div'); wrap.className='act-cfg';
+      const fields=document.createElement('div');
+      const prev=document.createElement('div'); prev.className='preview-box mini';
+      prev.innerHTML=`<div class="preview-lbl">👁 미리보기</div><div class="cfg-prev"></div>`;
+      wrap.appendChild(fields); wrap.appendChild(prev);
+      item.appendChild(wrap);
+      buildActionCfg(k,getAct(k).cfg,fields,prev.querySelector('.cfg-prev'));
+    }
+    list.appendChild(item);
   });
-  byId('actionConfig').classList.toggle('hidden',!W.action);
-  if(W.action) renderActionConfig();
 }
-function initCfg(k){
-  if(k==='kakao_send'&&!W.cfg.msg) W.cfg.msg='{크리에이터} 님이 방송을 시작하였습니다';
-  if(k==='widget'&&!W.cfg.widget) W.cfg.widget=WIDGETS[0].k;
-  if(k==='tts'&&!W.cfg.voice) W.cfg.voice=VOICES[0].k;
-}
-function renderActionConfig(){
-  const body=byId('cfgBody'); const k=W.action; body.innerHTML='';
-  byId('cfgLbl').textContent=ACTIONS[k].label+' 설정';
-  if(k==='kakao_send'){
-    body.innerHTML=`<div class="field"><label>알림톡 메시지</label>
-      <textarea class="inp" id="cfgMsg" rows="2" placeholder="메시지를 입력하세요">${W.cfg.msg||''}</textarea>
-      <div class="helper">{크리에이터} 는 방송 시 크리에이터 닉네임으로 자동 치환됩니다.</div></div>`;
-    byId('cfgMsg').addEventListener('input',e=>{W.cfg.msg=e.target.value;renderPreview();});
-  }
-  else if(k==='widget'){
-    body.innerHTML=`<div class="field"><label>적용 위젯 효과</label><div class="voice-grid" id="wg"></div></div>`;
-    const wg=byId('wg');
-    WIDGETS.forEach(w=>{const el=document.createElement('div');el.className='voice'+(W.cfg.widget===w.k?' on':'');
+function buildActionCfg(type,cfg,fields,prev){
+  fields.innerHTML='';
+  if(type==='kakao_send'){
+    fields.innerHTML=`<div class="mini-lbl">알림톡 메시지</div><textarea class="inp" rows="2" placeholder="메시지를 입력하세요">${cfg.msg||''}</textarea>
+      <div class="helper">{크리에이터}·{닉네임}·{등급}·{주년} 은 자동 치환됩니다.</div>`;
+    fields.querySelector('textarea').addEventListener('input',e=>{cfg.msg=e.target.value;actionPreview(type,cfg,prev);updateWizNext();});
+  }else if(type==='widget'){
+    fields.innerHTML=`<div class="mini-lbl">적용 위젯 효과</div>`;
+    const grid=document.createElement('div');grid.className='voice-grid';
+    WIDGETS.forEach(w=>{const el=document.createElement('div');el.className='voice'+(cfg.widget===w.k?' on':'');
       el.innerHTML=`<div class="vic">${w.i}</div><div class="vn">${w.k}</div>`;
-      el.onclick=()=>{W.cfg.widget=w.k;renderActionConfig();};wg.appendChild(el);});
-  }
-  else if(k==='tts'){
-    body.innerHTML=`<div class="field"><label>보이스 선택</label><div class="voice-grid" id="vv"></div></div>
-      <div class="field"><label>음성 알림 위젯 URL <span class="helper" style="display:inline">· 음성 알림 전용 위젯 추가 필수</span></label>
-      <div class="url-copy"><code>https://toon.at/w/${uid()}${uid().slice(2)}</code><button class="btn ghost sm" id="copyUrl">복사</button></div></div>`;
-    const vv=byId('vv');
-    VOICES.forEach(v=>{const el=document.createElement('div');el.className='voice'+(W.cfg.voice===v.k?' on':'');
+      el.onclick=()=>{cfg.widget=w.k;buildActionCfg(type,cfg,fields,prev);};grid.appendChild(el);});
+    fields.appendChild(grid);
+  }else if(type==='tts'){
+    fields.innerHTML=`<div class="mini-lbl">보이스 선택</div>`;
+    const grid=document.createElement('div');grid.className='voice-grid';
+    VOICES.forEach(v=>{const el=document.createElement('div');el.className='voice'+(cfg.voice===v.k?' on':'');
       el.innerHTML=`<div class="vic">${v.i}</div><div class="vn">${v.n}</div>`;
-      el.onclick=()=>{W.cfg.voice=v.k;renderActionConfig();};vv.appendChild(el);});
-    byId('copyUrl').onclick=()=>{navigator.clipboard?.writeText(byId('cfgBody').querySelector('code').textContent);toast('URL이 복사되었습니다');};
+      el.onclick=()=>{cfg.voice=v.k;buildActionCfg(type,cfg,fields,prev);};grid.appendChild(el);});
+    fields.appendChild(grid);
+    const url=document.createElement('div');url.innerHTML=`<div class="helper" style="margin:8px 0 4px">음성 알림 전용 위젯 URL</div>`;fields.appendChild(url);
+  }else if(type==='kakao_recv'){
+    fields.innerHTML=`<div class="mini-lbl">알림 받을 전화번호</div><input class="inp tnum" placeholder="010-0000-0000" value="${cfg.phone||''}">
+      <div class="helper">발생 시 이 번호로 카카오 알림톡이 발송됩니다.</div>`;
+    fields.querySelector('input').addEventListener('input',e=>{cfg.phone=e.target.value;});
+  }else if(type==='remote'){
+    fields.innerHTML=`<div class="helper" style="margin:0">연동된 리모컨 앱으로 실시간 알림이 전송됩니다. 추가 설정이 필요 없습니다.</div>`;
   }
-  else if(k==='kakao_recv'){
-    body.innerHTML=`<div class="field"><label>알림 받을 전화번호</label>
-      <input class="inp tnum" id="cfgPhone" placeholder="010-0000-0000" value="${W.cfg.phone||''}">
-      <div class="helper">후원 발생 시 이 번호로 카카오 알림톡이 발송됩니다.</div></div>`;
-    byId('cfgPhone').addEventListener('input',e=>{W.cfg.phone=e.target.value;});
-  }
-  else if(k==='remote'){
-    body.innerHTML=`<div class="helper" style="margin:0">연동된 리모컨 앱으로 실시간 후원 알림이 전송됩니다. 추가 설정이 필요 없습니다.</div>`;
-  }
-  renderPreview();
+  actionPreview(type,cfg,prev);
 }
 function sampleDonator(){
   if(W.targetMode==='pick'&&W.picks.length){const d=DB.donators.find(x=>x.id===W.picks[0]);if(d)return d;}
   if(W.targetMode==='class'&&W.classes.length){const gid=W.classes[0];const d=DB.donators.find(x=>{const g=gradeForCash(x.cash);return g&&g.id===gid;});if(d)return d;}
   return DB.donators.slice().sort((a,b)=>b.cash-a.cash)[0];
 }
-function renderPreview(){
-  const box=byId('cfgPreview'); const k=W.action; const d=sampleDonator();
-  const g=d?gradeForCash(d.cash):null; const gname=g?g.name:'VIP';
-  const dn=d?(d.alias||d.name):'도네이터';
+function actionPreview(type,cfg,box){
+  const d=sampleDonator();const g=d?gradeForCash(d.cash):null;const gname=g?g.name:'VIP';const dn=d?(d.alias||d.name):'도네이터';
   const amt = W.situ==='amount' ? (W.amt.min||10000) : 10000;
-  if(k==='kakao_send'){
-    box.innerHTML=`<div class="kakao"><div class="kt">💬 알림톡</div><div class="kb">${(W.cfg.msg||'').replace('{크리에이터}','크리에이터 닉네임')||'메시지를 입력하세요'}</div><div class="kbtn">바로 가기</div></div>`;
-  }else if(k==='kakao_recv'){
-    box.innerHTML=`<div class="kakao"><div class="kt">📩 후원 알림톡</div><div class="kb">${d?d.name:'도네이터'} <b>(${gname})</b> 님이 ${won(amt)} 캐시 후원</div><div class="kbtn">프로필 보기</div></div>`;
-  }else if(k==='remote'){
+  if(type==='kakao_send'){
+    const msg=(cfg.msg||'').replace(/{크리에이터}/g,'크리에이터 닉네임').replace(/{닉네임}/g,dn).replace(/{등급}/g,gname).replace(/{주년}/g,'2').replace(/</g,'&lt;');
+    box.innerHTML=`<div class="kakao"><div class="kt">💬 알림톡</div><div class="kb">${msg||'메시지를 입력하세요'}</div><div class="kbtn">바로 가기</div></div>`;
+  }else if(type==='kakao_recv'){
+    box.innerHTML=`<div class="kakao"><div class="kt">📩 알림톡</div><div class="kb">${dn} <b>(${gname})</b> 님이 ${won(amt)} 캐시 후원</div><div class="kbtn">프로필 보기</div></div>`;
+  }else if(type==='remote'){
     box.innerHTML=`<div class="remote"><div class="ri">🎛</div><div class="rb"><b>${dn} (${gname})</b> 님이 ${won(amt)} 캐시를<br>후원해 주셨습니다.</div></div>`;
-  }else if(k==='widget'){
-    const w=WIDGETS.find(x=>x.k===W.cfg.widget)||WIDGETS[0];
+  }else if(type==='widget'){
+    const w=WIDGETS.find(x=>x.k===cfg.widget)||WIDGETS[0];
     box.innerHTML=`<div class="widget-prev ${w.fx==='neon'?'neon':''}" style="background:${w.bg}">${widgetFx(w.fx)}<div class="wtxt">${w.i} ${w.k} 효과</div></div>`;
-  }else if(k==='tts'){
-    const v=VOICES.find(x=>x.k===W.cfg.voice)||VOICES[0];
+  }else if(type==='tts'){
+    const v=VOICES.find(x=>x.k===cfg.voice)||VOICES[0];
     box.innerHTML=`<div class="remote"><div class="ri">🔊</div><div class="rb"><b>${v.i} ${v.n} 보이스</b><br>“${dn} 님이 ${won(amt)} 캐시 후원해 주셨습니다”</div></div>`;
   }else box.innerHTML='';
 }
@@ -1776,8 +1805,7 @@ function updateWizNext(){
       else ok=true;
     }
   }else{
-    ok = !!W.action;
-    if(W.action==='kakao_send') ok = ok && !!(W.cfg.msg||'').trim();
+    ok = W.actions.length>0 && W.actions.every(ac=>ac.type!=='kakao_send' || !!(ac.cfg.msg||'').trim());
   }
   byId('wizNext').disabled=!ok;
 }
@@ -1785,7 +1813,7 @@ byId('wizBack').onclick=()=>{W.step=1;renderWizard();};
 byId('wizNext').onclick=()=>{
   if(W.step===1){W.step=2;renderWizard();return;}
   // save
-  const obj={id:W.id||uid(),on:true,situ:W.situ,action:W.action,cfg:{...W.cfg}};
+  const obj={id:W.id||uid(),on:true,situ:W.situ,actions:W.actions.map(a=>({type:a.type,cfg:{...a.cfg}}))};
   const s=SITU[W.situ];
   if(s.amount) obj.amt={...W.amt};
   if(s.target){obj.targetMode=W.targetMode;obj.classes=[...W.classes];obj.picks=[...W.picks];}
@@ -2231,7 +2259,8 @@ function liveTick(){
     const d=DB.donators.find(x=>x.id===pick(onlineIds));
     const amt=pick(DONATE_AMTS); LIVE.donation+=amt;
     pushFeed('donate',d,null,amt);
-    fireAutos('donate',d,amt);
+    fireAutos('donate',d,amt);        // 특정 도네이터 / 특정 금액 트리거
+    if(Math.random()<0.15) fireAutos('first',d,amt);   // 가끔 첫 후원 트리거
   }
   renderLive();
 }
@@ -2315,19 +2344,26 @@ function targetHit(a,d){
   return false;
 }
 function amtHit(a,amt){const m=a.amt||{};return m.mode==='over'?amt>=m.min:(amt>=m.min&&amt<=m.max);}
+const SITU_LOG={login:'방송 시작 시',first:'첫 후원 시',donate:'후원 시',amount:'후원 시',promote:'등급 승급',anniv:'가입 기념일'};
+const NO_AMT_SITU=['login','promote','anniv'];
 function fireAutos(kind,d,amt){
   if(d.blocked) return;
   DB.autos.filter(a=>a.on).forEach(a=>{
     let match=false;
     if(a.situ==='login'&&kind==='login') match=targetHit(a,d);
+    else if(a.situ==='first'&&kind==='first') match=true;
     else if(a.situ==='donate'&&kind==='donate') match=targetHit(a,d);
     else if(a.situ==='amount'&&kind==='donate') match=amtHit(a,amt);
+    else if(a.situ==='promote'&&kind==='promote') match=targetHit(a,d);
+    else if(a.situ==='anniv'&&kind==='anniv') match=targetHit(a,d);
     if(match){
       const g=gradeForCash(d.cash);
-      DB.autoLogs.unshift({when:nowClock(),type:a.situ==='login'?'login':'donate',name:d.alias||d.name,grade:g?g.name:'',action:a.action,amt:a.situ==='login'?0:amt});
-      if(DB.autoLogs.length>200) DB.autoLogs.pop();
+      (a.actions||[]).forEach(ac=>{
+        DB.autoLogs.unshift({when:nowClock(),situ:a.situ,name:d.alias||d.name,grade:g?g.name:'',action:ac.type,amt:NO_AMT_SITU.includes(a.situ)?0:amt});
+      });
     }
   });
+  while(DB.autoLogs.length>200) DB.autoLogs.pop();
   save();
   if(!pages.auto.classList.contains('hidden')) renderAutoLogs();
 }
@@ -2336,7 +2372,7 @@ function renderAutoLogs(){
   if(!DB.autoLogs.length){box.innerHTML='<div class="log-empty">아직 실행된 자동화가 없습니다.<br>라이브 방송을 시작하면 실시간으로 기록됩니다.</div>';return;}
   box.innerHTML=DB.autoLogs.map(l=>{
     const act=ACTIONS[l.action]||{icon:'⚡',label:l.action};
-    const situ = l.type==='login'?'방송 시작 시':'후원 시';
+    const situ = SITU_LOG[l.situ||l.type]||'후원 시';
     return `<div class="log-row"><div class="lw">${l.when}</div><div class="li">${act.icon}</div>
       <div class="lc"><div class="who">${l.name} ${l.grade?`<span style="color:var(--muted);font-weight:600">(${l.grade})</span>`:''} · ${situ}</div>
         <div class="act">${act.label}</div></div>
