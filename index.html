@@ -520,6 +520,17 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .live-card .mins{font-size:11.5px;color:var(--muted);margin-top:2px}
 .live-card .lc-acts{display:flex;gap:6px}
 .live-card .lc-acts .btn{flex:1;justify-content:center;padding:7px}
+.rank-list{display:flex;flex-direction:column;gap:6px}
+.rank-row{display:flex;align-items:center;gap:12px;padding:8px 6px;border-radius:10px;transition:.2s}
+.rank-row:first-child{background:linear-gradient(90deg,var(--vvip-soft),transparent)}
+.rank-row .rk-medal{width:26px;text-align:center;font-size:16px;font-weight:800;color:var(--muted);flex:none}
+.rank-row .ava{width:34px;height:34px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:12px}
+.rank-row .rk-meta{flex:1;min-width:0}
+.rank-row .rk-nm{font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px}
+.rank-row .rk-bar{height:6px;border-radius:4px;background:var(--surface-3);overflow:hidden;margin-top:6px}
+.rank-row .rk-bar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),#ff8a5c);transition:width .5s}
+.rank-row .rk-amt{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:13.5px}
+.rank-row:first-child .rk-nm{color:var(--vvip)}
 .live-feed{display:flex;flex-direction:column;gap:2px;max-height:460px;overflow-y:auto}
 .feed-row{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line);font-size:13px;animation:feedin .3s}
 @keyframes feedin{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
@@ -662,6 +673,16 @@ tbody tr.blocked:hover{opacity:.72}
           <div class="panel-head"><h3>상위 후원자 기여도</h3><span class="hint">파레토</span></div>
           <div class="panel-body" id="paretoBox"></div>
         </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-head">
+          <h3>🎯 승급 임박 VIP</h3><span class="hint" id="nudgeHint"></span><div class="spacer"></div>
+          <div class="seg" id="nudgeThresh" style="flex:none">
+            <button data-n="30000">3만</button><button data-n="50000" class="on">5만</button><button data-n="100000">10만</button>
+          </div>
+        </div>
+        <div class="panel-body"><div id="nudgeBox"></div></div>
       </div>
 
       <div class="panel" style="margin-bottom:16px">
@@ -917,6 +938,11 @@ tbody tr.blocked:hover{opacity:.72}
           <div class="stat"><div class="k">💰 이번 방송 후원</div><div class="v tnum" id="liveDonation">0<small>캐시</small></div></div>
         </div>
 
+        <div class="panel" style="margin-bottom:16px">
+          <div class="panel-head"><h3>🏆 이번 방송 후원 랭킹</h3><span class="hint">TOP 5 · 실시간 경쟁</span></div>
+          <div class="panel-body"><div id="liveRank" class="rank-list"></div></div>
+        </div>
+
         <div class="ins-grid" style="grid-template-columns:1.5fr 1fr">
           <div class="panel">
             <div class="panel-head"><h3>현재 접속 중인 VIP</h3><span class="hint">등급·접속시간 순</span><div class="spacer"></div><button class="btn ghost sm" id="stopLiveBtn">방송 종료</button></div>
@@ -1156,6 +1182,30 @@ tbody tr.blocked:hover{opacity:.72}
       <button class="btn ghost" id="blockCancel">취소</button>
       <div class="spacer"></div>
       <button class="btn primary" id="blockConfirm" style="background:#e2415a">차단하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 승급 넛지 메시지 ============ -->
+<div class="overlay" id="nudgeOverlay">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <h2>🎯 승급 넛지 메시지</h2><div class="spacer"></div><button class="xbtn" id="nudgeClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="re-target" id="nudgeTarget"></div>
+      <div class="gauge-box" id="nudgeGauge" style="margin:0 0 18px"></div>
+      <div class="field">
+        <label>카카오 알림톡 메시지</label>
+        <textarea class="inp" id="nudgeMsg" rows="3"></textarea>
+        <div class="helper">{닉네임}·{다음등급}·{남은금액} 은 자동 치환됩니다. 프로토타입 — 실제 발송 없이 이력만 기록.</div>
+      </div>
+      <div class="preview-box"><div class="preview-lbl">👁 미리보기</div><div id="nudgePreview"></div></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="nudgeCancel">취소</button>
+      <div class="spacer"></div>
+      <button class="btn primary" id="nudgeSend">넛지 발송</button>
     </div>
   </div>
 </div>
@@ -1862,7 +1912,7 @@ function buildActionCfg(type,cfg,fields,prev){
   fields.innerHTML='';
   if(type==='kakao_send'){
     fields.innerHTML=`<div class="mini-lbl">알림톡 메시지</div><textarea class="inp" rows="2" placeholder="메시지를 입력하세요">${cfg.msg||''}</textarea>
-      <div class="helper">{크리에이터}·{닉네임}·{등급}·{주년} 은 자동 치환됩니다.</div>`;
+      <div class="helper">{크리에이터}·{닉네임}·{등급}·{주년}·{남은금액}·{다음등급} 은 자동 치환됩니다.</div>`;
     fields.querySelector('textarea').addEventListener('input',e=>{cfg.msg=e.target.value;actionPreview(type,cfg,prev);updateWizNext();});
   }else if(type==='widget'){
     fields.innerHTML=`<div class="mini-lbl">적용 위젯 효과</div>`;
@@ -1893,11 +1943,27 @@ function sampleDonator(){
   if(W.targetMode==='class'&&W.classes.length){const gid=W.classes[0];const d=DB.donators.find(x=>{const g=gradeForCash(x.cash);return g&&g.id===gid;});if(d)return d;}
   return DB.donators.slice().sort((a,b)=>b.cash-a.cash)[0];
 }
+function sampleNudgeDonator(){
+  const c=DB.donators.filter(x=>!x.blocked&&!gaugeData(x).top).sort((a,b)=>gaugeData(a).remaining-gaugeData(b).remaining);
+  return c[0]||sampleDonator();
+}
+function subMsg(msg,d){
+  const g=d?gradeForCash(d.cash):null, gg=d?gaugeData(d):null;
+  return (msg||'')
+    .replace(/{크리에이터}/g,'크리에이터 닉네임')
+    .replace(/{닉네임}/g,d?(d.alias||d.name):'도네이터')
+    .replace(/{등급}/g,g?g.name:'VIP')
+    .replace(/{주년}/g,'2')
+    .replace(/{남은금액}/g,gg&&!gg.top?won(gg.remaining):'0')
+    .replace(/{다음등급}/g,gg&&!gg.top?gg.nx.name:'최고 등급')
+    .replace(/</g,'&lt;');
+}
 function actionPreview(type,cfg,box){
   const d=sampleDonator();const g=d?gradeForCash(d.cash):null;const gname=g?g.name:'VIP';const dn=d?(d.alias||d.name):'도네이터';
   const amt = W.situ==='amount' ? (W.amt.min||10000) : 10000;
   if(type==='kakao_send'){
-    const msg=(cfg.msg||'').replace(/{크리에이터}/g,'크리에이터 닉네임').replace(/{닉네임}/g,dn).replace(/{등급}/g,gname).replace(/{주년}/g,'2').replace(/</g,'&lt;');
+    const dd = /{남은금액}|{다음등급}/.test(cfg.msg||'') ? sampleNudgeDonator() : d;
+    const msg=subMsg(cfg.msg,dd);
     box.innerHTML=`<div class="kakao"><div class="kt">💬 알림톡</div><div class="kb">${msg||'메시지를 입력하세요'}</div><div class="kbtn">바로 가기</div></div>`;
   }else if(type==='kakao_recv'){
     box.innerHTML=`<div class="kakao"><div class="kt">📩 알림톡</div><div class="kb">${dn} <b>(${gname})</b> 님이 ${won(amt)} 캐시 후원</div><div class="kbtn">프로필 보기</div></div>`;
@@ -2088,7 +2154,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();byId('confirmOverlay').classList.remove('show');}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -2229,7 +2295,60 @@ byId('reSend').onclick=()=>{
   toast('복귀 유도 알림톡을 발송했습니다');
 };
 
-function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderChurn();renderPareto();renderAnniv();}
+/* --- 승급 임박 VIP (넛지) --- */
+let nudgeThreshold=50000;
+function nudgeData(maxRem){
+  return DB.donators.filter(d=>!d.blocked).map(d=>({d,g:gaugeData(d)}))
+    .filter(x=>!x.g.top && x.g.remaining<=maxRem)
+    .sort((a,b)=>a.g.remaining-b.g.remaining);
+}
+function renderNudge(){
+  const rows=nudgeData(nudgeThreshold);
+  byId('nudgeHint').textContent=`다음 등급까지 ${won(nudgeThreshold)}원 이내 · ${rows.length}명`;
+  const box=byId('nudgeBox');
+  if(!rows.length){box.innerHTML=`<div class="empty" style="padding:30px"><div class="ic">🎯</div><div class="t">승급 임박 VIP가 없습니다</div><div class="s">기준 금액을 넓혀보세요.</div></div>`;return;}
+  box.innerHTML='';
+  rows.slice(0,8).forEach(({d,g})=>{
+    const cur=gradeForCash(d.cash);
+    const row=document.createElement('div');row.className='churn-row';
+    row.innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+      <div class="meta"><div class="nm">${d.alias||d.name} ${gradeBadge(cur)}</div>
+        <div class="info">다음 등급 <b style="color:var(--text)">${g.nx.name}</b>까지 <b style="color:var(--accent)">${won(g.remaining)}원</b> · 달성 ${Math.round(g.pct)}%</div>
+        <div class="gauge mini" style="max-width:230px;margin-top:7px"><i style="width:${g.pct}%;background:${g.nx.color}"></i></div></div>
+      ${d.nudged?'<div class="done-badge">✓ 보냄</div>':'<button class="btn primary sm nudge-btn">넛지 보내기</button>'}`;
+    const btn=row.querySelector('.nudge-btn'); if(btn)btn.onclick=()=>openNudge(d.id);
+    box.appendChild(row);
+  });
+  if(rows.length>8){const m=document.createElement('div');m.className='helper';m.style.textAlign='center';m.textContent=`외 ${rows.length-8}명 더 있습니다`;box.appendChild(m);}
+}
+byId('nudgeThresh').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  nudgeThreshold=+b.dataset.n;
+  byId('nudgeThresh').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  renderNudge();
+});
+let nudgeId=null;
+function openNudge(id){
+  const d=DB.donators.find(x=>x.id===id);if(!d)return;nudgeId=id;
+  const cur=gradeForCash(d.cash), g=gaugeData(d);
+  byId('nudgeTarget').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+    <div><div class="nm">${d.alias||d.name} ${gradeBadge(cur)}</div><div class="info">누적 ${won(d.cash)}캐시</div></div>`;
+  byId('nudgeGauge').innerHTML=`<div class="gauge-head"><span>다음 등급 <b class="gb ${clsOf(g.nx)}" style="padding:2px 7px">${g.nx.name}</b> 까지</span><span class="gauge-amt">${won(g.remaining)}원</span></div>
+    <div class="gauge"><i style="width:${g.pct}%;background:${g.nx.color}"></i></div>`;
+  byId('nudgeMsg').value=`{닉네임}님, 다음 등급 {다음등급}까지 {남은금액}원 남았어요! 조금만 더 힘내주시면 특별 혜택이 기다려요 💪`;
+  nudgePrev();
+  byId('nudgeOverlay').classList.add('show');
+}
+function nudgePrev(){const d=DB.donators.find(x=>x.id===nudgeId);byId('nudgePreview').innerHTML=`<div class="kakao"><div class="kt">🎯 승급 넛지 알림톡</div><div class="kb">${subMsg(byId('nudgeMsg').value,d)}</div><div class="kbtn">후원하러 가기</div></div>`;}
+byId('nudgeMsg').addEventListener('input',nudgePrev);
+byId('nudgeClose').onclick=byId('nudgeCancel').onclick=()=>byId('nudgeOverlay').classList.remove('show');
+byId('nudgeOverlay').onclick=e=>{if(e.target===byId('nudgeOverlay'))byId('nudgeOverlay').classList.remove('show');};
+byId('nudgeSend').onclick=()=>{
+  const d=DB.donators.find(x=>x.id===nudgeId);if(d){d.nudged=true;save();}
+  byId('nudgeOverlay').classList.remove('show');renderNudge();
+  toast('승급 넛지 알림톡을 발송했습니다 🎯');
+};
+
+function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderChurn();renderPareto();renderNudge();renderAnniv();}
 
 /* =========================================================
    TAB — 칭호 관리 (규칙 엔진)
@@ -2394,7 +2513,7 @@ function todayStr(){const t=refNow();const dt=new Date(t);return `${dt.getFullYe
 /* =========================================================
    TAB — 라이브 VIP 뷰
    ========================================================= */
-const LIVE={on:false,online:new Map(),feed:[],donation:0,elapsed:0,tick:null,clock:null};
+const LIVE={on:false,online:new Map(),feed:[],donation:0,elapsed:0,rank:new Map(),tick:null,clock:null};
 const DONATE_AMTS=[1000,3000,5000,10000,30000,50000];
 function liveEligible(){return DB.donators.filter(d=>!d.blocked && gradeForCash(d.cash));}
 function pick(arr){return arr.length?arr[Math.floor(Math.random()*arr.length)]:null;}
@@ -2403,7 +2522,8 @@ byId('goLiveBtn').onclick=()=>{ LIVE.on?stopLive():goLive(); };
 byId('stopLiveBtn').onclick=stopLive;
 
 function goLive(){
-  LIVE.on=true; LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0;
+  clearInterval(LIVE.tick); clearInterval(LIVE.clock);   // 중복 타이머 방지
+  LIVE.on=true; LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0; LIVE.rank=new Map();
   const pool=liveEligible().sort(()=>Math.random()-.5);
   pool.slice(0,Math.min(6,pool.length)).forEach(d=>LIVE.online.set(d.id,{mins:1+Math.floor(Math.random()*35)}));
   pushFeed('start',null,'방송을 시작했습니다');
@@ -2413,7 +2533,7 @@ function goLive(){
 }
 function stopLive(){
   LIVE.on=false; clearInterval(LIVE.tick); clearInterval(LIVE.clock);
-  LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0;
+  LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0; LIVE.rank=new Map();
   renderLive();
 }
 function liveTick(){
@@ -2429,10 +2549,13 @@ function liveTick(){
     LIVE.online.delete(id); pushFeed('logout',d,'퇴장했습니다');
   }else if(onlineIds.length){ // 후원
     const d=DB.donators.find(x=>x.id===pick(onlineIds));
-    const amt=pick(DONATE_AMTS); LIVE.donation+=amt;
-    pushFeed('donate',d,null,amt);
-    fireAutos('donate',d,amt);        // 특정 도네이터 / 특정 금액 트리거
-    if(Math.random()<0.15) fireAutos('first',d,amt);   // 가끔 첫 후원 트리거
+    if(d){
+      const amt=pick(DONATE_AMTS); LIVE.donation+=amt;
+      LIVE.rank.set(d.id,(LIVE.rank.get(d.id)||0)+amt);
+      pushFeed('donate',d,null,amt);
+      fireAutos('donate',d,amt);        // 특정 도네이터 / 특정 금액 트리거
+      if(Math.random()<0.15) fireAutos('first',d,amt);   // 가끔 첫 후원 트리거
+    }
   }
   renderLive();
 }
@@ -2466,6 +2589,17 @@ function renderLive(){
   byId('liveOnline').innerHTML=`${onl.length}<small>명</small>`;
   byId('liveVVIP').innerHTML=`${vvip}<small>명</small>`;
   byId('liveDonation').innerHTML=`${won(LIVE.donation)}<small>캐시</small>`;
+  // 후원 랭킹
+  const ranked=[...LIVE.rank.entries()].map(([id,amt])=>({d:DB.donators.find(x=>x.id===id),amt})).filter(x=>x.d).sort((a,b)=>b.amt-a.amt);
+  const maxAmt=ranked[0]?ranked[0].amt:1;
+  byId('liveRank').innerHTML = ranked.length ? ranked.slice(0,5).map((r,i)=>{
+    const g=gradeForCash(r.d.cash), medal=['👑','🥈','🥉'][i]||`<span style="font-size:13px">${i+1}</span>`;
+    return `<div class="rank-row"><div class="rk-medal">${medal}</div>
+      <div class="ava" style="background:${avaColor(r.d.name)}">${r.d.name.slice(0,2)}</div>
+      <div class="rk-meta"><div class="rk-nm">${r.d.alias||r.d.name} ${gradeBadge(g)}</div>
+        <div class="rk-bar"><i style="width:${(r.amt/maxAmt*100).toFixed(0)}%"></i></div></div>
+      <div class="rk-amt">${won(r.amt)}</div></div>`;
+  }).join('') : '<div class="helper">아직 후원이 없습니다. 첫 후원을 기다려요! 🎁</div>';
   // grid
   onl.sort((a,b)=>{const ga=gradeForCash(a.d.cash),gb=gradeForCash(b.d.cash);return (gb?gb.min:0)-(ga?ga.min:0)||b.v.mins-a.v.mins;});
   const grid=byId('liveGrid');
