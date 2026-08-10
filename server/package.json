@@ -1,0 +1,14 @@
+{
+  "name": "vip-donator-api",
+  "version": "1.0.0",
+  "description": "VIP 도네이터 관리 REST API 서버 (스캐폴드, 의존성 0)",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "reset": "node -e \"import('./src/store.js').then(m=>{m.reset();console.log('데이터 초기화 완료')})\""
+  },
+  "engines": { "node": ">=18" },
+  "license": "MIT"
+}
