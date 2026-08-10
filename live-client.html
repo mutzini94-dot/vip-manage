@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>라이브 게이트웨이 클라이언트 — VIP 도네이터</title>
+<style>
+:root{
+  --ground:#0d0e13;--surface:#171922;--surface-2:#20232e;--surface-3:#2a2e3c;
+  --line:rgba(255,255,255,.08);--line-strong:rgba(255,255,255,.14);
+  --text:#e9eaf0;--muted:#8b8fa3;--muted-2:#6a6e80;
+  --accent:#ff3d68;--accent-soft:rgba(255,61,104,.14);--accent-press:#e62a54;
+  --on:#33d69f;--live:#ff4646;--vvip:#ffcb45;
+  --font:"Pretendard","Pretendard Variable",-apple-system,BlinkMacSystemFont,"Malgun Gothic","Apple SD Gothic Neo","Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;background:var(--ground);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input{font-family:inherit}
+::-webkit-scrollbar{width:9px}::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:6px}
+.hidden{display:none!important}
+.top{display:flex;align-items:center;gap:14px;height:58px;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15.5px}
+.logo .mark{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--accent),#ff8a5c);display:grid;place-items:center;color:#fff}
+.logo .sub{font-size:11px;color:var(--muted);font-weight:600}
+.top .spacer{flex:1}
+.wsurl{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:8px 11px;color:var(--text);font-family:var(--mono);font-size:12.5px;width:230px;outline:none}
+.conn{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);padding:8px 12px;border-radius:9px}
+.conn .dot{width:8px;height:8px;border-radius:50%;background:var(--muted-2)}
+.conn.ok .dot{background:var(--on);box-shadow:0 0 0 3px rgba(51,214,159,.2)}
+.conn.err .dot{background:var(--live)}
+.btn{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:13px;padding:9px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);transition:.12s}
+.btn:hover{border-color:var(--line-strong)}
+.btn.primary{background:var(--accent);border-color:transparent;color:#fff}.btn.primary:hover{background:var(--accent-press)}
+.btn.live{background:var(--live);border-color:transparent;color:#fff}
+.btn.sm{padding:6px 10px;font-size:12px}
+.btn:disabled{opacity:.45;pointer-events:none}
+.wrap{max-width:1080px;margin:0 auto;padding:22px 20px 50px}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.controls .spacer{flex:1}
+.happy{display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:14px;margin-bottom:16px;color:#fff;
+  background:linear-gradient(90deg,#ff3d68,#ff8a5c,#ffcb45,#ff8a5c,#ff3d68);background-size:300% 100%;animation:hg 5s linear infinite;box-shadow:0 4px 22px rgba(255,61,104,.4)}
+@keyframes hg{0%{background-position:0 0}100%{background-position:300% 0}}
+.happy .hi{font-size:26px;animation:hp 1s ease-in-out infinite}
+@keyframes hp{0%,100%{transform:scale(1)}50%{transform:scale(1.28) rotate(-8deg)}}
+.happy .ht{font-weight:800;font-size:16px}.happy .hs{font-size:12.5px;opacity:.92;font-weight:700;margin-top:2px}
+.happy .hr{margin-left:auto;font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;background:rgba(0,0,0,.2);padding:6px 14px;border-radius:11px}
+.stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.stat{flex:1;min-width:150px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px 18px}
+.stat .k{font-size:12px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px}
+.stat .v{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-top:6px}
+.stat .v small{font-size:13px;color:var(--muted);font-weight:600;margin-left:2px}
+.live-badge{display:inline-flex;align-items:center;gap:5px;background:var(--live);color:#fff;font-weight:800;font-size:10px;padding:2px 7px;border-radius:5px}
+.live-badge .p{width:6px;height:6px;border-radius:50%;background:#fff;animation:hp 1.4s infinite}
+.grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.panel-h{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
+.panel-h h3{margin:0;font-size:14px;font-weight:800}.panel-h .hint{font-size:12px;color:var(--muted)}
+.panel-b{padding:15px}
+.gb{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--surface-3);color:var(--muted)}
+.gb.VVIP{background:rgba(255,203,69,.16);color:var(--vvip)}.gb.VIP{background:rgba(164,91,255,.16);color:#c79bff}.gb.열혈{background:rgba(91,140,255,.16);color:#9fbaff}
+/* ranking */
+.rank-row{display:flex;align-items:center;gap:12px;padding:8px 6px;border-radius:10px}
+.rank-row:first-child{background:linear-gradient(90deg,rgba(255,203,69,.14),transparent)}
+.rk-medal{width:26px;text-align:center;font-size:16px;font-weight:800;color:var(--muted)}
+.rk-meta{flex:1;min-width:0}.rk-nm{font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px}
+.rk-bar{height:6px;border-radius:4px;background:var(--surface-3);overflow:hidden;margin-top:6px}
+.rk-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#ff8a5c)}
+.rk-amt{font-weight:800;font-variant-numeric:tabular-nums;font-size:13px}
+/* online */
+.on-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.on-card{border:1px solid var(--line);border-radius:12px;padding:11px;background:var(--surface-2);cursor:pointer;transition:.12s}
+.on-card:hover{border-color:var(--accent)}
+.on-card .nm{font-weight:800;font-size:13px;display:flex;align-items:center;gap:6px}
+.on-card .mins{font-size:11.5px;color:var(--muted);margin-top:4px}
+.on-card .greet{margin-top:8px;font-size:11.5px;font-weight:700;color:var(--accent)}
+/* feed */
+.feed{display:flex;flex-direction:column;max-height:460px;overflow-y:auto}
+.feed-row{display:flex;align-items:center;gap:10px;padding:9px 3px;border-bottom:1px solid var(--line);font-size:13px}
+.feed-row .fi{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:13px;flex:none;background:var(--surface-3)}
+.feed-row.donate .fi{background:var(--accent-soft)}.feed-row.login .fi{background:rgba(51,214,159,.15)}
+.feed-row .ft{flex:1;min-width:0}.feed-row .ft b{font-weight:800}
+.feed-row .fa{font-weight:800;color:var(--accent);font-size:12px;white-space:nowrap}
+.fboost{font-size:10px;font-weight:900;color:#fff;background:linear-gradient(90deg,#ff3d68,#ff8a5c);padding:2px 6px;border-radius:5px;margin-left:6px}
+.empty{padding:30px;text-align:center;color:var(--muted);font-size:13px}
+.toast-wrap{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--surface-3);border:1px solid var(--line-strong);border-radius:11px;padding:10px 18px;font-size:13px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="logo"><div class="mark">📡</div><div>라이브 게이트웨이 클라이언트<div class="sub">WebSocket 실시간 구독</div></div></div>
+  <div class="spacer"></div>
+  <input class="wsurl" id="wsurl" value="ws://localhost:4000/live">
+  <div class="conn" id="conn"><span class="dot"></span><span id="connTxt">연결 안 됨</span></div>
+  <button class="btn" id="connBtn">연결</button>
+</div>
+
+<div class="wrap">
+  <div class="controls">
+    <button class="btn primary" id="startBtn" disabled>▶ 방송 시작</button>
+    <button class="btn sm" id="happy2" disabled>⚡ 해피아워 2배</button>
+    <button class="btn sm" id="happy3" disabled>⚡ 해피아워 3배</button>
+    <button class="btn sm" id="happyEnd" disabled>해피아워 종료</button>
+    <div class="spacer"></div>
+    <span class="hint" style="font-size:12px;color:var(--muted)">접속 카드를 클릭하면 인사 전송</span>
+  </div>
+
+  <div class="happy hidden" id="happyBanner"></div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="grid">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="panel">
+        <div class="panel-h"><h3>🏆 이번 방송 후원 랭킹</h3><span class="hint">TOP 5 · 실시간</span></div>
+        <div class="panel-b"><div id="rank"></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h3>현재 접속 중인 VIP</h3><span class="hint">클릭 → 인사</span></div>
+        <div class="panel-b"><div class="on-grid" id="online"></div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><h3>실시간 피드</h3><span class="hint">입장 · 후원 · 퇴장</span></div>
+      <div class="panel-b"><div class="feed" id="feed"></div></div>
+    </div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let ws=null, live=false, state=null, happyRemainLocal=0, localTimer=null;
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;$('toastWrap').appendChild(t);setTimeout(()=>{t.style.opacity=0;t.style.transition='.3s';setTimeout(()=>t.remove(),300);},1800);}
+function fmt(s){const m=Math.floor(s/60),ss=s%60;return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');}
+function won(n){return (n||0).toLocaleString('ko-KR');}
+
+function connect(){
+  const url=$('wsurl').value.trim();
+  try{ ws=new WebSocket(url); }catch(e){ return toast('URL 오류'); }
+  setConn('연결 중…','');
+  ws.onopen=()=>{ setConn('연결됨','ok'); $('connBtn').textContent='해제'; enableControls(true); };
+  ws.onclose=()=>{ setConn('연결 끊김','err'); $('connBtn').textContent='연결'; enableControls(false); live=false; renderAll(); stopLocal(); };
+  ws.onerror=()=>{ setConn('오류','err'); };
+  ws.onmessage=ev=>{ const m=JSON.parse(ev.data); handle(m); };
+}
+function disconnect(){ if(ws){ws.close();ws=null;} }
+function setConn(txt,cls){ $('conn').className='conn'+(cls?' '+cls:''); $('connTxt').textContent=txt; }
+function enableControls(on){ ['startBtn','happy2','happy3','happyEnd'].forEach(id=>$(id).disabled=!on); }
+function cmd(o){ if(ws&&ws.readyState===1) ws.send(JSON.stringify(o)); }
+
+function handle(m){
+  if(m.type==='hello'||m.type==='tick'||m.type==='live'||m.type==='event'){ if(m.state){ state=m.state; live=m.state.on; } }
+  if(m.type==='happy'){ if(state) state.happy=m.happy; if(m.happy.remain) happyRemainLocal=m.happy.remain; }
+  if(m.type==='tick'&&m.event&&m.event.type==='donate'&&m.event.boost){/* boosted */}
+  if(state&&state.happy) happyRemainLocal=state.happy.remain;
+  renderAll();
+  if(live) startLocal(); else stopLocal();
+}
+function renderAll(){
+  $('startBtn').textContent = live?'■ 방송 종료':'▶ 방송 시작';
+  $('startBtn').classList.toggle('live',live);
+  $('startBtn').onclick=()=>cmd({cmd:live?'stop':'start'});
+  // happy banner
+  const h=state&&state.happy;
+  $('happyBanner').classList.toggle('hidden',!(h&&h.on));
+  if(h&&h.on){ $('happyBanner').innerHTML=`<div class="hi">⚡</div><div style="flex:1"><div class="ht">해피아워 · 지금 후원 시 ${h.mult}배!</div><div class="hs">후원이 랭킹·효과에 ${h.mult}배로 반영됩니다</div></div><div class="hr" id="hr">${fmt(happyRemainLocal)}</div>`; }
+  // stats
+  const el=state?state.elapsed:0, on=state?state.online.length:0, don=state?state.donation:0, cl=state?state.clients:0;
+  const vv=state?state.online.filter(o=>o.grade==='VVIP').length:0;
+  $('stats').innerHTML=`
+    <div class="stat"><div class="k">${live?'<span class="live-badge"><span class="p"></span>LIVE</span>':''} 방송 시간</div><div class="v">${fmt(el)}</div></div>
+    <div class="stat"><div class="k">🟢 접속 VIP</div><div class="v">${on}<small>명</small></div></div>
+    <div class="stat"><div class="k">👑 VVIP 접속</div><div class="v">${vv}<small>명</small></div></div>
+    <div class="stat"><div class="k">💰 세션 후원</div><div class="v">${won(don)}<small>캐시</small></div></div>`;
+  // ranking
+  const rank=state?state.rank:[];
+  const mx=rank[0]?rank[0].amount:1;
+  $('rank').innerHTML=rank.length?rank.map((r,i)=>{const md=['👑','🥈','🥉'][i]||(i+1);
+    return `<div class="rank-row"><div class="rk-medal">${md}</div><div class="rk-meta"><div class="rk-nm">${r.name} <span class="gb ${r.grade}">${r.grade}</span></div><div class="rk-bar"><i style="width:${(r.amount/mx*100).toFixed(0)}%"></i></div></div><div class="rk-amt">${won(r.amount)}</div></div>`;
+  }).join(''):'<div class="empty">아직 후원이 없습니다 🎁</div>';
+  // online
+  const onl=state?state.online:[];
+  $('online').innerHTML=onl.length?'':'<div class="empty" style="grid-column:1/-1">접속 대기 중…</div>';
+  onl.forEach(o=>{const c=document.createElement('div');c.className='on-card';
+    c.innerHTML=`<div class="nm">${o.name} <span class="gb ${o.grade}">${o.grade}</span></div><div class="mins">🟢 접속 ${o.mins}분</div><div class="greet">👋 인사하기</div>`;
+    c.onclick=()=>{cmd({cmd:'greet',donatorId:o.id});toast(o.name+'님에게 인사 전송');};
+    $('online').appendChild(c);});
+  // feed
+  const FI={login:'🟢',logout:'⚪',donate:'💰',greet:'👋',start:'📡'};
+  const feed=state?state.feed:[];
+  $('feed').innerHTML=feed.length?feed.map(f=>{
+    const body=f.type==='donate'?`<b>${f.name}</b> <span style="color:var(--muted)">(${f.grade})</span> 님이 후원`:
+      (f.type==='greet'?`<b>${f.name}</b> 님에게 인사`:
+      (f.name?`<b>${f.name}</b> <span style="color:var(--muted)">${f.grade?'('+f.grade+')':''}</span> 님이 ${f.msg}`:f.msg));
+    return `<div class="feed-row ${f.type}"><div class="fi">${FI[f.type]||'•'}</div><div class="ft">${body}${f.boost?`<span class="fboost">🔥 ${f.boost}배</span>`:''}</div>${f.amt?`<div class="fa">+${won(f.amt)}</div>`:''}</div>`;
+  }).join(''):'<div class="empty">이벤트 대기 중…</div>';
+}
+// 로컬 카운트다운(초 단위 부드럽게)
+function startLocal(){ if(localTimer)return; localTimer=setInterval(()=>{
+  if(state){ state.elapsed=(state.elapsed||0)+1; if(state.happy&&state.happy.on){ happyRemainLocal=Math.max(0,happyRemainLocal-1); const hr=$('hr'); if(hr)hr.textContent=fmt(happyRemainLocal); }
+    const sv=document.querySelector('#stats .stat .v'); if(sv)sv.textContent=fmt(state.elapsed); }
+},1000); }
+function stopLocal(){ clearInterval(localTimer); localTimer=null; }
+
+$('connBtn').onclick=()=>{ if(ws&&ws.readyState<=1) disconnect(); else connect(); };
+$('happy2').onclick=()=>cmd({cmd:'happy',mult:2,minutes:20});
+$('happy3').onclick=()=>cmd({cmd:'happy',mult:3,minutes:20});
+$('happyEnd').onclick=()=>cmd({cmd:'happyEnd'});
+renderAll();
+connect(); // 자동 연결 시도
+</script>
+</body>
+</html>

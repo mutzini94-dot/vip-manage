@@ -52,6 +52,20 @@ const { data, meta } = await api.donators.list({ status:'active', sort:'cash', l
 **통합 API 관리자**(`api-console.html`) 상단에서 모드를 **HTTP**로 바꾸고 Base URL을
 `http://localhost:4000/v1`로 지정하면, 콘솔이 이 서버로 실제 요청을 보냅니다(CORS 허용됨).
 
+## 라이브 WebSocket 게이트웨이
+
+서버가 접속·후원·랭킹을 시뮬레이션하며 접속한 모든 클라이언트에 실시간 push합니다.
+
+- **엔드포인트**: `ws://localhost:4000/live`
+- **REST 제어**(WS와 동일 상태): `POST /v1/live/start`·`/stop`, `GET /v1/live/state`, `POST /v1/live/happy-hour`(`{mult,minutes}`)·`DELETE`, `POST /v1/live/greet`(`{donatorId}`)
+- **클라이언트→서버 명령**(WS): `{cmd:'start'|'stop'|'happy'|'happyEnd'|'greet', ...}`
+- **서버→클라이언트 메시지**: `hello`(최초 스냅샷) · `live`(시작/종료) · `tick`(이벤트+스냅샷) · `happy` · `event`
+
+**데모 클라이언트**: 프로젝트 루트 `live-client.html` 을 브라우저로 열면
+`ws://localhost:4000/live`에 자동 연결되어 실시간 피드·랭킹·해피아워를 렌더링합니다(방송 시작/해피아워/인사 조작 가능).
+
+> 참고: WebSocket 서버는 의존성 0로 직접 구현(`src/ws.js`, 텍스트 프레임). 운영 시 `ws` 패키지 권장.
+
 ## 다음 단계 (운영 전환)
 
 - `store.js` → PostgreSQL 등 실 DB 레포지토리로 교체 (테이블: grades, donators, titles, donator_awards, automations, automation_logs, settings)

@@ -2,10 +2,13 @@
 // 실제 운영 시엔 Express/Nest 로 교체 권장. 라우트 로직(api.js)은 그대로 재사용 가능.
 import http from 'http';
 import { dispatch } from './api.js';
+import { accept } from './ws.js';
+import { LiveHub } from './live.js';
 
 const PORT = process.env.PORT || 4000;
 const PREFIX = '/v1';
 const TOKEN = process.env.API_TOKEN || 'demo-token'; // 데모용. 실제론 JWT 검증.
+const hub = new LiveHub();
 
 function send(res, status, data) {
   const body = JSON.stringify(data);
@@ -45,6 +48,8 @@ const server = http.createServer((req, res) => {
     let body = {};
     if (raw) { try { body = JSON.parse(raw); } catch { return send(res, 400, { error: { code: 'VALIDATION_ERROR', message: 'invalid JSON body' } }); } }
     try {
+      // 라이브 제어(REST) — WS와 동일 상태
+      if (path.startsWith('/live')) { const r = hub.handleRest(req.method, path, body); return send(res, r.status, r.data); }
       const result = dispatch(req.method, path, query, body);
       send(res, result.status, result.data);
     } catch (e) {
@@ -53,7 +58,16 @@ const server = http.createServer((req, res) => {
   });
 });
 
+// WebSocket 게이트웨이 — ws://<host>/live 로 접속
+server.on('upgrade', (req, socket) => {
+  const { pathname } = new URL(req.url, `http://${req.headers.host}`);
+  if (pathname !== '/live') { socket.destroy(); return; }
+  const conn = accept(req, socket);
+  if (conn) hub.addClient(conn);
+});
+
 server.listen(PORT, () => {
   console.log(`▶ VIP 도네이터 관리 API — http://localhost:${PORT}${PREFIX}`);
   console.log(`  health: http://localhost:${PORT}/health`);
+  console.log(`  live WS: ws://localhost:${PORT}/live`);
 });
