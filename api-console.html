@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>통합 API 관리자 — VIP 도네이터</title>
+<style>
+:root{
+  --ground:#0d0e13; --surface:#171922; --surface-2:#20232e; --surface-3:#2a2e3c;
+  --line:rgba(255,255,255,.08); --line-strong:rgba(255,255,255,.14);
+  --text:#e9eaf0; --muted:#8b8fa3; --muted-2:#6a6e80;
+  --accent:#ff3d68; --accent-soft:rgba(255,61,104,.14); --accent-press:#e62a54;
+  --get:#33d69f; --post:#5b8cff; --put:#ffb020; --del:#ff5c6a;
+  --on:#33d69f;
+  --r:13px; --font:"Pretendard","Pretendard Variable",-apple-system,BlinkMacSystemFont,"Malgun Gothic","Apple SD Gothic Neo","Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ground);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:6px;border:2px solid transparent;background-clip:padding-box}
+.hidden{display:none!important}
+.app{display:flex;flex-direction:column;height:100vh}
+
+/* Topbar */
+.top{display:flex;align-items:center;gap:14px;height:58px;padding:0 18px;flex:none;background:var(--surface);border-bottom:1px solid var(--line);z-index:10}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15.5px;letter-spacing:-.02em}
+.logo .mark{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--accent),#ff8a5c);display:grid;place-items:center;font-size:15px;color:#fff}
+.logo .sub{font-size:11px;color:var(--muted);font-weight:600}
+.top .spacer{flex:1}
+.seg{display:flex;gap:3px;background:var(--surface-2);border:1px solid var(--line);padding:3px;border-radius:9px}
+.seg button{padding:7px 12px;border-radius:7px;color:var(--muted);font-weight:700;font-size:12.5px}
+.seg button.on{background:var(--surface-3);color:var(--text)}
+.env-inp{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:8px 11px;color:var(--text);font-size:12.5px;outline:none;font-family:var(--mono)}
+.env-inp:focus{border-color:var(--line-strong)}
+.tbtn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--text);background:var(--surface-2);border:1px solid var(--line);padding:8px 12px;border-radius:9px;transition:.12s}
+.tbtn:hover{border-color:var(--line-strong)}
+.tbtn.primary{background:var(--accent);border-color:transparent;color:#fff}
+.tbtn.primary:hover{background:var(--accent-press)}
+
+/* Layout */
+.main{flex:1;display:flex;min-height:0}
+.side{width:290px;flex:none;border-right:1px solid var(--line);overflow-y:auto;background:var(--surface)}
+.side .quick{padding:12px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:7px}
+.side .quick .tbtn{justify-content:flex-start;width:100%}
+.grp{padding:6px 0}
+.grp-h{padding:11px 16px 6px;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.ep{display:flex;align-items:center;gap:9px;padding:8px 16px;cursor:pointer;border-left:2px solid transparent}
+.ep:hover{background:var(--surface-2)}
+.ep.on{background:var(--surface-2);border-left-color:var(--accent)}
+.mtag{font-size:9.5px;font-weight:800;padding:2px 5px;border-radius:4px;width:44px;text-align:center;flex:none;letter-spacing:.02em}
+.mtag.GET{background:rgba(51,214,159,.16);color:var(--get)}
+.mtag.POST{background:rgba(91,140,255,.16);color:var(--post)}
+.mtag.PUT,.mtag.PATCH{background:rgba(255,176,32,.16);color:var(--put)}
+.mtag.DELETE{background:rgba(255,92,106,.16);color:var(--del)}
+.mtag.WS{background:var(--surface-3);color:var(--muted)}
+.ep .path{font-size:12px;font-family:var(--mono);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Content */
+.content{flex:1;min-width:0;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.card-h{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
+.card-h h3{margin:0;font-size:13.5px;font-weight:800}
+.card-h .desc{font-size:12px;color:var(--muted);font-weight:500}
+.card-h .spacer{flex:1}
+.card-b{padding:16px}
+.req-row{display:flex;gap:10px;align-items:center}
+.method-sel{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-weight:800;font-size:13px;color:var(--text);outline:none}
+.path-inp{flex:1;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:10px 13px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none}
+.path-inp:focus{border-color:var(--accent)}
+.run{background:var(--accent);color:#fff;font-weight:800;font-size:13.5px;padding:10px 20px;border-radius:9px;transition:.12s;flex:none}
+.run:hover{background:var(--accent-press)}
+.run:disabled{opacity:.5;pointer-events:none}
+.field-lbl{font-size:11.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 7px;display:flex;align-items:center;gap:8px}
+.field-lbl .mini{font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted-2)}
+.code-area{width:100%;background:var(--ground);border:1px solid var(--line);border-radius:10px;padding:12px 13px;color:var(--text);font-family:var(--mono);font-size:12.5px;line-height:1.55;outline:none;resize:vertical;min-height:70px}
+.code-area:focus{border-color:var(--line-strong)}
+.baseline{font-size:12px;color:var(--muted-2);font-family:var(--mono);margin-top:8px}
+
+/* Response */
+.resp-h{display:flex;align-items:center;gap:12px}
+.status-pill{font-size:12px;font-weight:800;padding:4px 11px;border-radius:20px}
+.status-pill.ok{background:rgba(51,214,159,.16);color:var(--get)}
+.status-pill.err{background:rgba(255,92,106,.16);color:var(--del)}
+.status-pill.idle{background:var(--surface-3);color:var(--muted)}
+.meta-lite{font-size:12px;color:var(--muted);font-family:var(--mono)}
+pre.json{margin:0;background:var(--ground);border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;max-height:440px;font-family:var(--mono);font-size:12.5px;line-height:1.6;white-space:pre}
+.jk{color:#9fbaff}.js{color:#8fe3b0}.jn{color:#ffcb7a}.jb{color:#ff9bb0}.jnull{color:var(--muted-2)}
+.empty-resp{color:var(--muted);font-size:13px;padding:24px;text-align:center}
+
+/* help modal */
+.overlay{position:fixed;inset:0;background:rgba(6,7,11,.66);backdrop-filter:blur(3px);z-index:80;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:.18s}
+.overlay.show{opacity:1;pointer-events:auto}
+.modal{background:var(--surface);border:1px solid var(--line-strong);border-radius:16px;width:100%;max-width:620px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.modal-h{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
+.modal-h h2{margin:0;font-size:16px;font-weight:800}
+.modal-h .spacer{flex:1}
+.xbtn{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--muted)}
+.xbtn:hover{background:var(--surface-3);color:var(--text)}
+.modal-b{padding:20px;overflow-y:auto;font-size:13.5px;line-height:1.7}
+.modal-b h4{margin:16px 0 6px;font-size:13.5px}
+.modal-b ol{margin:0;padding-left:20px}.modal-b li{margin-bottom:6px}
+.modal-b code{background:var(--surface-2);padding:1px 6px;border-radius:5px;font-family:var(--mono);font-size:12px}
+.kbd{background:var(--surface-3);border:1px solid var(--line-strong);border-radius:5px;padding:1px 6px;font-size:11px;font-family:var(--mono)}
+
+/* toast */
+.toast-wrap{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:8px;align-items:center}
+.toast{background:var(--surface-3);border:1px solid var(--line-strong);border-radius:11px;padding:11px 18px;font-size:13px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.4);animation:ti .25s}
+@keyframes ti{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+@media(max-width:820px){.side{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="logo"><div class="mark">⇄</div><div>통합 API 관리자<div class="sub">VIP 도네이터 · v1</div></div></div>
+    <div class="spacer"></div>
+    <div class="seg" id="modeSeg">
+      <button data-m="mock" class="on">Mock</button>
+      <button data-m="http">HTTP</button>
+    </div>
+    <input class="env-inp hidden" id="baseUrl" style="width:260px" placeholder="https://api.toonation.example/v1" value="https://api.toonation.example/v1">
+    <input class="env-inp" id="token" style="width:150px" placeholder="Bearer token" value="demo-token">
+    <button class="tbtn" id="helpBtn">도움말</button>
+  </div>
+
+  <div class="main">
+    <div class="side">
+      <div class="quick">
+        <button class="tbtn primary" id="openApp">🖥 메인 화면 열기</button>
+        <button class="tbtn" id="seedBtn">🔄 시드 초기화</button>
+        <button class="tbtn" id="exportBtn">⬇ 데이터 내보내기(JSON)</button>
+        <button class="tbtn" id="importBtn">⬆ 데이터 가져오기</button>
+        <input type="file" id="importFile" accept="application/json" class="hidden">
+      </div>
+      <div id="epList"></div>
+    </div>
+
+    <div class="content">
+      <div class="card">
+        <div class="card-h"><h3 id="reqTitle">요청</h3><span class="desc" id="reqDesc">왼쪽에서 엔드포인트를 선택하세요.</span></div>
+        <div class="card-b">
+          <div class="req-row">
+            <select class="method-sel" id="method">
+              <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option>
+            </select>
+            <input class="path-inp" id="path" placeholder="/donators" spellcheck="false">
+            <button class="run" id="runBtn">실행 ▸</button>
+          </div>
+          <div class="baseline" id="baseline"></div>
+          <div id="queryWrap">
+            <div class="field-lbl">Query <span class="mini">JSON (예: {"status":"active","limit":5})</span></div>
+            <textarea class="code-area" id="query" spellcheck="false" style="min-height:52px">{}</textarea>
+          </div>
+          <div id="bodyWrap">
+            <div class="field-lbl">Body <span class="mini">JSON</span></div>
+            <textarea class="code-area" id="body" spellcheck="false">{}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h resp-h">
+          <h3>응답</h3>
+          <span class="status-pill idle" id="statusPill">대기</span>
+          <span class="meta-lite" id="respMeta"></span>
+          <div class="spacer"></div>
+          <button class="tbtn" id="copyResp">복사</button>
+        </div>
+        <div class="card-b">
+          <pre class="json" id="resp"><div class="empty-resp">엔드포인트를 선택하고 <b>실행</b>을 눌러보세요. Mock 모드는 브라우저 안에서 실제 데이터로 응답합니다.</div></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 도움말 -->
+<div class="overlay" id="helpOverlay">
+  <div class="modal">
+    <div class="modal-h"><h2>통합 API 관리자 사용법</h2><div class="spacer"></div><button class="xbtn" id="helpClose">✕</button></div>
+    <div class="modal-b">
+      <p>이 도구는 <code>API_SPEC.md</code>의 엔드포인트를 브라우저에서 바로 테스트합니다. 두 가지 모드가 있습니다.</p>
+      <h4>Mock 모드 (기본)</h4>
+      내장 목(mock) 서버가 <b>메인 화면과 동일한 저장소</b>(<code>localStorage: toon_vip_v1</code>)를 읽고 씁니다.
+      즉 여기서 데이터를 바꾸면 <b>메인 화면에 그대로 반영</b>됩니다.
+      <h4>실제 데이터 주입 → 화면 테스트</h4>
+      <ol>
+        <li>좌측 <span class="kbd">🎁 후원 주입</span> 또는 <code>POST /webhooks/donation</code> 실행 (누적·등급·자동화가 갱신됨)</li>
+        <li><span class="kbd">🖥 메인 화면 열기</span>로 관리 화면을 열면, 방금 주입한 데이터로 랭킹·인사이트·로그가 렌더링됩니다</li>
+        <li><code>⬆ 가져오기</code>로 실제 운영 데이터(JSON)를 통째로 대입할 수도 있습니다</li>
+      </ol>
+      <h4>HTTP 모드</h4>
+      상단에서 <b>HTTP</b>로 전환하고 <code>Base URL</code>·<code>토큰</code>을 입력하면 실제 서버로 <code>fetch</code>합니다(CORS 필요).
+      <h4>팁</h4>
+      경로의 <code>:id</code>는 저장소의 실제 ID로 자동 채워집니다. Query/Body는 JSON으로 입력하세요.
+    </div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* =========================================================
+   저장소 엔진 — 메인 앱과 동일한 스키마/키 (toon_vip_v1)
+   ========================================================= */
+const LS='toon_vip_v1';
+const uid=()=>'id'+Math.random().toString(36).slice(2,9);
+const KO_NAMES=['톰하디','모아이','순정남','달빛여우','치킨마요','코딩하는곰','별헤는밤','라면요정','무지개송어','밤샘전사','고구마맛탕','파스텔','겨울나그네','핑크덤보','왕눈이','초코나무숲','빙수','한여름밤','노을','청포도','까망','하양이','불꽃남자','물빛','산들바람','도토리','은하수','민들레','참치캔','솜사탕'];
+function seedTitles(){return[
+  {id:'t_first',name:'첫 후원',icon:'🌱',color:'#33d69f',rule:{type:'count',n:1}},
+  {id:'t_yeol',name:'열혈팬',icon:'💜',color:'#a45bff',rule:{type:'cumulative',n:100000}},
+  {id:'t_gold',name:'골드 서포터',icon:'👑',color:'#ffcb45',rule:{type:'cumulative',n:300000}},
+  {id:'t_regular',name:'단골',icon:'🔥',color:'#ff8a5c',rule:{type:'count',n:50}},
+  {id:'t_big',name:'큰손',icon:'💎',color:'#4fc0e8',rule:{type:'single',n:50000}},
+  {id:'t_vvip',name:'VVIP 등극',icon:'⭐',color:'#ff5c7a',rule:{type:'grade',grade:'g_vvip'}},
+  {id:'t_bday',name:'생일 축하',icon:'🎂',color:'#ff3d68',rule:{type:'manual'}},
+];}
+function seedLogs(donators){
+  const gname=c=>c>=300000?'VVIP':c>=100000?'VIP':c>=30000?'열혈':'';
+  const top=donators.slice().sort((a,b)=>b.cash-a.cash).slice(0,12);
+  const rows=[['10-31 21:14','donate','remote',50000],['10-31 20:58','amount','widget',30000],
+    ['10-31 20:41','first','kakao_send',3000],['10-31 20:22','login','kakao_send',0],
+    ['10-30 22:03','promote','widget',0],['10-30 21:47','anniv','kakao_send',0],
+    ['10-30 21:20','amount','tts',100000],['10-29 19:55','donate','remote',5000]];
+  return rows.map((r,i)=>{const d=top[i%top.length];return {when:r[0],situ:r[1],name:d.alias||d.name,grade:gname(d.cash),action:r[2],amt:r[3]};});
+}
+function seed(){
+  const donators=KO_NAMES.map((nm,i)=>{
+    const cash=Math.round((Math.random()*480000+3000)/100)*100;
+    const cnt=Math.max(1,Math.round(cash/(2000+Math.random()*6000)));
+    const y=2023+(i%2),m=1+(i*3%12),d=1+(i*7%27);
+    const tagPool=['단골','게임팬','매너좋음','고정닉','이벤트참여','생일챙기기'];
+    return {id:uid(),name:nm,alias:'',cash,count:cnt,
+      tags:tagPool.filter(()=>Math.random()>.74),
+      memo:Math.random()>.85?'방송 시작 시 인사 꼭 챙기기':'',
+      join:`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`,
+      last:`2024-${String(1+(i%10)).padStart(2,'0')}-${String(1+(i*5%27)).padStart(2,'0')}`,
+      types:['text','signature','voice','quest'].filter(()=>Math.random()>.4),
+      awards:Math.random()>.85?['t_bday']:[], blocked:false,
+      history:Array.from({length:3+Math.round(Math.random()*3)},(_,k)=>({
+        time:`2024-10-${String(10-k).padStart(2,'0')} ${String(10+k).padStart(2,'0')}:${String(k*7%60).padStart(2,'0')}:00`,
+        kind:['텍스트','음성','시그니처','퀘스트'][k%4],amt:[1000,5000,10000,3000,50000][k%5],
+        msg:['후원합니다!','오늘도 화이팅','방송 잘보고있어요','1일 1후원','고생 많으셨어요'][k%5]}))};
+  });
+  if(donators[22]){donators[22].blocked=true;donators[22].blockReason='부적절한 후원 메시지 반복';donators[22].blockedAt='2024-09-14';}
+  const maxLast=donators.reduce((mx,d)=>{const p=d.last.split('-').map(Number);const t=new Date(p[0],p[1]-1,p[2]).getTime();return t>mx?t:mx;},0);
+  const base=new Date(maxLast);
+  [[1,3,2],[4,10,1],[8,18,2],[12,25,1],[18,7,3]].forEach(([idx,ad,ya])=>{if(!donators[idx])return;
+    const dt=new Date(base.getFullYear(),base.getMonth(),base.getDate()+ad);
+    donators[idx].join=`${dt.getFullYear()-ya}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;});
+  return {grades:[
+    {id:'g_vvip',name:'VVIP',cls:'vvip',color:'#ffcb45',mode:'over',min:300000,max:0},
+    {id:'g_vip',name:'VIP',cls:'vip',color:'#a45bff',mode:'range',min:100000,max:299999},
+    {id:'g_yeol',name:'열혈',cls:'yeol',color:'#5b8cff',mode:'range',min:30000,max:99999}],
+    donators,titles:seedTitles(),autoLogs:seedLogs(donators),annivAuto:true,
+    autos:[
+      {id:uid(),on:true,situ:'login',targetMode:'class',classes:['g_vvip'],actions:[{type:'kakao_send',cfg:{msg:'{크리에이터} 님이 방송을 시작하였습니다'}}]},
+      {id:uid(),on:true,situ:'amount',amt:{mode:'range',min:10000,max:100000},actions:[{type:'widget',cfg:{widget:'팡파르'}},{type:'tts',cfg:{voice:'ara'}}]},
+      {id:uid(),on:true,situ:'first',actions:[{type:'widget',cfg:{widget:'하트비'}},{type:'kakao_send',cfg:{msg:'{닉네임}님, 첫 후원 감사합니다!'}}]},
+    ]};
+}
+function load(){let DB;try{const r=localStorage.getItem(LS);if(r)DB=JSON.parse(r);}catch(e){}if(!DB)DB=seed();
+  // normalize
+  if(!DB.titles)DB.titles=seedTitles(); if(!DB.autoLogs)DB.autoLogs=[]; if(DB.annivAuto===undefined)DB.annivAuto=true;
+  (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;});
+  (DB.autos||[]).forEach(a=>{if(!a.actions){a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[];delete a.action;delete a.cfg;}});
+  return DB;
+}
+function save(DB){localStorage.setItem(LS,JSON.stringify(DB));}
+
+/* ---------- 계산 헬퍼 ---------- */
+function gradeForCash(DB,cash){const gs=[...DB.grades].sort((a,b)=>b.min-a.min);
+  for(const g of gs){if(g.mode==='over'){if(cash>=g.min)return g;}else{if(cash>=g.min&&(g.max<=0||cash<=g.max))return g;}}return null;}
+function nextGrade(DB,cash){const gs=[...DB.grades].sort((a,b)=>a.min-b.min);for(const g of gs){if(g.min>cash)return g;}return null;}
+function gaugeData(DB,d){const cur=gradeForCash(DB,d.cash),nx=nextGrade(DB,d.cash);
+  if(!nx)return{top:true,cur:cur?{id:cur.id,name:cur.name}:null};
+  const bs=cur?cur.min:0,span=(nx.min-bs)||1,pct=Math.max(3,Math.min(100,Math.round((d.cash-bs)/span*100)));
+  return{top:false,next:{id:nx.id,name:nx.name},remaining:Math.max(0,nx.min-d.cash),pct};}
+function maxSingle(d){return Math.max(0,...(d.history||[]).map(h=>h.amt||0));}
+function titleMatch(DB,t,d){const r=t.rule;
+  if(r.type==='cumulative')return d.cash>=r.n; if(r.type==='count')return(d.count||0)>=r.n;
+  if(r.type==='single')return maxSingle(d)>=r.n; if(r.type==='grade'){const g=gradeForCash(DB,d.cash);return!!(g&&g.id===r.grade);}
+  if(r.type==='manual')return(d.awards||[]).includes(t.id); return false;}
+function donatorTitles(DB,d){return DB.titles.filter(t=>titleMatch(DB,t,d));}
+function gradeDTO(g){return g?{id:g.id,name:g.name}:null;}
+function donatorDTO(DB,d,full){
+  const g=gradeForCash(DB,d.cash);
+  const base={id:d.id,name:d.name,alias:d.alias||'',cash:d.cash,count:d.count,grade:gradeDTO(g),
+    tags:d.tags||[],blocked:!!d.blocked};
+  if(!full)return base;
+  return {...base,memo:d.memo||'',awards:d.awards||[],blockReason:d.blockReason||null,blockedAt:d.blockedAt||null,
+    join:d.join,last:d.last,types:d.types||[],nudged:!!d.nudged,celebrated:!!d.celebrated,
+    gauge:gaugeData(DB,d),titles:donatorTitles(DB,d).map(t=>({id:t.id,name:t.name,icon:t.icon})),
+    history:d.history||[]};
+}
+/* insights */
+function parseD(s){const p=(s||'2024-01-01').split('-').map(Number);return new Date(p[0],(p[1]||1)-1,p[2]||1).getTime();}
+function refNow(DB){let mx=0;DB.donators.forEach(d=>{const t=parseD(d.last);if(t>mx)mx=t;});return mx||parseD('2024-12-01');}
+function daysAgo(DB,d){return Math.max(0,Math.round((refNow(DB)-parseD(d.last))/864e5));}
+function totalCash(DB){return DB.donators.reduce((s,d)=>s+d.cash,0);}
+function monthlyTrend(DB){const rec=Math.round(totalCash(DB)*0.42);return[.12,.14,.15,.16,.19,.24].map(p=>Math.round(rec*p/1000)*1000);}
+function monthLabels(DB,n){const b=new Date(refNow(DB)),o=[];for(let i=n-1;i>=0;i--){const dt=new Date(b.getFullYear(),b.getMonth()-i,1);o.push((dt.getMonth()+1)+'월');}return o;}
+function churn(DB,days){return DB.donators.map(d=>({d,dorm:daysAgo(DB,d),g:gradeForCash(DB,d.cash)}))
+  .filter(x=>x.g&&!x.d.blocked&&x.dorm>=days).sort((a,b)=>(b.d.cash-a.d.cash)||(b.dorm-a.dorm))
+  .map(x=>({...donatorDTO(DB,x.d,false),dormantDays:x.dorm}));}
+function upgradeCandidates(DB,within){return DB.donators.filter(d=>!d.blocked).map(d=>({d,g:gaugeData(DB,d)}))
+  .filter(x=>!x.g.top&&x.g.remaining<=within).sort((a,b)=>a.g.remaining-b.g.remaining)
+  .map(x=>({...donatorDTO(DB,x.d,false),gauge:x.g}));}
+function annivInfo(DB,d){const p=(d.join||'2024-01-01').split('-').map(Number);const now=new Date(refNow(DB));
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());let nx=new Date(now.getFullYear(),p[1]-1,p[2]);
+  if(nx<today)nx=new Date(now.getFullYear()+1,p[1]-1,p[2]);
+  return{days:Math.round((nx-today)/864e5),years:nx.getFullYear()-p[0]};}
+function anniversaries(DB,within){return DB.donators.filter(d=>!d.blocked).map(d=>({d,...annivInfo(DB,d)}))
+  .filter(x=>x.days<=within&&x.years>=1).sort((a,b)=>a.days-b.days)
+  .map(x=>({...donatorDTO(DB,x.d,false),anniversaryInDays:x.days,years:x.years}));}
+/* automations */
+function targetHit(DB,a,d){if(a.targetMode==='class'){const g=gradeForCash(DB,d.cash);return!!(g&&(a.classes||[]).includes(g.id));}
+  if(a.targetMode==='pick')return(a.picks||[]).includes(d.id);return false;}
+function amtHit(a,amt){const m=a.amt||{};return m.mode==='over'?amt>=m.min:(amt>=m.min&&amt<=m.max);}
+function scheduleOk(a){const sc=a.schedule;if(!sc||!sc.on)return true;const dt=new Date();
+  if((sc.days||[]).length&&!sc.days.includes(dt.getDay()))return false;
+  if(sc.start&&sc.end){const c=dt.getHours()*60+dt.getMinutes();const[sh,sm]=sc.start.split(':').map(Number),[eh,em]=sc.end.split(':').map(Number);const a0=sh*60+sm,a1=eh*60+em;if(a0<=a1){if(c<a0||c>a1)return false;}else{if(c<a0&&c>a1)return false;}}return true;}
+function nowClock(){const d=new Date();const z=n=>String(n).padStart(2,'0');return `${z(d.getMonth()+1)}-${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}:${z(d.getSeconds())}`;}
+const NO_AMT=['login','promote','anniv'];
+function fireEvent(DB,kind,d,amt){
+  if(d.blocked)return[];
+  const fired=[];
+  DB.autos.filter(a=>a.on&&scheduleOk(a)).forEach(a=>{
+    let m=false;
+    if(a.situ==='login'&&kind==='login')m=targetHit(DB,a,d);
+    else if(a.situ==='first'&&kind==='first')m=true;
+    else if(a.situ==='donate'&&kind==='donate')m=targetHit(DB,a,d);
+    else if(a.situ==='amount'&&kind==='donate')m=amtHit(a,amt);
+    else if(a.situ==='promote'&&kind==='promote')m=targetHit(DB,a,d);
+    if(m){const g=gradeForCash(DB,d.cash);
+      (a.actions||[]).forEach(ac=>DB.autoLogs.unshift({when:nowClock(),situ:a.situ,name:d.alias||d.name,grade:g?g.name:'',action:ac.type,amt:NO_AMT.includes(a.situ)?0:amt}));
+      fired.push({id:a.id,situ:a.situ,actions:(a.actions||[]).map(x=>x.type)});}
+  });
+  while(DB.autoLogs.length>200)DB.autoLogs.pop();
+  return fired;
+}
+
+/* =========================================================
+   Mock 라우터
+   ========================================================= */
+const err=(status,code,message)=>({status,data:{error:{code,message}}});
+function paginate(arr,query){const page=+query.page||1,limit=+query.limit||20;const start=(page-1)*limit;
+  return {data:arr.slice(start,start+limit),meta:{page,limit,total:arr.length}};}
+
+const ROUTES=[
+  // grades
+  ['GET','/grades',(DB)=>{const rows=[...DB.grades].sort((a,b)=>b.min-a.min).map(g=>({...g,count:DB.donators.filter(d=>{const x=gradeForCash(DB,d.cash);return x&&x.id===g.id;}).length}));return{status:200,data:rows};}],
+  ['POST','/grades',(DB,p,q,b)=>{if(!b.name)return err(400,'VALIDATION_ERROR','name required');const g={id:uid(),name:b.name,cls:b.cls||'custom',color:b.color||'#5b8cff',mode:b.mode||'range',min:+b.min||0,max:+b.max||0};DB.grades.push(g);return{status:201,data:g,mut:1};}],
+  ['GET','/grades/:id',(DB,p)=>{const g=DB.grades.find(x=>x.id===p.id);return g?{status:200,data:g}:err(404,'NOT_FOUND','grade');}],
+  ['PUT','/grades/:id',(DB,p,q,b)=>{const g=DB.grades.find(x=>x.id===p.id);if(!g)return err(404,'NOT_FOUND','grade');Object.assign(g,{name:b.name??g.name,color:b.color??g.color,mode:b.mode??g.mode,min:b.min!=null?+b.min:g.min,max:b.max!=null?+b.max:g.max});return{status:200,data:g,mut:1};}],
+  ['DELETE','/grades/:id',(DB,p)=>{const n=DB.grades.length;DB.grades=DB.grades.filter(x=>x.id!==p.id);return n===DB.grades.length?err(404,'NOT_FOUND','grade'):{status:200,data:{deleted:p.id},mut:1};}],
+  // donators (literal routes first)
+  ['POST','/donators/bulk',(DB,p,q,b)=>{const ids=b.ids||[];let n=0;DB.donators.forEach(d=>{if(!ids.includes(d.id))return;n++;
+    if(b.action==='tag'&&b.tag){d.tags=d.tags||[];if(!d.tags.includes(b.tag))d.tags.push(b.tag);}
+    if(b.action==='block'){d.blocked=true;d.blockedAt=nowClock().slice(0,5);}
+    if(b.action==='unblock'){d.blocked=false;delete d.blockReason;delete d.blockedAt;}});
+    return{status:200,data:{affected:n,action:b.action},mut:1};}],
+  ['GET','/donators',(DB,p,q)=>{let rows=DB.donators.slice();
+    const st=q.status||'active';
+    if(st==='active')rows=rows.filter(d=>!d.blocked); else if(st==='blocked')rows=rows.filter(d=>d.blocked);
+    if(q.grade)rows=rows.filter(d=>{const g=gradeForCash(DB,d.cash);return g&&g.id===q.grade;});
+    if(q.q){const s=(q.q+'').toLowerCase();rows=rows.filter(d=>d.name.toLowerCase().includes(s)||(d.alias||'').toLowerCase().includes(s)||(d.tags||[]).some(t=>t.toLowerCase().includes(s))||(d.memo||'').toLowerCase().includes(s));}
+    const col=q.sort==='count'?'count':'cash',ord=q.order==='asc'?1:-1;
+    rows.sort((a,b)=>ord*((a[col]||0)-(b[col]||0)));
+    return{status:200,data:paginate(rows.map(d=>donatorDTO(DB,d,false)),q)};}],
+  ['GET','/donators/:id/titles',(DB,p)=>{const d=DB.donators.find(x=>x.id===p.id);if(!d)return err(404,'NOT_FOUND','donator');
+    return{status:200,data:donatorTitles(DB,d).map(t=>({id:t.id,name:t.name,icon:t.icon,rule:t.rule,manual:t.rule.type==='manual'}))};}],
+  ['POST','/donators/:id/awards/:titleId',(DB,p)=>{const d=DB.donators.find(x=>x.id===p.id);if(!d)return err(404,'NOT_FOUND','donator');d.awards=d.awards||[];if(!d.awards.includes(p.titleId))d.awards.push(p.titleId);return{status:200,data:{awards:d.awards},mut:1};}],
+  ['DELETE','/donators/:id/awards/:titleId',(DB,p)=>{const d=DB.donators.find(x=>x.id===p.id);if(!d)return err(404,'NOT_FOUND','donator');d.awards=(d.awards||[]).filter(a=>a!==p.titleId);return{status:200,data:{awards:d.awards},mut:1};}],
+  ['POST','/donators/:id/tags',(DB,p,q,b)=>{const d=DB.donators.find(x=>x.id===p.id);if(!d)return err(404,'NOT_FOUND','donator');if(!b.tag)return err(400,'VALIDATION_ERROR','tag required');d.tags=d.tags||[];if(!d.tags.includes(b.tag))d.tags.push(b.tag);return{status:200,data:{tags:d.tags},mut:1};}],
+  ['DELETE','/donators/:id/tags/:tag',(DB,p)=>{const d=DB.donators.find(x=>x.id===p.id);if(!d)return err(404,'NOT_FOUND','donator');d.tags=(d.tags||[]).filter(t=>t!==p.tag);return{status:200,data:{tags:d.tags},mut:1};}],
+  ['POST','/donators/:id/block',(DB,p,q,b)=>{const d=DB.donators.find(x=>x.id===p.id);if(!d)return err(404,'NOT_FOUND','donator');d.blocked=true;d.blockReason=b.reason||'';d.blockedAt=nowClock().slice(0,5);return{status:200,data:donatorDTO(DB,d,true),mut:1};}],
+  ['POST','/donators/:id/unblock',(DB,p)=>{const d=DB.donators.find(x=>x.id===p.id);if(!d)return err(404,'NOT_FOUND','donator');d.blocked=false;delete d.blockReason;delete d.blockedAt;return{status:200,data:donatorDTO(DB,d,true),mut:1};}],
+  ['POST','/donators/:id/nudge',(DB,p,q,b)=>notify(DB,p.id,b,'nudge','d.nudged')],
+  ['POST','/donators/:id/reengage',(DB,p,q,b)=>notify(DB,p.id,b,'reengage')],
+  ['POST','/donators/:id/celebrate',(DB,p,q,b)=>notify(DB,p.id,b,'celebrate','d.celebrated')],
+  ['GET','/donators/:id',(DB,p)=>{const d=DB.donators.find(x=>x.id===p.id);return d?{status:200,data:donatorDTO(DB,d,true)}:err(404,'NOT_FOUND','donator');}],
+  ['PATCH','/donators/:id',(DB,p,q,b)=>{const d=DB.donators.find(x=>x.id===p.id);if(!d)return err(404,'NOT_FOUND','donator');if(b.alias!=null)d.alias=b.alias;if(b.memo!=null)d.memo=b.memo;return{status:200,data:donatorDTO(DB,d,true),mut:1};}],
+  // titles
+  ['GET','/titles',(DB)=>({status:200,data:DB.titles.map(t=>({...t,holders:DB.donators.filter(d=>titleMatch(DB,t,d)).length}))})],
+  ['POST','/titles',(DB,p,q,b)=>{if(!b.name||!b.rule)return err(400,'VALIDATION_ERROR','name, rule required');const t={id:uid(),name:b.name,icon:b.icon||'🏅',color:b.color||'#ffcb45',rule:b.rule};DB.titles.push(t);return{status:201,data:t,mut:1};}],
+  ['GET','/titles/:id/holders',(DB,p)=>{const t=DB.titles.find(x=>x.id===p.id);if(!t)return err(404,'NOT_FOUND','title');return{status:200,data:DB.donators.filter(d=>titleMatch(DB,t,d)).map(d=>donatorDTO(DB,d,false))};}],
+  ['PUT','/titles/:id',(DB,p,q,b)=>{const t=DB.titles.find(x=>x.id===p.id);if(!t)return err(404,'NOT_FOUND','title');Object.assign(t,{name:b.name??t.name,icon:b.icon??t.icon,color:b.color??t.color,rule:b.rule??t.rule});return{status:200,data:t,mut:1};}],
+  ['DELETE','/titles/:id',(DB,p)=>{const n=DB.titles.length;DB.titles=DB.titles.filter(x=>x.id!==p.id);DB.donators.forEach(d=>{d.awards=(d.awards||[]).filter(a=>a!==p.id);});return n===DB.titles.length?err(404,'NOT_FOUND','title'):{status:200,data:{deleted:p.id},mut:1};}],
+  // automations
+  ['GET','/automations/templates',()=>({status:200,data:AUTO_TEMPLATES})],
+  ['GET','/automations',(DB)=>({status:200,data:DB.autos})],
+  ['POST','/automations',(DB,p,q,b)=>{const a={id:uid(),on:true,...b};DB.autos.push(a);return{status:201,data:a,mut:1};}],
+  ['POST','/automations/:id/test',(DB,p)=>{const a=DB.autos.find(x=>x.id===p.id);if(!a)return err(404,'NOT_FOUND','automation');
+    const d=DB.donators.slice().sort((x,y)=>y.cash-x.cash)[0];const g=gradeForCash(DB,d.cash);
+    const acts=(a.actions||[]).map(ac=>({type:ac.type,rendered:renderMsg(DB,ac,d)}));
+    return{status:200,data:{tested:true,situ:a.situ,sampleDonator:donatorDTO(DB,d,false),actions:acts}};}],
+  ['GET','/automations/:id',(DB,p)=>{const a=DB.autos.find(x=>x.id===p.id);return a?{status:200,data:a}:err(404,'NOT_FOUND','automation');}],
+  ['PUT','/automations/:id',(DB,p,q,b)=>{const i=DB.autos.findIndex(x=>x.id===p.id);if(i<0)return err(404,'NOT_FOUND','automation');DB.autos[i]={...DB.autos[i],...b,id:p.id};return{status:200,data:DB.autos[i],mut:1};}],
+  ['PATCH','/automations/:id',(DB,p,q,b)=>{const a=DB.autos.find(x=>x.id===p.id);if(!a)return err(404,'NOT_FOUND','automation');if(b.on!=null)a.on=!!b.on;return{status:200,data:a,mut:1};}],
+  ['DELETE','/automations/:id',(DB,p)=>{const n=DB.autos.length;DB.autos=DB.autos.filter(x=>x.id!==p.id);return n===DB.autos.length?err(404,'NOT_FOUND','automation'):{status:200,data:{deleted:p.id},mut:1};}],
+  // logs
+  ['GET','/automation-logs',(DB,p,q)=>({status:200,data:DB.autoLogs.slice(0,+q.limit||50)})],
+  ['DELETE','/automation-logs',(DB)=>{DB.autoLogs=[];return{status:200,data:{cleared:true},mut:1};}],
+  // insights
+  ['GET','/insights/summary',(DB)=>{const tr=monthlyTrend(DB),tm=tr[5],lm=tr[4]||tm;
+    return{status:200,data:{totalCash:totalCash(DB),activeVip:DB.donators.filter(d=>gradeForCash(DB,d.cash)).length,thisMonth:tm,trendDeltaPct:lm?Math.round((tm-lm)/lm*100):0,churnCount:churn(DB,30).length}};}],
+  ['GET','/insights/trend',(DB,p,q)=>{const n=+q.months||6;return{status:200,data:{labels:monthLabels(DB,n),values:monthlyTrend(DB).slice(-n)}};}],
+  ['GET','/insights/grade-distribution',(DB)=>{const map={};let tot=0;DB.donators.forEach(d=>{const g=gradeForCash(DB,d.cash);const k=g?g.id:'none';map[k]=(map[k]||0)+d.cash;tot+=d.cash;});
+    const rows=DB.grades.map(g=>({id:g.id,name:g.name,color:g.color,amount:map[g.id]||0,pct:Math.round((map[g.id]||0)/(tot||1)*100)})).filter(r=>r.amount>0);
+    return{status:200,data:{total:tot,rows}};}],
+  ['GET','/insights/pareto',(DB)=>{const s=DB.donators.slice().sort((a,b)=>b.cash-a.cash);const tot=totalCash(DB)||1;const n20=Math.max(1,Math.round(s.length*0.2));const sum20=s.slice(0,n20).reduce((x,d)=>x+d.cash,0);
+    return{status:200,data:{topCount:n20,topContributionPct:Math.round(sum20/tot*100),top5:s.slice(0,5).map(d=>({...donatorDTO(DB,d,false),sharePct:Math.round(d.cash/tot*100)}))}};}],
+  ['GET','/insights/churn',(DB,p,q)=>({status:200,data:churn(DB,+q.days||30)})],
+  ['GET','/insights/upgrade-candidates',(DB,p,q)=>({status:200,data:upgradeCandidates(DB,+q.within||50000)})],
+  ['GET','/insights/anniversaries',(DB,p,q)=>({status:200,data:anniversaries(DB,+q.within||30)})],
+  // settings
+  ['GET','/settings',(DB)=>({status:200,data:{annivAuto:!!DB.annivAuto}})],
+  ['PUT','/settings',(DB,p,q,b)=>{if(b.annivAuto!=null)DB.annivAuto=!!b.annivAuto;return{status:200,data:{annivAuto:!!DB.annivAuto},mut:1};}],
+  // webhooks
+  ['POST','/webhooks/donation',(DB,p,q,b)=>{
+    if(!b.amount)return err(400,'VALIDATION_ERROR','amount required');
+    let d=b.donatorId?DB.donators.find(x=>x.id===b.donatorId):DB.donators.find(x=>x.name===b.name||x.alias===b.name);
+    let isFirst=false;
+    if(!d){d={id:uid(),name:b.name||'익명',alias:'',cash:0,count:0,tags:[],awards:[],blocked:false,join:nowClock().slice(0,5),last:'2024-10-31',types:[b.type||'text'],history:[]};DB.donators.push(d);isFirst=true;}
+    const before=gradeForCash(DB,d.cash);
+    d.cash+=(+b.amount);d.count=(d.count||0)+1;
+    (d.history=d.history||[]).unshift({time:nowClock(),kind:b.type||'텍스트',amt:+b.amount,msg:b.message||''});
+    const after=gradeForCash(DB,d.cash);const gradeChanged=(before?before.id:null)!==(after?after.id:null);
+    const fired=[...fireEvent(DB,'donate',d,+b.amount)];
+    if(isFirst)fired.push(...fireEvent(DB,'first',d,+b.amount));
+    if(gradeChanged)fired.push(...fireEvent(DB,'promote',d,+b.amount));
+    return{status:200,data:{donator:donatorDTO(DB,d,false),gradeChanged,firstDonation:isFirst,firedAutomations:fired},mut:1};}],
+  ['POST','/webhooks/login',(DB,p,q,b)=>{const d=b.donatorId?DB.donators.find(x=>x.id===b.donatorId):DB.donators.find(x=>x.name===b.name);
+    if(!d)return err(404,'NOT_FOUND','donator');return{status:200,data:{online:true,firedAutomations:fireEvent(DB,'login',d,0)},mut:1};}],
+];
+function notify(DB,id,b,kind,flag){const d=DB.donators.find(x=>x.id===id);if(!d)return err(404,'NOT_FOUND','donator');
+  if(flag==='d.nudged')d.nudged=true; if(flag==='d.celebrated')d.celebrated=true;
+  return{status:200,data:{sent:true,channel:'kakao_alimtalk',type:kind,to:d.alias||d.name,message:renderMsgRaw(DB,b.message||'',d),at:nowClock()},mut:1};}
+function renderMsgRaw(DB,msg,d){const g=gradeForCash(DB,d.cash),gg=gaugeData(DB,d);
+  return (msg||'').replace(/{크리에이터}/g,'크리에이터').replace(/{닉네임}/g,d.alias||d.name).replace(/{등급}/g,g?g.name:'VIP').replace(/{주년}/g,String(annivInfo(DB,d).years)).replace(/{남은금액}/g,gg.top?'0':String(gg.remaining)).replace(/{다음등급}/g,gg.top?'최고등급':gg.next.name);}
+function renderMsg(DB,ac,d){if(ac.type==='kakao_send')return renderMsgRaw(DB,ac.cfg&&ac.cfg.msg||'',d);
+  if(ac.type==='widget')return '위젯 효과: '+(ac.cfg&&ac.cfg.widget||''); if(ac.type==='tts')return 'TTS 보이스: '+(ac.cfg&&ac.cfg.voice||'');
+  return ac.type;}
+const AUTO_TEMPLATES=[
+  {key:'vvip_live',title:'VVIP 방송 시작 알림',situ:'login',actions:['kakao_send']},
+  {key:'welcome',title:'신규 팬 환영 패키지',situ:'first',actions:['widget','kakao_send']},
+  {key:'bighand',title:'큰손 축포',situ:'amount',actions:['widget','tts']},
+  {key:'vvip_remote',title:'VVIP 후원 즉시 알림',situ:'donate',actions:['remote','kakao_recv']},
+  {key:'promote',title:'등급 승급 축하',situ:'promote',actions:['widget','kakao_send']},
+  {key:'anniv',title:'가입 기념일 축하',situ:'anniv',actions:['kakao_send','widget']},
+];
+function matchRoute(tmpl,path){const t=tmpl.split('/').filter(Boolean),p=path.split('/').filter(Boolean);
+  if(t.length!==p.length)return null;const params={};
+  for(let i=0;i<t.length;i++){if(t[i][0]===':')params[t[i].slice(1)]=decodeURIComponent(p[i]);else if(t[i]!==p[i])return null;}return params;}
+function mockApi(method,path,{query,body}){
+  const DB=load();
+  for(const [m,tmpl,fn] of ROUTES){
+    if(m!==method)continue; const params=matchRoute(tmpl,path); if(!params)continue;
+    const res=fn(DB,params,query||{},body||{});
+    if(res.mut)save(DB);
+    return{status:res.status,data:res.data};
+  }
+  return err(404,'NOT_FOUND',`${method} ${path} — 라우트 없음`);
+}
+async function httpApi(method,path,{query,body}){
+  const base=byId('baseUrl').value.replace(/\/$/,'');
+  const qs=Object.keys(query||{}).length?'?'+new URLSearchParams(query):'';
+  const opt={method,headers:{'Content-Type':'application/json','Authorization':'Bearer '+byId('token').value}};
+  if(method!=='GET'&&method!=='DELETE')opt.body=JSON.stringify(body||{});
+  const r=await fetch(base+path+qs,opt);let data;try{data=await r.json();}catch(e){data={raw:await r.text()};}
+  return{status:r.status,data};
+}
+
+/* =========================================================
+   엔드포인트 카탈로그 (UI)
+   ========================================================= */
+const CATALOG=[
+  {grp:'등급 Grades',items:[
+    ['GET','/grades','등급 목록 + 인원수'],
+    ['POST','/grades','등급 생성',{name:'다이아',color:'#4fc0e8',mode:'over',min:500000,max:0}],
+    ['GET','/grades/:id','등급 단건'],
+    ['PUT','/grades/:id','등급 수정',{name:'VVIP',min:280000}],
+    ['DELETE','/grades/:id','등급 삭제'],
+  ]},
+  {grp:'도네이터 Donators',items:[
+    ['GET','/donators','목록/검색/정렬',null,{status:'active',sort:'cash',order:'desc',limit:5}],
+    ['GET','/donators/:id','상세(프로필)'],
+    ['PATCH','/donators/:id','별칭·메모 수정',{alias:'톰',memo:'게임 좋아함'}],
+    ['POST','/donators/:id/tags','태그 추가',{tag:'VIP미팅'}],
+    ['DELETE','/donators/:id/tags/:tag','태그 삭제'],
+    ['POST','/donators/:id/block','차단',{reason:'도배'}],
+    ['POST','/donators/:id/unblock','차단 해제'],
+    ['GET','/donators/:id/titles','획득 칭호'],
+    ['POST','/donators/:id/awards/:titleId','칭호 수여'],
+    ['DELETE','/donators/:id/awards/:titleId','칭호 회수'],
+    ['POST','/donators/bulk','일괄 작업',{ids:[],action:'tag',tag:'단골'}],
+  ]},
+  {grp:'칭호 Titles',items:[
+    ['GET','/titles','칭호 목록 + 보유수'],
+    ['POST','/titles','칭호 생성',{name:'슈퍼팬',icon:'🚀',color:'#ff5c7a',rule:{type:'count',n:100}}],
+    ['PUT','/titles/:id','칭호 수정',{name:'큰손',rule:{type:'single',n:30000}}],
+    ['DELETE','/titles/:id','칭호 삭제'],
+    ['GET','/titles/:id/holders','보유 도네이터'],
+  ]},
+  {grp:'자동화 Automations',items:[
+    ['GET','/automations','자동화 목록'],
+    ['POST','/automations','자동화 생성',{situ:'amount',amt:{mode:'over',min:50000,max:0},actions:[{type:'widget',cfg:{widget:'폭죽'}}]}],
+    ['PATCH','/automations/:id','on/off 토글',{on:false}],
+    ['POST','/automations/:id/test','테스트 발동'],
+    ['DELETE','/automations/:id','자동화 삭제'],
+    ['GET','/automations/templates','추천 템플릿'],
+  ]},
+  {grp:'로그 Logs',items:[
+    ['GET','/automation-logs','실행 로그',null,{limit:20}],
+    ['DELETE','/automation-logs','로그 전체 삭제'],
+  ]},
+  {grp:'인사이트 Insights',items:[
+    ['GET','/insights/summary','KPI 요약'],
+    ['GET','/insights/trend','후원 추이',null,{months:6}],
+    ['GET','/insights/grade-distribution','등급별 매출 비중'],
+    ['GET','/insights/pareto','상위 기여도'],
+    ['GET','/insights/churn','이탈 위험 VIP',null,{days:30}],
+    ['GET','/insights/upgrade-candidates','승급 임박(넛지)',null,{within:50000}],
+    ['GET','/insights/anniversaries','다가오는 기념일',null,{within:30}],
+  ]},
+  {grp:'알림 발송 Actions',items:[
+    ['POST','/donators/:id/nudge','승급 넛지 발송',{message:'{닉네임}님, {다음등급}까지 {남은금액}원!'}],
+    ['POST','/donators/:id/reengage','복귀 유도 발송',{message:'{닉네임}님 오랜만이에요!'}],
+    ['POST','/donators/:id/celebrate','기념일 축하 발송',{message:'{닉네임}님 {주년}주년 축하해요!'}],
+  ]},
+  {grp:'설정 Settings',items:[
+    ['GET','/settings','설정 조회'],
+    ['PUT','/settings','설정 변경',{annivAuto:false}],
+  ]},
+  {grp:'웹훅 Webhooks (수신)',items:[
+    ['POST','/webhooks/donation','후원 이벤트 주입',{name:'톰하디',amount:30000,type:'text',message:'후원합니다!'}],
+    ['POST','/webhooks/login','로그인 이벤트 주입',{name:'톰하디'}],
+  ]},
+];
+
+/* =========================================================
+   UI
+   ========================================================= */
+function byId(id){return document.getElementById(id);}
+let MODE='mock', CUR=null;
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;byId('toastWrap').appendChild(t);setTimeout(()=>{t.style.opacity=0;t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2000);}
+
+function renderSidebar(){
+  const box=byId('epList');box.innerHTML='';
+  CATALOG.forEach(g=>{
+    const grp=document.createElement('div');grp.className='grp';
+    grp.innerHTML=`<div class="grp-h">${g.grp}</div>`;
+    g.items.forEach(it=>{
+      const [method,path,desc]=it;
+      const row=document.createElement('div');row.className='ep';
+      row.innerHTML=`<span class="mtag ${method}">${method}</span><span class="path">${path}</span>`;
+      row.onclick=()=>loadEndpoint(it,row);
+      grp.appendChild(row);
+    });
+    box.appendChild(grp);
+  });
+}
+function autofill(tmpl){const DB=load();
+  return tmpl.replace(/:(\w+)/g,(m,name)=>{
+    if(name==='titleId')return (DB.titles.find(t=>t.rule.type==='manual')||DB.titles[0]||{}).id||m;
+    if(name==='tag')return encodeURIComponent((DB.donators.find(d=>d.tags&&d.tags.length)||{tags:['게임팬']}).tags[0]);
+    if(tmpl.startsWith('/donators'))return (DB.donators[0]||{}).id||m;
+    if(tmpl.startsWith('/grades'))return (DB.grades[0]||{}).id||m;
+    if(tmpl.startsWith('/titles'))return (DB.titles[0]||{}).id||m;
+    if(tmpl.startsWith('/automations'))return (DB.autos[0]||{}).id||m;
+    return m;});
+}
+function loadEndpoint(it,row){
+  document.querySelectorAll('.ep').forEach(e=>e.classList.remove('on'));if(row)row.classList.add('on');
+  const [method,path,desc,body,query]=it; CUR=it;
+  byId('method').value=method;
+  byId('path').value=autofill(path);
+  byId('reqTitle').textContent=method+' '+path;
+  byId('reqDesc').textContent=desc||'';
+  byId('query').value=JSON.stringify(query||{},null,2);
+  const hasBody=(method==='POST'||method==='PUT'||method==='PATCH');
+  byId('bodyWrap').classList.toggle('hidden',!hasBody);
+  byId('body').value=hasBody?JSON.stringify(body||{},null,2):'{}';
+  updateBaseline();
+}
+function updateBaseline(){byId('baseline').textContent=(MODE==='http'?byId('baseUrl').value.replace(/\/$/,''):'mock://toon_vip_v1')+byId('path').value;}
+
+function hl(json){return json.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/"([^"]+)":/g,'<span class="jk">"$1"</span>:')
+  .replace(/: ?"([^"]*)"/g,': <span class="js">"$1"</span>')
+  .replace(/: ?(-?\d+\.?\d*)/g,': <span class="jn">$1</span>')
+  .replace(/: ?(true|false)/g,': <span class="jb">$1</span>')
+  .replace(/: ?null/g,': <span class="jnull">null</span>');}
+
+async function run(){
+  let query={},body={};
+  try{query=JSON.parse(byId('query').value||'{}');}catch(e){return toast('Query JSON 오류');}
+  try{body=JSON.parse(byId('body').value||'{}');}catch(e){return toast('Body JSON 오류');}
+  const method=byId('method').value,path=byId('path').value.trim();
+  byId('runBtn').disabled=true;
+  const t0=performance.now();
+  let res;
+  try{ res = MODE==='http' ? await httpApi(method,path,{query,body}) : mockApi(method,path,{query,body}); }
+  catch(e){ res={status:0,data:{error:{code:'CLIENT_ERROR',message:e.message}}}; }
+  const ms=Math.round(performance.now()-t0);
+  byId('runBtn').disabled=false;
+  const pill=byId('statusPill');
+  const ok=res.status>=200&&res.status<300;
+  pill.className='status-pill '+(res.status===0?'err':ok?'ok':'err');
+  pill.textContent=res.status===0?'ERROR':res.status+(ok?' OK':'');
+  byId('respMeta').textContent=`${ms}ms · ${MODE.toUpperCase()}`;
+  byId('resp').innerHTML=hl(JSON.stringify(res.data,null,2));
+}
+
+/* controls */
+byId('modeSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  MODE=b.dataset.m;byId('modeSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  byId('baseUrl').classList.toggle('hidden',MODE!=='http');updateBaseline();
+});
+byId('path').addEventListener('input',updateBaseline);
+byId('runBtn').onclick=run;
+byId('copyResp').onclick=()=>{navigator.clipboard?.writeText(byId('resp').textContent);toast('응답을 복사했습니다');};
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')run();if(e.key==='Escape')byId('helpOverlay').classList.remove('show');});
+
+byId('seedBtn').onclick=()=>{if(confirm('저장소를 시드 데이터로 초기화할까요? (메인 화면 데이터도 교체됩니다)')){localStorage.setItem(LS,JSON.stringify(seed()));toast('시드로 초기화했습니다');}};
+byId('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(load(),null,2)],{type:'application/json'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='toon_vip_data.json';a.click();URL.revokeObjectURL(u);toast('데이터를 내보냈습니다');};
+byId('importBtn').onclick=()=>byId('importFile').click();
+byId('importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const j=JSON.parse(rd.result);localStorage.setItem(LS,JSON.stringify(j));toast('데이터를 가져왔습니다 — 메인 화면에 반영됩니다');}catch(err){toast('JSON 파싱 실패');}};rd.readAsText(f);e.target.value='';};
+byId('openApp').onclick=()=>window.open('vip-donator-manager.html','_blank');
+byId('helpBtn').onclick=()=>byId('helpOverlay').classList.add('show');
+byId('helpClose').onclick=()=>byId('helpOverlay').classList.remove('show');
+byId('helpOverlay').onclick=e=>{if(e.target===byId('helpOverlay'))byId('helpOverlay').classList.remove('show');};
+
+/* init */
+renderSidebar();
+loadEndpoint(CATALOG[5].items[0]);   // 기본: 인사이트 요약
+document.querySelector('.ep').classList.remove('on');
+</script>
+</body>
+</html>
