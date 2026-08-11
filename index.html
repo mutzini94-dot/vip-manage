@@ -50,8 +50,9 @@ input,textarea,select{font-family:inherit}
 
 /* ===== Tabs ===== */
 .tabbar{display:flex;align-items:center;gap:6px;height:52px;padding:0 20px;flex:none;position:sticky;top:56px;
-  background:var(--ground);border-bottom:1px solid var(--line);z-index:35}
-.tab{display:flex;align-items:center;gap:8px;padding:9px 15px;border-radius:10px;color:var(--muted);
+  background:var(--ground);border-bottom:1px solid var(--line);z-index:35;overflow-x:auto;scrollbar-width:none}
+.tabbar::-webkit-scrollbar{display:none}
+.tab{display:flex;align-items:center;gap:8px;padding:9px 15px;border-radius:10px;color:var(--muted);white-space:nowrap;flex:none;
   font-weight:700;font-size:14px;transition:.14s}
 .tab:hover{color:var(--text);background:var(--surface)}
 .tab.on{color:var(--text);background:var(--surface-2);border:1px solid var(--line)}
@@ -675,6 +676,48 @@ tbody tr.blocked:hover{opacity:.72}
 .stk-hist .hr .t{color:var(--muted-2);width:120px;flex:none;font-variant-numeric:tabular-nums}
 .stk-hist .hr .a{margin-left:auto;font-weight:800;color:var(--up);font-variant-numeric:tabular-nums}
 
+/* ===== 투네톡 ===== */
+.toon-item{border:1px solid var(--line);border-radius:14px;padding:15px 16px;margin-bottom:12px;background:var(--surface-2);transition:.14s}
+.toon-item:hover{border-color:var(--line-strong)}
+.toon-item.st-expired{opacity:.62}
+.ti-top{display:flex;align-items:center;gap:11px;margin-bottom:10px}
+.ti-top .ava{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px}
+.ti-top .who{flex:1;min-width:0}
+.ti-top .who .nm{font-weight:800;font-size:14px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.ti-top .who .sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.ti-amt{font-weight:800;font-variant-numeric:tabular-nums;font-size:15px;color:var(--accent);white-space:nowrap}
+.toon-badge{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:6px;white-space:nowrap}
+.toon-badge.pending{background:rgba(255,176,32,.15);color:var(--warn)}
+.toon-badge.done{background:rgba(51,214,159,.15);color:var(--on)}
+.toon-badge.expired{background:var(--surface-3);color:var(--muted)}
+.toon-msg{font-size:13.5px;line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+.toon-reply{font-size:13px;line-height:1.5;background:var(--accent-soft);border:1px solid rgba(255,61,104,.18);border-radius:11px;padding:11px 13px;margin-top:8px}
+.toon-reply .rl{font-size:11px;font-weight:800;color:var(--accent);margin-bottom:4px}
+.ti-foot{display:flex;align-items:center;gap:8px;margin-top:11px}
+.ti-count{font-size:12px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:5px}
+.ti-count.soon{color:var(--warn)}
+.ti-count.over{color:#ff6b81}
+.ti-foot .spacer{flex:1}
+.toon-empty{text-align:center;padding:36px 20px;color:var(--muted)}
+.toon-empty .ic{font-size:36px;margin-bottom:10px;opacity:.5}
+.toon-empty .t{font-weight:700;color:var(--text)}
+.toon-bubble{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+.toon-bubble .bh{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.toon-bubble .bm{font-size:14px;line-height:1.5}
+/* 스토리 */
+.story-write{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:16px}
+.story-actions{display:flex;align-items:center;gap:12px;margin-top:9px}
+.story-pin{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer}
+.story-list{display:flex;flex-direction:column;gap:10px}
+.story-card{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface-2)}
+.story-card.pin{border-color:rgba(255,203,69,.25);background:linear-gradient(180deg,rgba(255,203,69,.06),var(--surface-2))}
+.story-card .sh{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.story-card .pinlbl{font-size:10.5px;font-weight:800;color:var(--vvip);background:var(--vvip-soft);padding:2px 7px;border-radius:6px}
+.story-card .st{font-size:11.5px;color:var(--muted-2);font-variant-numeric:tabular-nums}
+.story-card .sx{margin-left:auto;color:var(--muted-2);cursor:pointer;font-size:14px}
+.story-card .sx:hover{color:#ff6b81}
+.story-card .sb{font-size:13.5px;line-height:1.5}
+
 @media(max-width:640px){
   .wrap{padding:18px 14px 50px}
   .tab .cnt{display:none}
@@ -721,6 +764,10 @@ tbody tr.blocked:hover{opacity:.72}
     <button class="tab" data-tab="auto">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 13a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 6.6 19a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H2a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 3.7 6.6a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>
       자동화 설정 <span class="cnt" id="tabCntAuto">0</span>
+    </button>
+    <button class="tab" data-tab="toon">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l2-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg>
+      투네톡 <span class="cnt" id="tabCntToon">0</span>
     </button>
     <button class="tab tab-live" data-tab="live">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="M8 3v3M16 3v3"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>
@@ -1092,6 +1139,48 @@ tbody tr.blocked:hover{opacity:.72}
         </div>
       </div>
     </section>
+
+    <!-- ============ TAB: 투네톡 ============ -->
+    <section id="page-toon" class="hidden">
+      <div class="page-head">
+        <div>
+          <h1>💬 투네톡</h1>
+          <p>라이브가 아니어도 팬이 <b>댓글과 함께 후원</b>을 보냅니다. <b>72시간 내 답장</b>하면 후원 완료, 무응답 시 만료(자동 반환)됩니다.</p>
+        </div>
+        <div class="spacer"></div>
+        <label class="auto-toggle" title="미응답 건수 카카오 알림톡(일 1회)"><span>미응답 알림톡</span><div class="tgl" id="toonAlert"></div></label>
+        <button class="btn ghost" id="toonReceiveBtn">＋ 투네톡 받기(시뮬)</button>
+      </div>
+
+      <div class="stats" id="toonStats"></div>
+
+      <div class="cols" style="grid-template-columns:1.5fr 1fr">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>투네톡 후원</h3><span class="hint" id="toonHint"></span><div class="spacer"></div>
+            <div class="seg" id="toonFilter" style="flex:none">
+              <button data-f="pending" class="on">답장 대기</button><button data-f="done">완료</button><button data-f="expired">만료</button><button data-f="all">전체</button>
+            </div>
+          </div>
+          <div class="panel-body"><div id="toonList"></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>📢 스토리</h3><span class="hint">팬에게 소식 전하기</span></div>
+          <div class="panel-body">
+            <div class="story-write">
+              <textarea class="inp" id="storyText" rows="3" maxlength="500" placeholder="팬들에게 전하고 싶은 이야기를 적어보세요…"></textarea>
+              <div class="story-actions">
+                <label class="story-pin"><input type="checkbox" id="storyPin" class="cbx"> 상단 고정</label>
+                <span class="helper" id="storyCount" style="margin:0">0/500</span>
+                <div class="spacer"></div>
+                <button class="btn primary sm" id="storyPost">스토리 작성</button>
+              </div>
+            </div>
+            <div id="storyList" class="story-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </div>
 
@@ -1417,6 +1506,42 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
 </div>
 
+<!-- ============ 투네톡 답장하기 ============ -->
+<div class="overlay" id="replyOverlay">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head"><h2>💬 팬에게 답장하기</h2><div class="spacer"></div><button class="xbtn" id="replyClose">✕</button></div>
+    <div class="modal-body">
+      <div class="toon-bubble" id="replyMsg"></div>
+      <div class="field" style="margin-top:16px">
+        <label>따뜻한 답장 <span class="helper" style="display:inline;font-weight:500">· 답장하면 후원이 완료됩니다</span></label>
+        <textarea class="inp" id="replyText" rows="4" maxlength="500" placeholder="따듯한 답장을 입력해주세요…"></textarea>
+        <div class="helper" id="replyCount" style="text-align:right">0/500</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="replyCancel">취소</button>
+      <div class="spacer"></div>
+      <button class="btn primary" id="replySend">답장 보내기 · 후원 완료</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 투네톡 받기(시뮬레이션) ============ -->
+<div class="overlay" id="tsimOverlay">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head"><h2>＋ 투네톡 받기 (시뮬레이션)</h2><div class="spacer"></div><button class="xbtn" id="tsimClose">✕</button></div>
+    <div class="modal-body">
+      <div class="helper" style="margin:0 0 16px">팬이 <b>댓글과 함께 후원</b>을 보내는 상황을 재현합니다. 실제 도네이터 화면의 ‘투네톡 보내기’에 해당합니다.</div>
+      <div class="field"><label>보내는 팬 (도네이터)</label><select class="inp" id="tsimDonator"></select></div>
+      <div class="field"><label>후원 금액 <span class="helper" style="display:inline;font-weight:500">· 1,000 ~ 100,000 캐시</span></label>
+        <div class="amt-wrap"><input class="inp tnum" id="tsimAmt" inputmode="numeric" placeholder="5,000"><span class="to">캐시</span></div></div>
+      <div class="field"><label>댓글 메시지</label><textarea class="inp" id="tsimMsg" rows="3" maxlength="200" placeholder="오늘 방송 너무 재밌었어요! 응원합니다 💪"></textarea></div>
+      <div class="preview-box"><div class="preview-lbl">👁 미리보기</div><div id="tsimPrev"></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn ghost" id="tsimCancel">취소</button><div class="spacer"></div><button class="btn primary" id="tsimSend">투네톡 보내기</button></div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
@@ -1472,6 +1597,9 @@ function seed(){
     titles: seedTitles(),
     autoLogs: seedLogs(donators),
     annivAuto: true,
+    toontalks: seedToontalks(donators),
+    stories: seedStories(),
+    toonUnreadAlert: true,
     autos:[
       {id:uid(),on:true,situ:'login',targetMode:'class',classes:['g_vvip'],
        actions:[{type:'kakao_send',cfg:{msg:'{크리에이터} 님이 방송을 시작하였습니다'}}]},
@@ -1482,6 +1610,28 @@ function seed(){
     ]
   };
 }
+const TOON_TTL=72*3600000; // 72시간
+function seedToontalks(donators){
+  const now=Date.now(), H=3600000;
+  const msgs=['오늘 방송 너무 재밌었어요! 다음에도 이 게임 해주세요 ㅋㅋ','항상 응원합니다. 건강 챙기시면서 하세요!','오늘도 힘내세요! 제가 있잖아요 💪','방송 잘 보고 있어요. 늘 감사합니다 🙌','생일 축하드려요! 좋은 하루 되세요 🎂','스트레스 받지 마시고 즐겁게 방송해요~'];
+  const pool=donators.filter(d=>!d.blocked).sort((a,b)=>b.cash-a.cash);
+  const rows=[
+    {i:0,amt:5000, ago:0.5*H, status:'pending'},
+    {i:5,amt:50000,ago:5*H,   status:'pending'},
+    {i:1,amt:10000,ago:40*H,  status:'pending'},
+    {i:2,amt:3000, ago:70.3*H,status:'pending'},           // 임박
+    {i:3,amt:5000, ago:20*H,  status:'done', reply:'걱정해 주셔서 감사합니다. 좋은 하루 되세요! 🙏'},
+    {i:6,amt:20000,ago:26*H,  status:'done', reply:'항상 응원해 주셔서 힘이 나요 💛'},
+    {i:4,amt:2000, ago:80*H,  status:'expired'},
+  ];
+  return rows.map((r,k)=>{const d=pool[r.i%pool.length];const created=now-r.ago;
+    return {id:uid(),donatorId:d.id,amount:r.amt,message:msgs[k%msgs.length],
+      status:r.status,createdTs:created,respondedTs:r.status==='done'?created+2*H:null,reply:r.reply||''};});
+}
+function seedStories(){const now=Date.now();return [
+  {id:uid(),text:'오늘 오전 10시에 방송 시작합니다. 많이들 와주세요! 🎮',pinned:true,ts:now-30*60000},
+  {id:uid(),text:'지난 방송 함께해주셔서 감사했어요 🙌 다음 주도 기대해주세요!',pinned:false,ts:now-26*3600000},
+];}
 function seedLogs(donators){
   const gname=c=>c>=300000?'VVIP':c>=100000?'VIP':c>=30000?'열혈':'';
   const top=donators.slice().sort((a,b)=>b.cash-a.cash).slice(0,12);
@@ -1510,6 +1660,9 @@ function normalize(){
   if(!DB.autoLogs) DB.autoLogs=[];
   if(DB.annivAuto===undefined) DB.annivAuto=true;
   if(DB.milestoneNudge===undefined) DB.milestoneNudge=false;
+  if(!DB.toontalks) DB.toontalks=[];
+  if(!DB.stories) DB.stories=[];
+  if(DB.toonUnreadAlert===undefined) DB.toonUnreadAlert=true;
   (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;});
   // 구버전 마이그레이션: 단일 action → actions 배열
   (DB.autos||[]).forEach(a=>{ if(!a.actions){a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[];delete a.action;delete a.cfg;} });
@@ -1612,7 +1765,7 @@ function titleBadge(t){return `<span class="tbadge" style="--tc:${t.color}"><spa
 /* =========================================================
    Tabs
    ========================================================= */
-const pages={insight:byId('page-insight'),market:byId('page-market'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),auto:byId('page-auto'),live:byId('page-live')};
+const pages={insight:byId('page-insight'),market:byId('page-market'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),auto:byId('page-auto'),toon:byId('page-toon'),live:byId('page-live')};
 function byId(id){return document.getElementById(id);}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
@@ -1620,6 +1773,7 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   Object.entries(pages).forEach(([k,el])=>el.classList.toggle('hidden',k!==tab));
   if(tab==='insight') renderInsights();
   if(tab==='market') renderMarket();
+  if(tab==='toon') renderToon();
   if(tab==='donator') renderDonators();
   if(tab==='auto') renderAutos();
   if(tab==='grade') renderGrades();
@@ -2363,7 +2517,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','stockOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','stockOverlay','replyOverlay','tsimOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -3248,6 +3402,140 @@ byId('stkPeriod').querySelectorAll('button').forEach(b=>b.onclick=()=>{stkN=+b.d
 byId('stkProfile').onclick=()=>{byId('stockOverlay').classList.remove('show');openDrawer(stkId);};
 byId('stkNudge').onclick=()=>{const d=DB.donators.find(x=>x.id===stkId);if(gaugeData(d).top){toast('이미 최고 등급입니다');return;}byId('stockOverlay').classList.remove('show');openNudge(stkId);};
 
+/* =========================================================
+   TAB — 투네톡 (댓글 후원)
+   ========================================================= */
+let toonFilter='pending';
+const CREATOR_NAME='크리에이터';
+function toonEffStatus(t){
+  if(t.status==='done') return 'done';
+  if(t.status==='cancelled') return 'cancelled';
+  if(t.status==='pending' && Date.now() > t.createdTs+TOON_TTL) return 'expired';
+  return t.status;
+}
+function fmtAgo(ts){const s=Math.floor((Date.now()-ts)/1000);
+  if(s<60)return '방금 전'; if(s<3600)return Math.floor(s/60)+'분 전'; if(s<86400)return Math.floor(s/3600)+'시간 전'; return Math.floor(s/86400)+'일 전';}
+function fmtRemain(ts){const ms=ts+TOON_TTL-Date.now();
+  if(ms<=0)return{txt:'만료됨',cls:'over'};
+  return{txt:`${Math.floor(ms/3600000)}시간 ${Math.floor(ms%3600000/60000)}분 남음`,cls:ms<6*3600000?'soon':''};}
+const TOON_ST={pending:['답장 대기','pending'],done:['완료','done'],expired:['만료','expired'],cancelled:['취소','expired']};
+
+function renderToonStats(){
+  const eff=DB.toontalks.map(toonEffStatus);
+  const pending=eff.filter(s=>s==='pending').length, expired=eff.filter(s=>s==='expired').length;
+  const done=DB.toontalks.filter(t=>toonEffStatus(t)==='done');
+  const todaySum=done.filter(t=>t.respondedTs&&Date.now()-t.respondedTs<86400000).reduce((s,t)=>s+t.amount,0);
+  const totalDone=done.reduce((s,t)=>s+t.amount,0);
+  byId('toonStats').innerHTML=`
+    <div class="stat"><div class="k">⏳ 답장 대기</div><div class="v tnum">${pending}<small>건</small></div></div>
+    <div class="stat"><div class="k">💰 오늘 완료 후원</div><div class="v tnum">${won(todaySum)}<small>캐시</small></div></div>
+    <div class="stat"><div class="k">✅ 누적 완료</div><div class="v tnum">${won(totalDone)}<small>캐시</small></div></div>
+    <div class="stat"><div class="k">⌛ 만료</div><div class="v tnum">${expired}<small>건</small></div></div>`;
+  byId('tabCntToon').textContent=pending;
+}
+function renderToon(){ byId('toonAlert').classList.toggle('on',!!DB.toonUnreadAlert); renderToonStats(); renderToonList(); renderStories(); }
+function renderToonList(){
+  const box=byId('toonList');
+  let list=DB.toontalks.map(t=>({t,eff:toonEffStatus(t)}));
+  if(toonFilter!=='all') list=list.filter(x=>x.eff===toonFilter);
+  list.sort((a,b)=>b.t.createdTs-a.t.createdTs);
+  byId('toonHint').textContent=`${toonFilter==='all'?'전체':TOON_ST[toonFilter][0]} · ${list.length}건`;
+  if(!list.length){box.innerHTML=`<div class="toon-empty"><div class="ic">💬</div><div class="t">해당하는 투네톡이 없습니다</div></div>`;return;}
+  box.innerHTML='';
+  list.forEach(({t,eff})=>{
+    const d=DB.donators.find(x=>x.id===t.donatorId); if(!d)return;
+    const g=gradeForCash(d.cash), [lbl,cls]=TOON_ST[eff];
+    let foot;
+    if(eff==='pending'){const r=fmtRemain(t.createdTs);
+      foot=`<div class="ti-count ${r.cls}">⏳ ${r.txt}</div><div class="spacer"></div>
+        <button class="btn primary sm" data-reply="${t.id}">답장하기</button>
+        <button class="btn ghost sm" data-cancel="${t.id}">후원 취소</button>
+        <button class="btn ghost sm danger" data-block="${t.id}">차단</button>`;
+    }else if(eff==='done'){ foot=`<div class="ti-count" style="color:var(--on)">✓ ${t.respondedTs?fmtAgo(t.respondedTs)+' 답장 완료':'완료'}</div>`; }
+    else if(eff==='cancelled'){ foot=`<div class="ti-count">취소된 후원 · 캐시 반환됨</div>`; }
+    else{ foot=`<div class="ti-count over">⌛ 72시간 무응답 · 자동 반환됨</div>`; }
+    const item=document.createElement('div'); item.className='toon-item st-'+eff;
+    item.innerHTML=`
+      <div class="ti-top">
+        <div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+        <div class="who"><div class="nm">${d.alias||d.name} ${g?gradeBadge(g):''} <span class="toon-badge ${cls}">${lbl}</span></div>
+          <div class="sub">TO. ${CREATOR_NAME} · ${fmtAgo(t.createdTs)}</div></div>
+        <div class="ti-amt">${won(t.amount)} C</div>
+      </div>
+      <div class="toon-msg">${(t.message||'').replace(/</g,'&lt;')}</div>
+      ${eff==='done'&&t.reply?`<div class="toon-reply"><div class="rl">${CREATOR_NAME} 님의 답장</div>${t.reply.replace(/</g,'&lt;')}</div>`:''}
+      <div class="ti-foot">${foot}</div>`;
+    item.querySelector('[data-reply]')?.addEventListener('click',()=>openReply(t.id));
+    item.querySelector('[data-cancel]')?.addEventListener('click',()=>cancelToon(t.id));
+    item.querySelector('[data-block]')?.addEventListener('click',()=>askConfirm(`${d.alias||d.name} 차단`,'차단 시 이 도네이터는 투네톡을 보낼 수 없고, 대기 중 후원은 취소됩니다.',()=>{
+      d.blocked=true;d.blockedAt=todayStr();DB.toontalks.forEach(x=>{if(x.donatorId===d.id&&toonEffStatus(x)==='pending')x.status='cancelled';});save();renderToon();renderDonators();toast('도네이터를 차단했습니다');}));
+    box.appendChild(item);
+  });
+}
+byId('toonFilter').querySelectorAll('button').forEach(b=>b.onclick=()=>{toonFilter=b.dataset.f;byId('toonFilter').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderToonList();});
+byId('toonAlert').onclick=()=>{DB.toonUnreadAlert=!DB.toonUnreadAlert;save();byId('toonAlert').classList.toggle('on',DB.toonUnreadAlert);toast(DB.toonUnreadAlert?'미응답 알림톡을 켰습니다 (일 1회)':'미응답 알림톡을 껐습니다');};
+function cancelToon(id){const t=DB.toontalks.find(x=>x.id===id);if(!t)return;
+  askConfirm('후원 취소','이 투네톡 후원을 취소할까요? 캐시가 도네이터에게 반환됩니다.',()=>{t.status='cancelled';save();renderToon();toast('후원을 취소했습니다');});}
+
+/* 답장하기 → 완료 */
+let replyId=null;
+function openReply(id){const t=DB.toontalks.find(x=>x.id===id);if(!t)return;replyId=id;
+  const d=DB.donators.find(x=>x.id===t.donatorId),g=gradeForCash(d.cash),r=fmtRemain(t.createdTs);
+  byId('replyMsg').innerHTML=`<div class="bh"><div class="ava" style="width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:${avaColor(d.name)};color:#fff;font-size:10px;font-weight:700">${d.name.slice(0,2)}</div>${d.alias||d.name} ${g?gradeBadge(g):''} · ${won(t.amount)} C · <span class="${r.cls}">${r.txt}</span></div><div class="bm">${(t.message||'').replace(/</g,'&lt;')}</div>`;
+  byId('replyText').value=''; byId('replyCount').textContent='0/500';
+  byId('replyOverlay').classList.add('show');
+}
+byId('replyText').addEventListener('input',e=>byId('replyCount').textContent=`${e.target.value.length}/500`);
+byId('replyClose').onclick=byId('replyCancel').onclick=()=>byId('replyOverlay').classList.remove('show');
+byId('replyOverlay').onclick=e=>{if(e.target===byId('replyOverlay'))byId('replyOverlay').classList.remove('show');};
+byId('replySend').onclick=()=>{
+  const t=DB.toontalks.find(x=>x.id===replyId),txt=byId('replyText').value.trim();
+  if(!txt)return toast('답장을 입력하세요','!'); if(!t)return;
+  t.status='done'; t.respondedTs=Date.now(); t.reply=txt;
+  const d=DB.donators.find(x=>x.id===t.donatorId);
+  if(d){ d.cash+=t.amount; d.count=(d.count||0)+1; (d.history=d.history||[]).unshift({time:nowClock(),kind:'투네톡',amt:t.amount,msg:t.message}); }
+  save(); byId('replyOverlay').classList.remove('show'); renderToon();
+  toast('답장 완료! 후원이 확정되었습니다 💛');
+};
+
+/* 투네톡 받기(시뮬레이션) — 도네이터의 '댓글 후원' 재현 */
+function tsimFill(){byId('tsimDonator').innerHTML=DB.donators.filter(d=>!d.blocked).sort((a,b)=>b.cash-a.cash).map(d=>`<option value="${d.id}">${d.name}${d.alias?' ('+d.alias+')':''}</option>`).join('');}
+byId('toonReceiveBtn').onclick=()=>{tsimFill();byId('tsimAmt').value='5,000';byId('tsimMsg').value='';tsimPrev();byId('tsimOverlay').classList.add('show');};
+byId('tsimAmt').addEventListener('input',e=>{const v=e.target.value.replace(/[^\d]/g,'');e.target.value=v?won(+v):'';tsimPrev();});
+byId('tsimMsg').addEventListener('input',tsimPrev);
+byId('tsimDonator').addEventListener('change',tsimPrev);
+function tsimPrev(){const d=DB.donators.find(x=>x.id===byId('tsimDonator').value),amt=+byId('tsimAmt').value.replace(/[^\d]/g,'')||0;
+  byId('tsimPrev').innerHTML=`<div class="toon-item" style="margin:0"><div class="ti-top"><div class="ava" style="background:${d?avaColor(d.name):'#555'}">${d?d.name.slice(0,2):'?'}</div><div class="who"><div class="nm">${d?(d.alias||d.name):'도네이터'} <span class="toon-badge pending">답장 대기</span></div><div class="sub">TO. ${CREATOR_NAME} · 방금 전</div></div><div class="ti-amt">${won(amt)} C</div></div><div class="toon-msg">${(byId('tsimMsg').value||'오늘 방송 너무 재밌었어요! 응원합니다 💪').replace(/</g,'&lt;')}</div></div>`;}
+byId('tsimClose').onclick=byId('tsimCancel').onclick=()=>byId('tsimOverlay').classList.remove('show');
+byId('tsimOverlay').onclick=e=>{if(e.target===byId('tsimOverlay'))byId('tsimOverlay').classList.remove('show');};
+byId('tsimSend').onclick=()=>{
+  const d=DB.donators.find(x=>x.id===byId('tsimDonator').value); if(!d)return;
+  let amt=Math.max(1000,Math.min(100000,+byId('tsimAmt').value.replace(/[^\d]/g,'')||0));
+  const msg=byId('tsimMsg').value.trim()||'오늘 방송 너무 재밌었어요! 응원합니다 💪';
+  DB.toontalks.unshift({id:uid(),donatorId:d.id,amount:amt,message:msg,status:'pending',createdTs:Date.now(),respondedTs:null,reply:''});
+  save(); byId('tsimOverlay').classList.remove('show'); toonFilter='pending';
+  byId('toonFilter').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.f==='pending'));
+  renderToon(); toast(`${d.alias||d.name}님이 투네톡 후원을 보냈습니다 💬`);
+};
+
+/* 스토리 */
+byId('storyText').addEventListener('input',e=>byId('storyCount').textContent=`${e.target.value.length}/500`);
+byId('storyPost').onclick=()=>{const txt=byId('storyText').value.trim();if(!txt)return toast('스토리 내용을 입력하세요','!');
+  const pin=byId('storyPin').checked; if(pin)DB.stories.forEach(s=>s.pinned=false);
+  DB.stories.unshift({id:uid(),text:txt,pinned:pin,ts:Date.now()});
+  byId('storyText').value='';byId('storyPin').checked=false;byId('storyCount').textContent='0/500';
+  save();renderStories();toast('스토리를 작성했습니다 📢');};
+function renderStories(){
+  const box=byId('storyList');
+  const list=[...DB.stories].sort((a,b)=>(b.pinned-a.pinned)||(b.ts-a.ts));
+  if(!list.length){box.innerHTML='<div class="helper" style="text-align:center;padding:16px">작성한 스토리가 없습니다</div>';return;}
+  box.innerHTML='';
+  list.forEach(s=>{const c=document.createElement('div');c.className='story-card'+(s.pinned?' pin':'');
+    c.innerHTML=`<div class="sh">${s.pinned?'<span class="pinlbl">📌 고정</span>':''}<span class="st">${fmtAgo(s.ts)}</span><span class="sx" data-del="${s.id}">✕</span></div><div class="sb">${s.text.replace(/</g,'&lt;')}</div>`;
+    c.querySelector('[data-del]').onclick=()=>{DB.stories=DB.stories.filter(x=>x.id!==s.id);save();renderStories();};
+    box.appendChild(c);});
+}
+
 /* ---------- init ---------- */
 renderSwatches();
 renderGrades();
@@ -3257,6 +3545,7 @@ renderInsights();
 resetTitleForm();
 renderTitles();
 renderLive();
+renderToonStats();
 </script>
 </body>
 </html>
