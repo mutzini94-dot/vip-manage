@@ -11,6 +11,7 @@
   --text:#e9eaf0; --muted:#8b8fa3; --muted-2:#6a6e80;
   --accent:#ff3d68; --accent-soft:rgba(255,61,104,.14); --accent-press:#e62a54;
   --live:#ff4646; --on:#33d69f; --warn:#ffb020;
+  --up:#ff4d4f; --down:#4d8bff;
   --vvip:#ffcb45; --vvip-soft:rgba(255,203,69,.14);
   --vip:#a45bff; --vip-soft:rgba(164,91,255,.15);
   --yeol:#5b8cff; --yeol-soft:rgba(91,140,255,.15);
@@ -620,6 +621,60 @@ tbody tr.blocked:hover{opacity:.72}
 .anniv-card .dday.soon{background:var(--accent-soft);color:var(--accent)}
 .anniv-card .celeb-done{font-size:11.5px;font-weight:800;color:var(--on);white-space:nowrap}
 
+/* ===== 투스닥 (도네이터 마켓) ===== */
+.up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--muted)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.spark{display:block}
+.index-board{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:820px){.index-board{grid-template-columns:1fr 1fr}}
+.ib-main{grid-row:span 1;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.ib-main .lbl{font-size:12px;color:var(--muted);font-weight:700}
+.ib-main .val{font-size:30px;font-weight:800;letter-spacing:-.02em;margin-top:4px}
+.ib-main .chg{font-size:13.5px;font-weight:800;margin-top:2px}
+.ib-main .spark{position:absolute;right:0;bottom:0;width:60%;height:56px;opacity:.85}
+.ib-stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px 16px}
+.ib-stat .lbl{font-size:12px;color:var(--muted);font-weight:600}
+.ib-stat .val{font-size:19px;font-weight:800;margin-top:6px;letter-spacing:-.01em}
+.ib-stat .sub{font-size:11.5px;font-weight:700;margin-top:3px}
+.movers{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+@media(max-width:700px){.movers{grid-template-columns:1fr}}
+.mv-row{display:flex;align-items:center;gap:11px;padding:9px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.mv-row:last-child{border:none}.mv-row:hover{background:var(--surface-2)}
+.mv-row .ava{width:32px;height:32px;border-radius:8px;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:12px}
+.mv-row .nm{font-weight:700;font-size:13px;flex:1;min-width:0;display:flex;align-items:center;gap:6px}
+.mv-row .pr{font-weight:800;font-variant-numeric:tabular-nums;font-size:13px}
+.mv-row .ch{font-weight:800;font-size:12.5px;width:66px;text-align:right}
+.ticker-table thead th{background:var(--surface)}
+.ticker-table thead th.num{text-align:right}
+.ticker-table tbody td{padding:11px 14px;border-bottom:1px solid var(--line)}
+.ticker-table tbody tr{cursor:pointer;transition:.1s}.ticker-table tbody tr:hover{background:var(--surface-2)}
+.tk-name{display:flex;align-items:center;gap:10px}
+.tk-name .ava{width:32px;height:32px;border-radius:8px;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:12px}
+.tk-name .nm{font-weight:700}.tk-name .code{font-size:11px;color:var(--muted-2);font-family:var(--mono,ui-monospace,monospace)}
+.tk-cash{font-weight:800;font-variant-numeric:tabular-nums}
+.tk-chg{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mktseg-mono{font-variant-numeric:tabular-nums}
+/* 종목 상세 */
+.stk-head{display:flex;align-items:center;gap:11px}
+.stk-head .ava{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px;flex:none}
+.stk-head .nm{font-weight:800;font-size:16px;display:flex;align-items:center;gap:8px}
+.stk-head .code{font-size:11px;color:var(--muted-2);font-family:ui-monospace,monospace}
+.stk-price{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+.stk-price .big{font-size:30px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stk-price .chg{font-size:15px;font-weight:800}
+.chart-svg{width:100%;height:auto;display:block;overflow:visible}
+.stk-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+@media(max-width:560px){.stk-stats{grid-template-columns:repeat(2,1fr)}}
+.stk-stats .s{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+.stk-stats .s .k{font-size:11px;color:var(--muted);font-weight:600}
+.stk-stats .s .v{font-size:15px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}
+.stk-insight{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.stk-insight .h{font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px}
+.stk-hist{max-height:180px;overflow-y:auto}
+.stk-hist .hr{display:flex;gap:12px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:12.5px}
+.stk-hist .hr .t{color:var(--muted-2);width:120px;flex:none;font-variant-numeric:tabular-nums}
+.stk-hist .hr .a{margin-left:auto;font-weight:800;color:var(--up);font-variant-numeric:tabular-nums}
+
 @media(max-width:640px){
   .wrap{padding:18px 14px 50px}
   .tab .cnt{display:none}
@@ -646,6 +701,10 @@ tbody tr.blocked:hover{opacity:.72}
     <button class="tab on" data-tab="insight">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>
       인사이트 <span class="cnt" id="tabCntInsight">0</span>
+    </button>
+    <button class="tab" data-tab="market">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-5 3 3 4-6 3 4M3 21h18"/><path d="M14 6h5v5"/></svg>
+      투스닥
     </button>
     <button class="tab" data-tab="grade">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 6 .5-4.5 4 1.5 6-6-3.5L6 18.5 7.5 12.5 3 8.5 9 8z"/></svg>
@@ -727,6 +786,47 @@ tbody tr.blocked:hover{opacity:.72}
           <label class="auto-toggle"><span>기념일 자동 축하</span><div class="tgl" id="annivAuto"></div></label>
         </div>
         <div class="panel-body"><div id="annivList" class="anniv-list"></div></div>
+      </div>
+    </section>
+
+    <!-- ============ TAB: 투스닥 (도네이터 마켓) ============ -->
+    <section id="page-market" class="hidden">
+      <div class="page-head">
+        <div>
+          <h1>📈 투스닥 <span style="font-size:13px;color:var(--muted-2);font-weight:600">TOOSDAQ</span></h1>
+          <p>도네이터를 ‘종목’처럼. 누적 후원을 현재가로, 후원 흐름을 차트로 봅니다. <span style="color:var(--up)">🔴 상승</span> · <span style="color:var(--down)">🔵 하락</span></p>
+        </div>
+        <div class="spacer"></div>
+        <div class="seg" id="mktPeriod" style="flex:none">
+          <button data-n="7">1주</button><button data-n="30" class="on">1개월</button><button data-n="90">3개월</button>
+        </div>
+      </div>
+
+      <!-- 지수 보드 -->
+      <div class="index-board" id="indexBoard"></div>
+
+      <!-- 급등락 -->
+      <div class="movers">
+        <div class="panel"><div class="panel-head"><h3>🔴 급등 종목</h3><span class="hint">기간 상승률</span></div><div class="panel-body"><div id="gainers"></div></div></div>
+        <div class="panel"><div class="panel-head"><h3>🔵 급락 종목</h3><span class="hint">기간 하락률</span></div><div class="panel-body"><div id="losers"></div></div></div>
+      </div>
+
+      <!-- 종목 랭킹 -->
+      <div class="panel">
+        <div class="panel-head"><h3>전체 종목</h3><span class="hint">클릭 → 종목 상세</span><div class="spacer"></div>
+          <div class="seg" id="mktSort" style="flex:none">
+            <button data-s="cash" class="on">현재가</button><button data-s="change">등락률</button><button data-s="volume">거래량</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="ticker-table">
+            <thead><tr>
+              <th style="width:34px">#</th><th>종목</th><th class="num">현재가</th><th class="num">전일대비</th>
+              <th class="num">기간등락</th><th class="num">거래량</th><th class="num">시총비중</th><th style="width:100px">차트</th>
+            </tr></thead>
+            <tbody id="tickerBody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -1291,6 +1391,32 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
 </div>
 
+<!-- ============ 종목 상세 (투스닥) ============ -->
+<div class="overlay" id="stockOverlay">
+  <div class="modal wide" style="max-width:720px">
+    <div class="modal-head">
+      <div class="stk-head" id="stkHead"></div>
+      <div class="spacer"></div>
+      <button class="xbtn" id="stkClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="stk-price" id="stkPrice"></div>
+      <div class="seg" id="stkPeriod" style="width:fit-content;margin:2px 0 12px">
+        <button data-n="7">1주</button><button data-n="30" class="on">1개월</button><button data-n="90">3개월</button>
+      </div>
+      <div id="stkChart"></div>
+      <div class="stk-stats" id="stkStats"></div>
+      <div class="stk-insight" id="stkInsight"></div>
+      <div class="stk-hist" id="stkHist"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="stkProfile">프로필 열기</button>
+      <div class="spacer"></div>
+      <button class="btn primary" id="stkNudge">🎯 승급 넛지</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
@@ -1486,13 +1612,14 @@ function titleBadge(t){return `<span class="tbadge" style="--tc:${t.color}"><spa
 /* =========================================================
    Tabs
    ========================================================= */
-const pages={insight:byId('page-insight'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),auto:byId('page-auto'),live:byId('page-live')};
+const pages={insight:byId('page-insight'),market:byId('page-market'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),auto:byId('page-auto'),live:byId('page-live')};
 function byId(id){return document.getElementById(id);}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
   const tab=t.dataset.tab;
   Object.entries(pages).forEach(([k,el])=>el.classList.toggle('hidden',k!==tab));
   if(tab==='insight') renderInsights();
+  if(tab==='market') renderMarket();
   if(tab==='donator') renderDonators();
   if(tab==='auto') renderAutos();
   if(tab==='grade') renderGrades();
@@ -2236,7 +2363,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','stockOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -2974,6 +3101,152 @@ byId('celebSend').onclick=()=>{
   byId('celebOverlay').classList.remove('show');renderAnniv();
   toast('기념일 축하 메시지를 발송했습니다 🎉');
 };
+
+/* =========================================================
+   TAB — 투스닥 (도네이터 마켓)
+   ========================================================= */
+let mktPeriod=30, mktSort='cash';
+function hashId(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function seededRand(seed){let s=(seed>>>0)||1;return()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296;};}
+// 도네이터별 결정적 누적 후원(현재가) 시계열 — 오늘=현재 캐시로 끝남
+function priceSeries(d,n){
+  const rnd=seededRand(hashId(d.id));
+  const drift=-0.004+rnd()*0.016;      // 종목별 일간 추세(-0.4%~+1.2%)
+  const vol=0.015+rnd()*0.03;
+  const vals=new Array(n); vals[n-1]=Math.max(1000,d.cash);
+  for(let i=n-2;i>=0;i--){const chg=drift+(rnd()-0.5)*vol*2; vals[i]=Math.max(1000,Math.round(vals[i+1]/(1+chg)));}
+  return vals;
+}
+const pctChg=(a,b)=>b?((a-b)/b*100):0;
+const fmtPct=p=>`${p>=0?'▲':'▼'} ${Math.abs(p).toFixed(2)}%`;
+const upcls=p=>p>0?'up':p<0?'down':'flat';
+const ticker=d=>'TN'+String(hashId(d.id)%9000+1000);
+
+function marketRows(){
+  const total=DB.donators.reduce((s,d)=>s+d.cash,0)||1;
+  return DB.donators.filter(d=>!d.blocked).map(d=>{
+    const s=priceSeries(d,mktPeriod);
+    return {d,s,cash:d.cash,dayChg:pctChg(s[mktPeriod-1],s[mktPeriod-2]),perChg:pctChg(s[mktPeriod-1],s[0]),vol:d.count,weight:d.cash/total*100};
+  });
+}
+function sparkline(vals){
+  const W=92,H=28,mn=Math.min(...vals),mx=Math.max(...vals),rng=(mx-mn)||1;
+  const c=vals[vals.length-1]>=vals[0]?'var(--up)':'var(--down)';
+  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*W).toFixed(1)},${(H-3-((v-mn)/rng)*(H-6)).toFixed(1)}`).join(' ');
+  return `<svg class="spark" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><polyline points="${pts}" fill="none" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+}
+function sparklineBig(vals){
+  const W=380,H=56,mn=Math.min(...vals),mx=Math.max(...vals),rng=(mx-mn)||1;
+  const up=vals[vals.length-1]>=vals[0],c=up?'#ff4d4f':'#4d8bff';
+  const line=vals.map((v,i)=>`${(i/(vals.length-1)*W).toFixed(1)},${(H-2-((v-mn)/rng)*(H-6)).toFixed(1)}`).join(' ');
+  const gid='ig'+(up?'u':'d');
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".3"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs>
+    <polygon points="0,${H} ${line} ${W},${H}" fill="url(#${gid})"/><polyline points="${line}" fill="none" stroke="${c}" stroke-width="2"/></svg>`;
+}
+function indexSeries(rows){
+  const n=mktPeriod, series=new Array(n).fill(0);
+  rows.forEach(r=>{for(let i=0;i<n;i++)series[i]+=r.s[i];});
+  const base=series[0]||1; return series.map(v=>v/base*1000);
+}
+function moverRows(list){
+  return list.map(r=>{const g=gradeForCash(r.d.cash);
+    return `<div class="mv-row" data-id="${r.d.id}"><div class="ava" style="background:${avaColor(r.d.name)}">${r.d.name.slice(0,2)}</div>
+      <div class="nm">${r.d.alias||r.d.name} ${g?`<span class="gb ${clsOf(g)}" style="font-size:9px"><span class="d"></span>${g.name}</span>`:''}</div>
+      <div class="pr">${won(r.cash)}</div><div class="ch ${upcls(r.perChg)}">${fmtPct(r.perChg)}</div></div>`;
+  }).join('')||'<div class="helper" style="padding:14px">종목이 없습니다</div>';
+}
+function renderMarket(){
+  const rows=marketRows();
+  const idx=indexSeries(rows);
+  const idxNow=idx[idx.length-1], idxChg=pctChg(idxNow,idx[idx.length-2]), idxPer=pctChg(idxNow,idx[0]);
+  const total=rows.reduce((s,r)=>s+r.cash,0), volTotal=rows.reduce((s,r)=>s+r.vol,0);
+  const upN=rows.filter(r=>r.perChg>0).length, dnN=rows.filter(r=>r.perChg<0).length, flatN=rows.length-upN-dnN;
+  byId('indexBoard').innerHTML=`
+    <div class="ib-main">
+      <div class="lbl">투스닥 지수 (TOOSDAQ)</div>
+      <div class="val ${upcls(idxPer)}">${idxNow.toFixed(2)}</div>
+      <div class="chg ${upcls(idxChg)}">${fmtPct(idxChg)} <span style="color:var(--muted);font-weight:600">· 기간 ${fmtPct(idxPer)}</span></div>
+      ${sparklineBig(idx)}
+    </div>
+    <div class="ib-stat"><div class="lbl">시가총액</div><div class="val">${manWon(total)}</div><div class="sub" style="color:var(--muted)">누적 후원 합계</div></div>
+    <div class="ib-stat"><div class="lbl">거래량</div><div class="val">${won(volTotal)}건</div><div class="sub" style="color:var(--muted)">전체 후원 건수</div></div>
+    <div class="ib-stat"><div class="lbl">등락 종목</div><div class="val"><span class="up">${upN}</span> · <span class="down">${dnN}</span></div><div class="sub flat">보합 ${flatN}개</div></div>`;
+  const byPer=[...rows].sort((a,b)=>b.perChg-a.perChg);
+  byId('gainers').innerHTML=moverRows(byPer.slice(0,4));
+  byId('losers').innerHTML=moverRows(byPer.slice(-4).reverse());
+  let sorted = mktSort==='cash'?[...rows].sort((a,b)=>b.cash-a.cash)
+             : mktSort==='change'?[...rows].sort((a,b)=>b.perChg-a.perChg)
+             : [...rows].sort((a,b)=>b.vol-a.vol);
+  const tb=byId('tickerBody'); tb.innerHTML='';
+  sorted.forEach((r,i)=>{
+    const g=gradeForCash(r.d.cash);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="num" style="color:var(--muted);font-weight:800">${i+1}</td>
+      <td><div class="tk-name"><div class="ava" style="background:${avaColor(r.d.name)}">${r.d.name.slice(0,2)}</div>
+        <div><div class="nm">${r.d.alias||r.d.name} ${g?`<span class="gb ${clsOf(g)}" style="font-size:10px"><span class="d"></span>${g.name}</span>`:''}</div><div class="code">${ticker(r.d)}</div></div></div></td>
+      <td class="num tk-cash">${won(r.cash)}</td>
+      <td class="num tk-chg ${upcls(r.dayChg)}">${fmtPct(r.dayChg)}</td>
+      <td class="num tk-chg ${upcls(r.perChg)}">${fmtPct(r.perChg)}</td>
+      <td class="num">${won(r.vol)}</td>
+      <td class="num">${r.weight.toFixed(1)}%</td>
+      <td>${sparkline(r.s)}</td>`;
+    tr.onclick=()=>openStock(r.d.id);
+    tb.appendChild(tr);
+  });
+}
+['gainers','losers'].forEach(id=>byId(id).addEventListener('click',e=>{const row=e.target.closest('.mv-row');if(row)openStock(row.dataset.id);}));
+byId('mktPeriod').querySelectorAll('button').forEach(b=>b.onclick=()=>{mktPeriod=+b.dataset.n;byId('mktPeriod').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderMarket();});
+byId('mktSort').querySelectorAll('button').forEach(b=>b.onclick=()=>{mktSort=b.dataset.s;byId('mktSort').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderMarket();});
+
+/* --- 종목 상세 --- */
+let stkId=null, stkN=30;
+function openStock(id){ stkId=id; stkN=mktPeriod; byId('stkPeriod').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.n===stkN)); renderStock(); byId('stockOverlay').classList.add('show'); }
+function stockAreaChart(vals){
+  const W=660,H=240,pl=8,pr=54,pt=14,pb=20;
+  const mn=Math.min(...vals),mx=Math.max(...vals),rng=(mx-mn)||1;
+  const n=vals.length,iw=W-pl-pr,ih=H-pt-pb;
+  const x=i=>pl+i*iw/(n-1), y=v=>pt+ih-((v-mn)/rng)*ih;
+  const up=vals[n-1]>=vals[0],c=up?'#ff4d4f':'#4d8bff';
+  const line=vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const lastY=y(vals[n-1]);
+  const grid=[0,.5,1].map(f=>{const gy=pt+ih*f, gv=mx-(mx-mn)*f;return `<line x1="${pl}" y1="${gy.toFixed(1)}" x2="${W-pr}" y2="${gy.toFixed(1)}" stroke="var(--line)" stroke-dasharray="2 3"/><text x="${W-pr+6}" y="${(gy+3).toFixed(1)}" fill="var(--muted-2)" font-size="10">${manWon(gv)}</text>`;}).join('');
+  return `<svg class="chart-svg" viewBox="0 0 ${W} ${H}">
+    <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".28"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs>
+    ${grid}
+    <polygon points="${pl},${(pt+ih).toFixed(1)} ${line} ${(W-pr).toFixed(1)},${(pt+ih).toFixed(1)}" fill="url(#sg)"/>
+    <polyline points="${line}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linejoin="round"/>
+    <circle cx="${x(n-1).toFixed(1)}" cy="${lastY.toFixed(1)}" r="3.5" fill="${c}"/>
+    <line x1="${pl}" y1="${lastY.toFixed(1)}" x2="${W-pr}" y2="${lastY.toFixed(1)}" stroke="${c}" stroke-dasharray="3 3" opacity=".5"/></svg>`;
+}
+function renderStock(){
+  const d=DB.donators.find(x=>x.id===stkId); if(!d)return;
+  const g=gradeForCash(d.cash), s=priceSeries(d,stkN);
+  const dayChg=pctChg(s[stkN-1],s[stkN-2]), perChg=pctChg(s[stkN-1],s[0]);
+  byId('stkHead').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+    <div><div class="nm">${d.alias||d.name} ${gradeBadge(g)}</div><div class="code">${ticker(d)} · 투스닥</div></div>`;
+  byId('stkPrice').innerHTML=`<span class="big">${won(d.cash)}<span style="font-size:14px;color:var(--muted)"> 캐시</span></span>
+    <span class="chg ${upcls(perChg)}">${fmtPct(perChg)}</span>
+    <span class="chg ${upcls(dayChg)}" style="font-size:13px">전일 ${fmtPct(dayChg)}</span>`;
+  byId('stkChart').innerHTML=stockAreaChart(s);
+  const mn=Math.min(...s),mx=Math.max(...s),avgDon=Math.round(d.cash/Math.max(1,d.count));
+  byId('stkStats').innerHTML=`
+    <div class="s"><div class="k">기간 최고</div><div class="v up">${won(mx)}</div></div>
+    <div class="s"><div class="k">기간 최저</div><div class="v down">${won(mn)}</div></div>
+    <div class="s"><div class="k">평균 후원</div><div class="v">${won(avgDon)}</div></div>
+    <div class="s"><div class="k">거래량</div><div class="v">${won(d.count)}건</div></div>`;
+  const gg=gaugeData(d);
+  byId('stkInsight').innerHTML=`<div class="h">📊 종목 인사이트</div>`+(gg.top
+    ? `<div class="up" style="font-weight:800">🏆 최고 등급 — 대장주(리딩 종목)</div>`
+    : `<div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:8px"><span>다음 등급 <b style="color:var(--text)">${gg.nx.name}</b> 승급까지</span><span style="font-weight:800">${won(gg.remaining)}원 · ${Math.round(gg.pct)}%</span></div>
+       <div class="gauge"><i style="width:${gg.pct}%;background:${gg.nx.color}"></i></div>`);
+  byId('stkHist').innerHTML=(d.history||[]).slice(0,6).map(h=>`<div class="hr"><span class="t">${h.time.slice(0,16)}</span><span>${h.kind}</span><span class="a">+${won(h.amt)}</span></div>`).join('')||'<div class="helper">최근 거래 없음</div>';
+}
+byId('stkClose').onclick=()=>byId('stockOverlay').classList.remove('show');
+byId('stockOverlay').onclick=e=>{if(e.target===byId('stockOverlay'))byId('stockOverlay').classList.remove('show');};
+byId('stkPeriod').querySelectorAll('button').forEach(b=>b.onclick=()=>{stkN=+b.dataset.n;byId('stkPeriod').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderStock();});
+byId('stkProfile').onclick=()=>{byId('stockOverlay').classList.remove('show');openDrawer(stkId);};
+byId('stkNudge').onclick=()=>{const d=DB.donators.find(x=>x.id===stkId);if(gaugeData(d).top){toast('이미 최고 등급입니다');return;}byId('stockOverlay').classList.remove('show');openNudge(stkId);};
 
 /* ---------- init ---------- */
 renderSwatches();
