@@ -450,6 +450,26 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .gauge-head .gauge-amt{font-weight:800;color:var(--text);font-variant-numeric:tabular-nums}
 .gauge{height:9px;border-radius:6px;background:var(--surface-3);overflow:hidden;position:relative}
 .gauge i{display:block;height:100%;border-radius:6px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+/* 개인 목표 카드 */
+.goal-card{margin-top:14px;background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:14px 16px}
+.goal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.goal-t{font-size:12.5px;font-weight:800;color:var(--muted)}
+.goal-pct{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.goal-pct small{font-size:14px;color:var(--muted)}
+.goal-pct .goal-remain{font-size:12.5px;color:var(--muted);font-weight:600}
+.goal-gauge{position:relative;height:12px;border-radius:7px;background:var(--surface-3);overflow:hidden;margin:11px 0}
+.goal-gauge .gg-fill{height:100%;border-radius:7px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.goal-gauge .gg-tick{position:absolute;top:0;width:2px;height:100%;background:var(--ground);opacity:.5}
+.goal-gauge .gg-tick.passed{background:rgba(255,255,255,.65);opacity:.8}
+.goal-ms{font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:12px}
+.goal-ms.m90{color:var(--accent)}.goal-ms.m80{color:#ffb020}.goal-ms.m50{color:#ff8a5c}
+.goal-card .goal-nudge{width:100%;justify-content:center}
+.goal-top{margin-top:14px;background:var(--vvip-soft);border:1px solid rgba(255,203,69,.22);border-radius:12px;padding:12px 14px;font-weight:800;color:var(--vvip);text-align:center}
+.ms-badge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--surface-3);color:var(--muted);white-space:nowrap}
+.ms-badge.m90{background:var(--accent-soft);color:var(--accent)}
+.ms-badge.m80{background:rgba(255,176,32,.16);color:#ffb020}
+.ms-badge.m50{background:rgba(255,138,92,.16);color:#ff8a5c}
+.goal-mini{display:flex;align-items:center;gap:7px;margin-top:6px}
 .gauge.mini{height:5px;margin-top:6px;max-width:120px}
 .gauge-top{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--vvip);
   background:var(--vvip-soft);border:1px solid rgba(255,203,69,.2);border-radius:10px;padding:9px 13px}
@@ -693,6 +713,7 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="panel" style="margin-bottom:16px">
         <div class="panel-head">
           <h3>🎯 승급 임박 VIP</h3><span class="hint" id="nudgeHint"></span><div class="spacer"></div>
+          <label class="auto-toggle" title="90% 도달 시 자동으로 넛지 발송"><span>마일스톤 자동 넛지</span><div class="tgl" id="msNudge"></div></label>
           <div class="seg" id="nudgeThresh" style="flex:none">
             <button data-n="30000">3만</button><button data-n="50000" class="on">5만</button><button data-n="100000">10만</button>
           </div>
@@ -1362,6 +1383,7 @@ function normalize(){
   if(!DB.titles) DB.titles=seedTitles();
   if(!DB.autoLogs) DB.autoLogs=[];
   if(DB.annivAuto===undefined) DB.annivAuto=true;
+  if(DB.milestoneNudge===undefined) DB.milestoneNudge=false;
   (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;});
   // 구버전 마이그레이션: 단일 action → actions 배열
   (DB.autos||[]).forEach(a=>{ if(!a.actions){a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[];delete a.action;delete a.cfg;} });
@@ -1397,6 +1419,32 @@ function gaugeData(d){
   const span=(nx.min-base)||1;
   const pct=Math.max(3,Math.min(100,(d.cash-base)/span*100));
   return {top:false,cur,nx,remaining:Math.max(0,nx.min-d.cash),pct};
+}
+/* 개인 목표 마일스톤 (50/80/90%) */
+const MILESTONES=[50,80,90];
+function milestoneOf(pct){
+  if(pct>=90) return {lv:90,icon:'🎯',cls:'m90',msg:'코앞이에요! 조금만 더 하면 승급이에요'};
+  if(pct>=80) return {lv:80,icon:'⭐',cls:'m80',msg:'거의 다 왔어요'};
+  if(pct>=50) return {lv:50,icon:'🔥',cls:'m50',msg:'절반을 넘었어요'};
+  return {lv:0,icon:'🎯',cls:'',msg:'승급까지 함께 힘내볼까요'};
+}
+function renderGoalCard(d){
+  const box=byId('drGauge'); const g=gaugeData(d);
+  if(g.top){ box.innerHTML=`<div class="goal-top">🏆 최고 등급 달성 — 최상위 VIP 팬이에요</div>`; return; }
+  const pct=Math.round(g.pct), ms=milestoneOf(g.pct);
+  box.innerHTML=`
+    <div class="goal-card">
+      <div class="goal-head"><span class="goal-t">🎯 개인 목표</span>
+        <span class="gb ${clsOf(g.nx)}" style="padding:2px 8px">${g.nx.name} 승급</span></div>
+      <div class="goal-pct tnum">${pct}<small>%</small> <span class="goal-remain">· ${won(g.remaining)}원 남음</span></div>
+      <div class="goal-gauge">
+        <div class="gg-fill" style="width:${pct}%;background:${g.nx.color}"></div>
+        ${MILESTONES.map(m=>`<span class="gg-tick ${g.pct>=m?'passed':''}" style="left:${m}%"></span>`).join('')}
+      </div>
+      <div class="goal-ms ${ms.cls}">${ms.icon} ${ms.msg}</div>
+      <button class="btn primary sm goal-nudge" ${d.nudged?'disabled':''}>${d.nudged?'✓ 넛지 발송됨':'🎯 승급 넛지 보내기'}</button>
+    </div>`;
+  const nb=box.querySelector('.goal-nudge'); if(nb&&!d.nudged) nb.onclick=()=>openNudge(d.id);
 }
 /* 태그 색상(문자열 해시 → 색조) */
 function tagHue(t){let h=0;for(const c of t)h=(h*31+c.charCodeAt(0))%360;return h;}
@@ -1614,7 +1662,8 @@ function renderDonators(){
     const gg=gaugeData(d);
     const tags=d.tags||[];
     const tagHtml=tags.length?`<div class="dn-tags">${tags.slice(0,3).map(t=>`<span class="tc" style="${tagStyle(t)}">${t}</span>`).join('')}${tags.length>3?`<span class="more">+${tags.length-3}</span>`:''}</div>`:'';
-    const gaugeHtml=(gg.top||d.blocked)?'':`<div class="gauge mini" title="다음 등급 ${gg.nx.name}까지 ${won(gg.remaining)}원"><i style="width:${gg.pct}%;background:${gg.nx.color}"></i></div>`;
+    const gMs=(gg.top||d.blocked)?null:milestoneOf(gg.pct);
+    const gaugeHtml=(gg.top||d.blocked)?'':`<div class="goal-mini"><div class="gauge mini" title="다음 등급 ${gg.nx.name}까지 ${won(gg.remaining)}원 · 달성 ${Math.round(gg.pct)}%"><i style="width:${gg.pct}%;background:${gg.nx.color}"></i></div>${gMs.lv>=80?`<span class="ms-badge ${gMs.cls}" style="padding:1px 6px">${gMs.icon}${gMs.lv}</span>`:''}</div>`;
     if(d.blocked) tr.classList.add('blocked');
     tr.innerHTML=`
       <td><input type="checkbox" class="cbx rowcbx" ${donSelected.has(d.id)?'checked':''}></td>
@@ -2141,12 +2190,8 @@ function openDrawer(id){
   byId('drAlias').textContent=d.alias?'@'+d.alias:'별칭 없음';
   byId('drLast').textContent=d.last; byId('drJoin').textContent=d.join; byId('drCount').textContent=won(d.count)+'건';
   byId('drCash').innerHTML=`${won(d.cash)}<small>캐시</small>`;
-  // 승급 게이지
-  const gg=gaugeData(d);
-  byId('drGauge').innerHTML = gg.top
-    ? `<div class="gauge-top">🏆 최고 등급 달성 — 최상위 VIP 팬이에요</div>`
-    : `<div class="gauge-head"><span>다음 등급 <b class="gb ${clsOf(gg.nx)}" style="padding:2px 7px">${gg.nx.name}</b> 까지</span><span class="gauge-amt">${won(gg.remaining)}원</span></div>
-       <div class="gauge"><i style="width:${gg.pct}%;background:${gg.nx.color}"></i></div>`;
+  // 개인 목표 카드
+  renderGoalCard(d);
   // 차단 상태
   renderDrBlock(d);
   // 태그 & 메모
@@ -2341,23 +2386,30 @@ function nudgeData(maxRem){
 }
 function renderNudge(){
   const rows=nudgeData(nudgeThreshold);
-  byId('nudgeHint').textContent=`다음 등급까지 ${won(nudgeThreshold)}원 이내 · ${rows.length}명`;
+  const autoOn=!!DB.milestoneNudge;
+  byId('msNudge').classList.toggle('on',autoOn);
+  byId('nudgeHint').textContent=`다음 등급까지 ${won(nudgeThreshold)}원 이내 · ${rows.length}명`+(autoOn?' · 90% 자동 발송':'');
   const box=byId('nudgeBox');
   if(!rows.length){box.innerHTML=`<div class="empty" style="padding:30px"><div class="ic">🎯</div><div class="t">승급 임박 VIP가 없습니다</div><div class="s">기준 금액을 넓혀보세요.</div></div>`;return;}
   box.innerHTML='';
   rows.slice(0,8).forEach(({d,g})=>{
-    const cur=gradeForCash(d.cash);
+    const cur=gradeForCash(d.cash), ms=milestoneOf(g.pct);
+    const auto=autoOn && g.pct>=90 && !d.nudged;
+    const right = d.nudged ? '<div class="done-badge">✓ 보냄</div>'
+      : auto ? '<div class="done-badge" style="color:var(--muted)">🤖 자동 예약됨</div>'
+      : '<button class="btn primary sm nudge-btn">넛지 보내기</button>';
     const row=document.createElement('div');row.className='churn-row';
     row.innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
-      <div class="meta"><div class="nm">${d.alias||d.name} ${gradeBadge(cur)}</div>
+      <div class="meta"><div class="nm">${d.alias||d.name} ${gradeBadge(cur)} ${ms.lv?`<span class="ms-badge ${ms.cls}">${ms.icon} ${ms.lv}%</span>`:''}</div>
         <div class="info">다음 등급 <b style="color:var(--text)">${g.nx.name}</b>까지 <b style="color:var(--accent)">${won(g.remaining)}원</b> · 달성 ${Math.round(g.pct)}%</div>
         <div class="gauge mini" style="max-width:230px;margin-top:7px"><i style="width:${g.pct}%;background:${g.nx.color}"></i></div></div>
-      ${d.nudged?'<div class="done-badge">✓ 보냄</div>':'<button class="btn primary sm nudge-btn">넛지 보내기</button>'}`;
+      ${right}`;
     const btn=row.querySelector('.nudge-btn'); if(btn)btn.onclick=()=>openNudge(d.id);
     box.appendChild(row);
   });
   if(rows.length>8){const m=document.createElement('div');m.className='helper';m.style.textAlign='center';m.textContent=`외 ${rows.length-8}명 더 있습니다`;box.appendChild(m);}
 }
+byId('msNudge').onclick=()=>{DB.milestoneNudge=!DB.milestoneNudge;save();renderNudge();toast(DB.milestoneNudge?'마일스톤 자동 넛지를 켰습니다 (90% 도달 시 자동 발송)':'마일스톤 자동 넛지를 껐습니다');};
 byId('nudgeThresh').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   nudgeThreshold=+b.dataset.n;
   byId('nudgeThresh').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
@@ -2371,7 +2423,13 @@ function openNudge(id){
     <div><div class="nm">${d.alias||d.name} ${gradeBadge(cur)}</div><div class="info">누적 ${won(d.cash)}캐시</div></div>`;
   byId('nudgeGauge').innerHTML=`<div class="gauge-head"><span>다음 등급 <b class="gb ${clsOf(g.nx)}" style="padding:2px 7px">${g.nx.name}</b> 까지</span><span class="gauge-amt">${won(g.remaining)}원</span></div>
     <div class="gauge"><i style="width:${g.pct}%;background:${g.nx.color}"></i></div>`;
-  byId('nudgeMsg').value=`{닉네임}님, 다음 등급 {다음등급}까지 {남은금액}원 남았어요! 조금만 더 힘내주시면 특별 혜택이 기다려요 💪`;
+  const MSG={
+    90:`{닉네임}님, 다음 등급 {다음등급}까지 {남은금액}원! 코앞이에요 🎯 조금만 더 하면 승급이에요!`,
+    80:`{닉네임}님, {다음등급}까지 {남은금액}원 남았어요. 거의 다 왔어요 ⭐ 특별 혜택이 기다려요!`,
+    50:`{닉네임}님, {다음등급}까지 절반 넘게 오셨어요 🔥 남은 {남은금액}원, 함께 달려봐요!`,
+    0:`{닉네임}님, 다음 등급 {다음등급}까지 {남은금액}원 남았어요! 조금만 더 힘내주시면 특별 혜택이 기다려요 💪`,
+  };
+  byId('nudgeMsg').value=MSG[milestoneOf(g.pct).lv];
   nudgePrev();
   byId('nudgeOverlay').classList.add('show');
 }
@@ -2382,6 +2440,8 @@ byId('nudgeOverlay').onclick=e=>{if(e.target===byId('nudgeOverlay'))byId('nudgeO
 byId('nudgeSend').onclick=()=>{
   const d=DB.donators.find(x=>x.id===nudgeId);if(d){d.nudged=true;save();}
   byId('nudgeOverlay').classList.remove('show');renderNudge();
+  // 프로필이 열려 있고 같은 도네이터면 목표 카드 갱신
+  if(d && drId===d.id && byId('donDrawer').classList.contains('show')) renderGoalCard(d);
   toast('승급 넛지 알림톡을 발송했습니다 🎯');
 };
 
