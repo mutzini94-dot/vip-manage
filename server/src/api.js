@@ -73,6 +73,20 @@ const ROUTES = [
   // settings
   ['GET','/settings',(DB)=>({status:200,data:{annivAuto:!!DB.annivAuto}})],
   ['PUT','/settings',(DB,p,q,b)=>{ if(b.annivAuto!=null)DB.annivAuto=!!b.annivAuto; return {status:200,data:{annivAuto:!!DB.annivAuto},mut:1}; }],
+  // schedules
+  ['GET','/schedules',(DB,p,q)=>{ let rows=DB.schedules.map(D.schedDTO); if(q.status)rows=rows.filter(s=>s.status===q.status); rows.sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start)); return {status:200,data:{data:rows,next:D.nextSched(DB)?D.schedDTO(D.nextSched(DB)):null}}; }],
+  ['POST','/schedules',(DB,p,q,b)=>{ if(!b.title||!b.date)return err(400,'VALIDATION_ERROR','title, date required');
+    const base={id:uid(),title:b.title,date:b.date,start:b.start||'',end:b.end||'',category:b.category||'기타',repeat:b.repeat||'none',days:b.days||[],visible:b.visible!==false,notify:b.notify!==false,memo:b.memo||'',reminded:false};
+    DB.schedules.push(base); const made=[base];
+    if(base.repeat==='weekly'){ const d0=new Date(base.date); for(let w=1;w<=7;w++){const nd=new Date(d0.getFullYear(),d0.getMonth(),d0.getDate()+w*7);const z=n=>String(n).padStart(2,'0');const occ={...base,id:uid(),date:`${nd.getFullYear()}-${z(nd.getMonth()+1)}-${z(nd.getDate())}`,repeatGroup:base.id};DB.schedules.push(occ);made.push(occ);} }
+    return {status:201,data:{created:made.length,schedule:D.schedDTO(base)},mut:1}; }],
+  ['PUT','/schedules/:id',(DB,p,q,b)=>{ const s=DB.schedules.find(x=>x.id===p.id); if(!s)return err(404,'NOT_FOUND','schedule'); Object.assign(s,b,{id:p.id}); return {status:200,data:D.schedDTO(s),mut:1}; }],
+  ['DELETE','/schedules/:id',(DB,p)=>{ const n=DB.schedules.length; DB.schedules=DB.schedules.filter(x=>x.id!==p.id); return n===DB.schedules.length?err(404,'NOT_FOUND','schedule'):{status:200,data:{deleted:p.id},mut:1}; }],
+  ['POST','/schedules/:id/remind',(DB,p)=>{ const s=DB.schedules.find(x=>x.id===p.id); if(!s)return err(404,'NOT_FOUND','schedule');
+    const recipients=DB.donators.filter(d=>!d.blocked&&D.gradeForCash(DB,d.cash)).length; s.reminded=true;
+    return {status:200,data:{sent:true,channel:'kakao_alimtalk',recipients,schedule:s.title},mut:1}; }],
+  // broadcasts
+  ['POST','/broadcasts/start',(DB)=>{ const r=D.fireBroadcastStart(DB); return {status:200,data:{started:true,...r,next:D.nextSched(DB)?D.schedDTO(D.nextSched(DB)):null},mut:1}; }],
   // admin
   ['POST','/admin/reset',()=>{ reset(); return {status:200,data:{reset:true}}; }],
   // webhooks

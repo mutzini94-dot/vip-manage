@@ -4,6 +4,8 @@ import http from 'http';
 import { dispatch } from './api.js';
 import { accept } from './ws.js';
 import { LiveHub } from './live.js';
+import { load } from './store.js';
+import { toICS } from './domain.js';
 
 const PORT = process.env.PORT || 4000;
 const PREFIX = '/v1';
@@ -48,6 +50,12 @@ const server = http.createServer((req, res) => {
     let body = {};
     if (raw) { try { body = JSON.parse(raw); } catch { return send(res, 400, { error: { code: 'VALIDATION_ERROR', message: 'invalid JSON body' } }); } }
     try {
+      // iCal 내보내기 — text/calendar 응답
+      if (req.method === 'GET' && path === '/schedules/export.ics') {
+        const ics = toICS(load().schedules);
+        res.writeHead(200, { 'Content-Type': 'text/calendar; charset=utf-8', 'Content-Disposition': 'attachment; filename="broadcast-schedule.ics"', 'Access-Control-Allow-Origin': '*' });
+        return res.end('﻿' + ics);
+      }
       // 라이브 제어(REST) — WS와 동일 상태
       if (path.startsWith('/live')) { const r = hub.handleRest(req.method, path, body); return send(res, r.status, r.data); }
       const result = dispatch(req.method, path, query, body);

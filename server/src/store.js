@@ -28,6 +28,24 @@ function seedLogs(donators) {
     ['10-30 21:20','amount','tts',100000],['10-29 19:55','donate','remote',5000]];
   return rows.map((r,i)=>{ const d=top[i%top.length]; return { when:r[0], situ:r[1], name:d.alias||d.name, grade:gname(d.cash), action:r[2], amt:r[3] }; });
 }
+export const SCHED_CATS = {
+  '게임':{icon:'🎮',color:'#5b8cff'}, '토크':{icon:'💬',color:'#33d69f'}, '먹방':{icon:'🍜',color:'#ff8a5c'},
+  '음악':{icon:'🎵',color:'#a45bff'}, '콘텐츠':{icon:'🎬',color:'#ff5c7a'}, '기타':{icon:'✨',color:'#ffcb45'},
+};
+export function seedSchedules() {
+  const now=new Date(), z=n=>String(n).padStart(2,'0');
+  const iso=dd=>`${dd.getFullYear()}-${z(dd.getMonth()+1)}-${z(dd.getDate())}`;
+  const day=add=>new Date(now.getFullYear(),now.getMonth(),now.getDate()+add);
+  const mk=(add,start,end,title,category,extra={})=>({id:uid(),title,date:iso(day(add)),start,end,category,repeat:'none',days:[],visible:true,notify:true,memo:'',reminded:false,...extra});
+  return [
+    mk(0,'20:00','23:00','롤 랭크 올리기 🎮','게임'),
+    mk(1,'21:00','23:30','같이 수다 떨어요 (저챗)','토크'),
+    mk(3,'19:00','21:00','먹방 — 마라탕 리뷰','먹방'),
+    mk(5,'22:00','24:00','신곡 커버 라이브','음악',{memo:'세트리스트 준비'}),
+    mk(6,'14:00','19:00','주말 롱런 방송','게임',{repeat:'weekly',days:[6]}),
+    mk(-2,'20:00','22:30','지난 게임 방송','게임'),
+  ];
+}
 export function seed() {
   const donators = KO_NAMES.map((nm,i)=>{
     const cash = Math.round((Math.random()*480000+3000)/100)*100;
@@ -58,7 +76,7 @@ export function seed() {
       { id:'g_vip',  name:'VIP',  cls:'vip',  color:'#a45bff', mode:'range', min:100000, max:299999 },
       { id:'g_yeol', name:'열혈', cls:'yeol', color:'#5b8cff', mode:'range', min:30000,  max:99999 },
     ],
-    donators, titles: seedTitles(), autoLogs: seedLogs(donators), annivAuto: true,
+    donators, titles: seedTitles(), autoLogs: seedLogs(donators), annivAuto: true, schedules: seedSchedules(),
     autos: [
       { id:uid(), on:true, situ:'login', targetMode:'class', classes:['g_vvip'], actions:[{type:'kakao_send',cfg:{msg:'{크리에이터} 님이 방송을 시작하였습니다'}}] },
       { id:uid(), on:true, situ:'amount', amt:{mode:'range',min:10000,max:100000}, actions:[{type:'widget',cfg:{widget:'팡파르'}},{type:'tts',cfg:{voice:'ara'}}] },
@@ -72,6 +90,7 @@ function normalize(DB) {
   if (DB.annivAuto === undefined) DB.annivAuto = true;
   (DB.donators||[]).forEach(d=>{ d.tags=d.tags||[]; d.awards=d.awards||[]; d.blocked=d.blocked||false; });
   (DB.autos||[]).forEach(a=>{ if(!a.actions){ a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[]; delete a.action; delete a.cfg; } });
+  if (!DB.schedules) DB.schedules = seedSchedules();
   return DB;
 }
 export function load() {

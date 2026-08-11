@@ -212,7 +212,22 @@ WebSocket 이벤트 예:
   "amount":30000, "boost":3, "rankTop5":[ … ], "sessionTotal":420000 }
 ```
 
-### 4.9 설정 Settings
+### 4.9 방송 스케줄 Schedules
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| GET | `/schedules?status=upcoming` | 일정 목록(+ `next` 다음 방송). status: upcoming·live·done·cancelled |
+| POST | `/schedules` | 일정 생성 `{title,date,start,end,category,repeat,days,visible,notify,memo}` (repeat=weekly면 8회 자동 생성) |
+| PUT | `/schedules/{id}` | 수정 |
+| DELETE | `/schedules/{id}` | 삭제 |
+| POST | `/schedules/{id}/remind` | 예정 알림톡 발송(활성 VIP 대상) → `{recipients}` |
+| GET | `/schedules/export.ics` | **iCal(.ics)** 내보내기 (`text/calendar`) — 구글/애플 캘린더 구독 |
+
+### 4.10 방송 Broadcasts
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| POST | `/broadcasts/start` | 방송 시작 → **login 트리거 자동화 발동** → `{firedCount, matches, next}` |
+
+### 4.11 설정 Settings
 | 메서드 | 경로 | 설명 |
 |--------|------|------|
 | GET | `/settings` | `{ annivAuto: true }` |

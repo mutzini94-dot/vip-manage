@@ -1251,6 +1251,7 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="seg" id="schedView" style="flex:none">
           <button data-v="calendar" class="on">캘린더</button><button data-v="list">리스트</button>
         </div>
+        <button class="btn ghost" id="schedExport">📥 iCal 내보내기</button>
         <button class="btn primary" id="addSchedBtn">＋ 방송 일정 추가</button>
       </div>
 
@@ -1627,6 +1628,22 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="preview-box"><div class="preview-lbl">👁 미리보기</div><div id="tsimPrev"></div></div>
     </div>
     <div class="modal-foot"><button class="btn ghost" id="tsimCancel">취소</button><div class="spacer"></div><button class="btn primary" id="tsimSend">투네톡 보내기</button></div>
+  </div>
+</div>
+
+<!-- ============ 예정 알림톡 ============ -->
+<div class="overlay" id="remindOverlay">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head"><h2>📢 방송 예정 알림톡</h2><div class="spacer"></div><button class="xbtn" id="remindClose">✕</button></div>
+    <div class="modal-body">
+      <div class="re-target" id="remindTarget"></div>
+      <div class="field"><label>카카오 알림톡 메시지</label>
+        <textarea class="inp" id="remindMsg" rows="4"></textarea>
+        <div class="helper">활성 VIP에게 방송 시작 전 알림톡을 발송합니다. 프로토타입 — 실제 발송 없이 이력만 기록됩니다.</div></div>
+      <div class="preview-box"><div class="preview-lbl">👁 미리보기</div><div id="remindPreview"></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn ghost" id="remindCancel">취소</button><div class="spacer"></div>
+      <button class="btn primary" id="remindSend"><span id="remindCount">0</span>명에게 발송</button></div>
   </div>
 </div>
 
@@ -2661,7 +2678,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','stockOverlay','replyOverlay','tsimOverlay','schedOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','stockOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -3769,6 +3786,7 @@ function renderSchedList(){
   box.querySelectorAll('[data-edit]').forEach(el=>el.onclick=()=>openSched(el.dataset.edit));
   box.querySelectorAll('[data-start]').forEach(el=>el.onclick=()=>startFromSched(el.dataset.start));
   box.querySelectorAll('[data-announce]').forEach(el=>el.onclick=()=>announceSched(el.dataset.announce));
+  box.querySelectorAll('[data-remind]').forEach(el=>el.onclick=()=>openRemind(el.dataset.remind));
 }
 function schedRowHtml(s){
   const c=SCHED_CATS[s.category]||SCHED_CATS['기타'], st=schedStatus(s), dt=schedStart(s);
@@ -3781,7 +3799,7 @@ function schedRowHtml(s){
       ${!s.visible?'<span class="sched-badge cancelled">비공개</span>':''}</div>
       <div class="s">${s.start||''}${s.end?'~'+s.end:''} · ${s.category}${s.memo?' · '+s.memo:''}</div></div>
     <div class="sr-acts">
-      ${st==='upcoming'?`<button class="btn ghost sm" data-announce="${s.id}">📢 공지</button><button class="btn primary sm" data-start="${s.id}">방송 시작</button>`:''}
+      ${st==='upcoming'?`<button class="btn ghost sm" data-announce="${s.id}">📢 공지</button><button class="btn ghost sm" data-remind="${s.id}">${s.reminded?'✓ 알림톡':'🔔 알림톡'}</button><button class="btn primary sm" data-start="${s.id}">방송 시작</button>`:''}
       <button class="btn ghost sm" data-edit="${s.id}">편집</button>
     </div></div>`;
 }
@@ -3839,11 +3857,63 @@ byId('schedSave').onclick=()=>{
 byId('schedDelete').onclick=()=>{const s=DB.schedules.find(x=>x.id===schedEdit.id);if(!s)return;
   askConfirm('일정 삭제',`‘${s.title}’ 방송 일정을 삭제할까요?`,()=>{DB.schedules=DB.schedules.filter(x=>x.id!==schedEdit.id);save();byId('schedOverlay').classList.remove('show');renderSchedule();toast('일정을 삭제했습니다');});};
 
+function fireBroadcastStart(){
+  // 방송 시작 시 login 트리거 자동화 발동 (대상 도네이터별)
+  const before=DB.autoLogs.length;
+  const loginAutos=DB.autos.filter(a=>a.on&&a.situ==='login');
+  DB.donators.forEach(d=>{ if(!d.blocked && loginAutos.some(a=>targetHit(a,d))) fireAutos('login',d,0); });
+  return DB.autoLogs.length-before;
+}
 function startFromSched(id){const s=DB.schedules.find(x=>x.id===id);if(!s)return;
+  const fired=fireBroadcastStart();
   document.querySelector('.tab[data-tab="live"]').click();
   if(!LIVE.on) goLive();
-  toast(`‘${s.title}’ 방송을 시작합니다 🔴`);
+  toast(`‘${s.title}’ 방송 시작 🔴${fired?` · 자동화 ${fired}건 발동`:''}`);
 }
+
+/* iCal(.ics) 내보내기 */
+function icsEsc(s){return (s||'').replace(/([,;\\])/g,'\\$1').replace(/\n/g,'\\n');}
+function toICS(schedules){
+  const z=n=>String(n).padStart(2,'0');
+  const dt=(date,time)=>{const[y,m,d]=date.split('-');const[hh,mm]=(time||'00:00').split(':');return `${y}${z(m)}${z(d)}T${z(hh)}${z(mm)}00`;};
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//투네이션//VIP 도네이터 관리//KR','CALSCALE:GREGORIAN','X-WR-CALNAME:방송 스케줄'];
+  schedules.filter(s=>s.status!=='cancelled').forEach(s=>{
+    lines.push('BEGIN:VEVENT',`UID:${s.id}@toonation`,`DTSTART:${dt(s.date,s.start)}`,`DTEND:${dt(s.date,s.end||s.start||'23:59')}`,
+      `SUMMARY:${icsEsc((SCHED_CATS[s.category]?.icon||'')+' '+s.title)}`,`CATEGORIES:${s.category}`);
+    if(s.memo)lines.push(`DESCRIPTION:${icsEsc(s.memo)}`);
+    lines.push('END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+byId('schedExport').onclick=()=>{
+  const blob=new Blob(['﻿'+toICS(DB.schedules)],{type:'text/calendar;charset=utf-8'});
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='방송스케줄.ics';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(u);
+  toast('iCal(.ics)로 내보냈습니다 — 구글/애플 캘린더에서 열 수 있어요');
+};
+
+/* 예정 알림톡 */
+let remindId=null;
+function remindRecipients(){return DB.donators.filter(d=>!d.blocked&&gradeForCash(d.cash));}
+function openRemind(id){const s=DB.schedules.find(x=>x.id===id);if(!s)return;remindId=id;
+  const dt=schedStart(s), n=remindRecipients().length;
+  byId('remindTarget').innerHTML=`<div class="ava" style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:20px;background:${(SCHED_CATS[s.category]||SCHED_CATS['기타']).color}22">${(SCHED_CATS[s.category]||SCHED_CATS['기타']).icon}</div>
+    <div><div class="nm">${s.title}</div><div class="info">${dt.getMonth()+1}월 ${dt.getDate()}일(${WD[dt.getDay()]}) ${s.start} · 활성 VIP ${n}명</div></div>`;
+  byId('remindMsg').value=`크리에이터님이 ${dt.getMonth()+1}월 ${dt.getDate()}일(${WD[dt.getDay()]}) ${s.start}에 「${s.title}」 방송을 시작합니다! 알림 받으신 분들 먼저 놀러오세요 🎉`;
+  byId('remindCount').textContent=n;
+  remindPrev();
+  byId('remindOverlay').classList.add('show');
+}
+function remindPrev(){byId('remindPreview').innerHTML=`<div class="kakao"><div class="kt">📢 방송 예정 알림</div><div class="kb">${(byId('remindMsg').value||'').replace(/</g,'&lt;')}</div><div class="kbtn">방송 알림 받기</div></div>`;}
+byId('remindMsg').addEventListener('input',remindPrev);
+byId('remindClose').onclick=byId('remindCancel').onclick=()=>byId('remindOverlay').classList.remove('show');
+byId('remindOverlay').onclick=e=>{if(e.target===byId('remindOverlay'))byId('remindOverlay').classList.remove('show');};
+byId('remindSend').onclick=()=>{
+  const s=DB.schedules.find(x=>x.id===remindId); const n=remindRecipients().length;
+  if(s){s.reminded=true;save();}
+  byId('remindOverlay').classList.remove('show'); renderSchedule();
+  toast(`${n}명에게 방송 예정 알림톡을 발송했습니다 📢`);
+};
 function announceSched(id){const s=DB.schedules.find(x=>x.id===id);if(!s)return;
   const dt=schedStart(s); const txt=`${dt.getMonth()+1}월 ${dt.getDate()}일(${WD[dt.getDay()]}) ${s.start}에 「${s.title}」 방송 시작합니다! 많이들 와주세요 🎉`;
   DB.stories.forEach(x=>x.pinned=false);

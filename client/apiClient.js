@@ -110,6 +110,17 @@ export class ApiClient {
       get:    ()      => req('GET', '/settings'),
       update: (body)  => req('PUT', '/settings', { body }),
     };
+    this.schedules = {
+      list:   (status) => req('GET', '/schedules', { query: status ? { status } : undefined }),
+      create: (body)   => req('POST', '/schedules', { body }),
+      update: (id, body) => req('PUT', `/schedules/${id}`, { body }),
+      remove: (id)     => req('DELETE', `/schedules/${id}`),
+      remind: (id)     => req('POST', `/schedules/${id}/remind`),
+      icsUrl: ()       => `${this.a.baseUrl || ''}/schedules/export.ics`, // 브라우저에서 직접 열기/다운로드
+    };
+    this.broadcasts = {
+      start: () => req('POST', '/broadcasts/start'),
+    };
     this.webhooks = {
       donation: (body) => req('POST', '/webhooks/donation', { body }),
       login:    (body) => req('POST', '/webhooks/login', { body }),

@@ -125,6 +125,44 @@ export function renderMsg(DB, ac, d) {
   if (ac.type==='tts')    return 'TTS 보이스: '+(ac.cfg&&ac.cfg.voice||'');
   return ac.type;
 }
+/* ---------- 방송 스케줄 ---------- */
+const SCHED_ICON = {'게임':'🎮','토크':'💬','먹방':'🍜','음악':'🎵','콘텐츠':'🎬','기타':'✨'};
+function schedStart(s){ return new Date(`${s.date}T${s.start||'00:00'}`); }
+function schedEndT(s){ return s.end ? new Date(`${s.date}T${s.end}`) : new Date(schedStart(s).getTime()+2*3600000); }
+export function schedStatus(s){
+  if (s.status==='cancelled') return 'cancelled';
+  const now=Date.now(), st=schedStart(s).getTime(), en=schedEndT(s).getTime();
+  if (now>=st && now<en) return 'live'; if (now>=en) return 'done'; return 'upcoming';
+}
+export function schedDTO(s){ return { ...s, status: schedStatus(s), icon: SCHED_ICON[s.category]||'✨' }; }
+export function nextSched(DB){ return DB.schedules.filter(s=>schedStatus(s)!=='done'&&s.status!=='cancelled').sort((a,b)=>schedStart(a)-schedStart(b))[0]||null; }
+const icsEsc = s => (s||'').replace(/([,;\\])/g,'\\$1').replace(/\n/g,'\\n');
+export function toICS(schedules){
+  const z=n=>String(n).padStart(2,'0');
+  const dt=(date,time)=>{const[y,m,d]=date.split('-');const[hh,mm]=(time||'00:00').split(':');return `${y}${z(m)}${z(d)}T${z(hh)}${z(mm)}00`;};
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//투네이션//VIP 도네이터 관리//KR','CALSCALE:GREGORIAN','X-WR-CALNAME:방송 스케줄'];
+  schedules.filter(s=>s.status!=='cancelled').forEach(s=>{
+    L.push('BEGIN:VEVENT',`UID:${s.id}@toonation`,`DTSTART:${dt(s.date,s.start)}`,`DTEND:${dt(s.date,s.end||s.start||'23:59')}`,
+      `SUMMARY:${icsEsc((SCHED_ICON[s.category]||'')+' '+s.title)}`,`CATEGORIES:${s.category}`);
+    if(s.memo)L.push(`DESCRIPTION:${icsEsc(s.memo)}`);
+    L.push('END:VEVENT');
+  });
+  L.push('END:VCALENDAR');
+  return L.join('\r\n');
+}
+// 방송 시작 → login 트리거 자동화 발동
+export function fireBroadcastStart(DB){
+  const before=DB.autoLogs.length;
+  const logins=DB.autos.filter(a=>a.on && a.situ==='login' && scheduleOk(a));
+  const fired=[];
+  DB.donators.forEach(d=>{ if(d.blocked)return;
+    logins.forEach(a=>{ if(!targetHit(DB,a,d))return; const g=gradeForCash(DB,d.cash);
+      (a.actions||[]).forEach(ac=>DB.autoLogs.unshift({when:nowClock(),situ:'login',name:d.alias||d.name,grade:g?g.name:'',action:ac.type,amt:0}));
+      fired.push({automationId:a.id,donator:d.alias||d.name}); });
+  });
+  while(DB.autoLogs.length>200)DB.autoLogs.pop();
+  return { firedCount: DB.autoLogs.length-before, matches: fired.length };
+}
 export const AUTO_TEMPLATES = [
   { key:'vvip_live',   title:'VVIP 방송 시작 알림', situ:'login',   actions:['kakao_send'] },
   { key:'welcome',     title:'신규 팬 환영 패키지', situ:'first',   actions:['widget','kakao_send'] },
