@@ -718,10 +718,64 @@ tbody tr.blocked:hover{opacity:.72}
 .story-card .sx:hover{color:#ff6b81}
 .story-card .sb{font-size:13.5px;line-height:1.5}
 
+/* ===== 방송 스케줄 ===== */
+.sched-hero{display:flex;align-items:center;gap:16px;padding:16px 20px;border-radius:16px;margin-bottom:16px;
+  background:linear-gradient(120deg,var(--surface),var(--surface-2));border:1px solid var(--line)}
+.sched-hero.live{border-color:rgba(255,70,70,.4);background:linear-gradient(120deg,rgba(255,70,70,.08),var(--surface))}
+.sched-hero .sh-ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:24px;flex:none;background:var(--surface-3)}
+.sched-hero .sh-tx{flex:1;min-width:0}
+.sched-hero .sh-k{font-size:12px;color:var(--muted);font-weight:700}
+.sched-hero .sh-t{font-size:16px;font-weight:800;margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sched-hero .sh-when{font-size:12.5px;color:var(--muted);margin-top:3px}
+.sched-hero .sh-dday{font-size:26px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sched-hero .sh-dday small{font-size:13px;color:var(--muted);font-weight:600}
+/* 캘린더 */
+.cal{display:flex;flex-direction:column;gap:2px}
+.cal-wk{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+.cal-wk span{text-align:center;font-size:11.5px;font-weight:700;color:var(--muted);padding:4px 0}
+.cal-wk span:first-child{color:#ff6b81}.cal-wk span:last-child{color:#7aa2ff}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-day{min-height:92px;border:1px solid var(--line);border-radius:10px;padding:6px 7px;background:var(--surface-2);cursor:pointer;transition:.1s;display:flex;flex-direction:column;gap:4px;overflow:hidden}
+.cal-day:hover{border-color:var(--line-strong)}
+.cal-day.blank{background:transparent;border:none;cursor:default}
+.cal-day.today{border-color:var(--accent)}
+.cal-day .dn{font-size:12px;font-weight:700;color:var(--muted)}
+.cal-day.today .dn{color:var(--accent)}
+.cal-day.sat .dn{color:#7aa2ff}.cal-day.sun .dn{color:#ff6b81}
+.cal-ev{font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border-left:2px solid}
+.cal-ev.done{opacity:.5}
+.cal-more{font-size:10px;color:var(--muted-2);font-weight:700}
+/* 카테고리 그리드(모달) */
+.cat-grid{display:flex;gap:8px;flex-wrap:wrap}
+.cat-chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:8px 13px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);cursor:pointer;transition:.12s}
+.cat-chip:hover{border-color:var(--line-strong)}
+.cat-chip.on{color:#fff}
+/* 리스트 뷰 */
+.sched-group{margin-bottom:20px}
+.sched-group .gh{font-size:12.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px}
+.sched-row{display:flex;align-items:center;gap:14px;padding:13px 15px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;background:var(--surface-2);transition:.14s}
+.sched-row:hover{border-color:var(--line-strong)}
+.sched-row.done{opacity:.6}
+.sched-row .sr-date{width:52px;text-align:center;flex:none}
+.sched-row .sr-date .d{font-size:20px;font-weight:800;letter-spacing:-.02em}
+.sched-row .sr-date .w{font-size:11px;color:var(--muted);font-weight:700}
+.sched-row .sr-cat{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:18px;flex:none}
+.sched-row .sr-meta{flex:1;min-width:0}
+.sched-row .sr-meta .t{font-weight:800;font-size:14px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.sched-row .sr-meta .s{font-size:12px;color:var(--muted);margin-top:2px}
+.sched-row .sr-acts{display:flex;gap:6px}
+.sched-badge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px;white-space:nowrap}
+.sched-badge.upcoming{background:var(--surface-3);color:var(--muted)}
+.sched-badge.live{background:rgba(255,70,70,.15);color:#ff6b6b}
+.sched-badge.done{background:rgba(51,214,159,.14);color:var(--on)}
+.sched-badge.cancelled{background:var(--surface-3);color:var(--muted-2)}
+.sched-badge.repeat{background:var(--accent-soft);color:var(--accent)}
+
 @media(max-width:640px){
   .wrap{padding:18px 14px 50px}
   .tab .cnt{display:none}
   .drawer{width:100vw}
+  .cal-day{min-height:64px}
 }
 </style>
 </head>
@@ -768,6 +822,10 @@ tbody tr.blocked:hover{opacity:.72}
     <button class="tab" data-tab="toon">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l2-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg>
       투네톡 <span class="cnt" id="tabCntToon">0</span>
+    </button>
+    <button class="tab" data-tab="sched">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>
+      스케줄 <span class="cnt" id="tabCntSched">0</span>
     </button>
     <button class="tab tab-live" data-tab="live">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="M8 3v3M16 3v3"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></svg>
@@ -1181,6 +1239,36 @@ tbody tr.blocked:hover{opacity:.72}
         </div>
       </div>
     </section>
+
+    <!-- ============ TAB: 방송 스케줄 ============ -->
+    <section id="page-sched" class="hidden">
+      <div class="page-head">
+        <div>
+          <h1>📅 방송 스케줄</h1>
+          <p>방송 일정을 만들고 관리하세요. 팬에게 공지하고, 일정에서 바로 방송을 시작할 수 있어요.</p>
+        </div>
+        <div class="spacer"></div>
+        <div class="seg" id="schedView" style="flex:none">
+          <button data-v="calendar" class="on">캘린더</button><button data-v="list">리스트</button>
+        </div>
+        <button class="btn primary" id="addSchedBtn">＋ 방송 일정 추가</button>
+      </div>
+
+      <div id="schedCountdown" class="sched-hero"></div>
+
+      <div id="schedCalWrap" class="panel">
+        <div class="panel-head">
+          <button class="icobtn" id="schedPrev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg></button>
+          <h3 id="schedMonthLbl" style="min-width:120px;text-align:center"></h3>
+          <button class="icobtn" id="schedNext"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></button>
+          <div class="spacer"></div>
+          <button class="btn ghost sm" id="schedToday">오늘</button>
+        </div>
+        <div class="panel-body"><div id="schedCal" class="cal"></div></div>
+      </div>
+
+      <div id="schedListWrap" class="hidden"><div id="schedList"></div></div>
+    </section>
   </div>
 </div>
 
@@ -1542,6 +1630,41 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
 </div>
 
+<!-- ============ 방송 일정 추가/편집 ============ -->
+<div class="overlay" id="schedOverlay">
+  <div class="modal wide">
+    <div class="modal-head"><h2 id="schedModalTitle">방송 일정 추가</h2><div class="spacer"></div><button class="xbtn" id="schedClose">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>방송 제목 <span class="req">*</span></label>
+        <input class="inp" id="schedTitle" maxlength="60" placeholder="예: 롤 랭크 올리기 / 저챗 수다방"></div>
+      <div class="row2">
+        <div class="field"><label>날짜 <span class="req">*</span></label><input type="date" class="inp" id="schedDate"></div>
+        <div class="field"><label>시간</label>
+          <div class="amt-wrap"><input type="time" class="inp" id="schedStart"><span class="to">~</span><input type="time" class="inp" id="schedEnd"></div></div>
+      </div>
+      <div class="field"><label>카테고리</label><div class="cat-grid" id="schedCats"></div></div>
+      <div class="field"><label>반복</label>
+        <div class="seg" id="schedRepeat" style="max-width:280px"><button data-r="none" class="on">반복 안 함</button><button data-r="weekly">매주</button></div>
+        <div class="daypick" id="schedDays" style="margin-top:10px"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>공개 여부</label>
+          <div class="seg" id="schedVisible"><button data-v="1" class="on">공개</button><button data-v="0">비공개</button></div></div>
+        <div class="field"><label>팬 알림</label>
+          <label class="auto-toggle" style="padding:9px 0"><span id="schedNotifyLbl">스토리로 공지</span><div class="tgl on" id="schedNotify"></div></label></div>
+      </div>
+      <div class="field"><label>메모 <span class="helper" style="display:inline;font-weight:500">(비공개)</span></label>
+        <textarea class="inp" id="schedMemo" rows="2" placeholder="세트리스트, 준비물 등"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost danger" id="schedDelete" style="visibility:hidden">삭제</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" id="schedCancel">취소</button>
+      <button class="btn primary" id="schedSave">저장</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
@@ -1600,6 +1723,7 @@ function seed(){
     toontalks: seedToontalks(donators),
     stories: seedStories(),
     toonUnreadAlert: true,
+    schedules: seedSchedules(),
     autos:[
       {id:uid(),on:true,situ:'login',targetMode:'class',classes:['g_vvip'],
        actions:[{type:'kakao_send',cfg:{msg:'{크리에이터} 님이 방송을 시작하였습니다'}}]},
@@ -1609,6 +1733,24 @@ function seed(){
        actions:[{type:'widget',cfg:{widget:'하트비'}},{type:'kakao_send',cfg:{msg:'{닉네임}님, 첫 후원 감사합니다! 앞으로 잘 부탁드려요 💕'}}]},
     ]
   };
+}
+const SCHED_CATS={
+  게임:{icon:'🎮',color:'#5b8cff'}, 토크:{icon:'💬',color:'#33d69f'}, 먹방:{icon:'🍜',color:'#ff8a5c'},
+  음악:{icon:'🎵',color:'#a45bff'}, 콘텐츠:{icon:'🎬',color:'#ff5c7a'}, 기타:{icon:'✨',color:'#ffcb45'},
+};
+function seedSchedules(){
+  const now=new Date(), z=n=>String(n).padStart(2,'0');
+  const iso=(dd)=>`${dd.getFullYear()}-${z(dd.getMonth()+1)}-${z(dd.getDate())}`;
+  const day=(add)=>new Date(now.getFullYear(),now.getMonth(),now.getDate()+add);
+  const mk=(add,start,end,title,category,extra={})=>({id:uid(),title,date:iso(day(add)),start,end,category,repeat:'none',days:[],visible:true,notify:true,memo:'',...extra});
+  return [
+    mk(0,'20:00','23:00','롤 랭크 올리기 🎮','게임'),
+    mk(1,'21:00','23:30','같이 수다 떨어요 (저챗)','토크'),
+    mk(3,'19:00','21:00','먹방 — 마라탕 리뷰','먹방'),
+    mk(5,'22:00','24:00','신곡 커버 라이브','음악',{memo:'세트리스트 준비'}),
+    mk(6,'14:00','19:00','주말 롱런 방송','게임',{repeat:'weekly',days:[6]}),
+    mk(-2,'20:00','22:30','지난 게임 방송','게임'),
+  ];
 }
 const TOON_TTL=72*3600000; // 72시간
 function seedToontalks(donators){
@@ -1663,6 +1805,7 @@ function normalize(){
   if(!DB.toontalks) DB.toontalks=[];
   if(!DB.stories) DB.stories=[];
   if(DB.toonUnreadAlert===undefined) DB.toonUnreadAlert=true;
+  if(!DB.schedules) DB.schedules=[];
   (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;});
   // 구버전 마이그레이션: 단일 action → actions 배열
   (DB.autos||[]).forEach(a=>{ if(!a.actions){a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[];delete a.action;delete a.cfg;} });
@@ -1765,7 +1908,7 @@ function titleBadge(t){return `<span class="tbadge" style="--tc:${t.color}"><spa
 /* =========================================================
    Tabs
    ========================================================= */
-const pages={insight:byId('page-insight'),market:byId('page-market'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),auto:byId('page-auto'),toon:byId('page-toon'),live:byId('page-live')};
+const pages={insight:byId('page-insight'),market:byId('page-market'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),auto:byId('page-auto'),toon:byId('page-toon'),sched:byId('page-sched'),live:byId('page-live')};
 function byId(id){return document.getElementById(id);}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
@@ -1774,6 +1917,7 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   if(tab==='insight') renderInsights();
   if(tab==='market') renderMarket();
   if(tab==='toon') renderToon();
+  if(tab==='sched') renderSchedule();
   if(tab==='donator') renderDonators();
   if(tab==='auto') renderAutos();
   if(tab==='grade') renderGrades();
@@ -2517,7 +2661,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','stockOverlay','replyOverlay','tsimOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','stockOverlay','replyOverlay','tsimOverlay','schedOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -3536,6 +3680,177 @@ function renderStories(){
     box.appendChild(c);});
 }
 
+/* =========================================================
+   TAB — 방송 스케줄
+   ========================================================= */
+let schedView='calendar', schedMonth=(()=>{const n=new Date();return{y:n.getFullYear(),m:n.getMonth()};})();
+let schedEdit={id:null,cat:'게임',repeat:'none',days:[],visible:1};
+const z2=n=>String(n).padStart(2,'0');
+const WD=['일','월','화','수','목','금','토'];
+function schedStart(s){return new Date(`${s.date}T${s.start||'00:00'}`);}
+function schedEndT(s){return s.end?new Date(`${s.date}T${s.end}`):new Date(schedStart(s).getTime()+2*3600000);}
+function schedStatus(s){
+  if(s.status==='cancelled')return 'cancelled';
+  const now=Date.now(),st=schedStart(s).getTime(),en=schedEndT(s).getTime();
+  if(now>=st&&now<en)return 'live'; if(now>=en)return 'done'; return 'upcoming';
+}
+const SCHED_STLBL={upcoming:'예정',live:'🔴 방송 중',done:'완료',cancelled:'취소'};
+function nextSched(){return DB.schedules.filter(s=>schedStatus(s)!=='done'&&s.status!=='cancelled')
+  .sort((a,b)=>schedStart(a)-schedStart(b))[0];}
+
+function renderScheduleCount(){byId('tabCntSched').textContent=DB.schedules.filter(s=>schedStatus(s)==='upcoming').length;}
+function renderSchedule(){ renderScheduleCount(); renderCountdown();
+  byId('schedCalWrap').classList.toggle('hidden',schedView!=='calendar');
+  byId('schedListWrap').classList.toggle('hidden',schedView!=='list');
+  if(schedView==='calendar') renderCalendar(); else renderSchedList();
+}
+byId('schedView').querySelectorAll('button').forEach(b=>b.onclick=()=>{schedView=b.dataset.v;byId('schedView').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderSchedule();});
+
+function renderCountdown(){
+  const box=byId('schedCountdown'); const nx=nextSched();
+  if(!nx){box.className='sched-hero';box.innerHTML=`<div class="sh-ic">🗓️</div><div class="sh-tx"><div class="sh-k">다음 방송</div><div class="sh-t">예정된 방송이 없습니다</div><div class="sh-when">‘방송 일정 추가’로 스케줄을 만들어 보세요.</div></div>`;return;}
+  const cat=SCHED_CATS[nx.category]||SCHED_CATS['기타'], live=schedStatus(nx)==='live';
+  const st=schedStart(nx), ms=st-Date.now();
+  const dd=live?'LIVE':(ms<3600000?`${Math.max(0,Math.floor(ms/60000))}분 후`:(ms<86400000?`${Math.floor(ms/3600000)}시간 후`:`D-${Math.ceil(ms/86400000)}`));
+  const wd=WD[st.getDay()];
+  box.className='sched-hero'+(live?' live':'');
+  box.innerHTML=`<div class="sh-ic" style="background:${cat.color}22">${cat.icon}</div>
+    <div class="sh-tx"><div class="sh-k">${live?'🔴 지금 방송 중':'다음 방송'}</div>
+      <div class="sh-t">${nx.title} <span class="sched-badge" style="background:${cat.color}22;color:${cat.color}">${nx.category}</span></div>
+      <div class="sh-when">${st.getMonth()+1}월 ${st.getDate()}일(${wd}) ${nx.start}${nx.end?'~'+nx.end:''}</div></div>
+    <div class="sh-dday">${dd}</div>
+    <button class="btn ${live?'':'primary'}" id="cdStart">${live?'라이브로 이동':'방송 시작'}</button>`;
+  byId('cdStart').onclick=()=>startFromSched(nx.id);
+}
+
+/* 캘린더 */
+byId('schedPrev').onclick=()=>{schedMonth.m--;if(schedMonth.m<0){schedMonth.m=11;schedMonth.y--;}renderCalendar();};
+byId('schedNext').onclick=()=>{schedMonth.m++;if(schedMonth.m>11){schedMonth.m=0;schedMonth.y++;}renderCalendar();};
+byId('schedToday').onclick=()=>{const n=new Date();schedMonth={y:n.getFullYear(),m:n.getMonth()};renderCalendar();};
+function schedsOn(iso){return DB.schedules.filter(s=>s.date===iso).sort((a,b)=>(a.start||'').localeCompare(b.start||''));}
+function renderCalendar(){
+  byId('schedMonthLbl').textContent=`${schedMonth.y}년 ${schedMonth.m+1}월`;
+  const first=new Date(schedMonth.y,schedMonth.m,1), startWd=first.getDay();
+  const days=new Date(schedMonth.y,schedMonth.m+1,0).getDate();
+  const todayIso=`${new Date().getFullYear()}-${z2(new Date().getMonth()+1)}-${z2(new Date().getDate())}`;
+  let html=`<div class="cal-wk">${WD.map(w=>`<span>${w}</span>`).join('')}</div><div class="cal-grid">`;
+  for(let i=0;i<startWd;i++)html+='<div class="cal-day blank"></div>';
+  for(let dnum=1;dnum<=days;dnum++){
+    const iso=`${schedMonth.y}-${z2(schedMonth.m+1)}-${z2(dnum)}`;
+    const wd=new Date(schedMonth.y,schedMonth.m,dnum).getDay();
+    const evs=schedsOn(iso);
+    const cls=['cal-day',iso===todayIso?'today':'',wd===0?'sun':'',wd===6?'sat':''].filter(Boolean).join(' ');
+    let evHtml=evs.slice(0,3).map(s=>{const c=SCHED_CATS[s.category]||SCHED_CATS['기타'];const done=schedStatus(s)==='done';
+      return `<div class="cal-ev ${done?'done':''}" data-ev="${s.id}" style="background:${c.color}1e;color:${c.color};border-left-color:${c.color}">${c.icon} ${s.start||''} ${s.title}</div>`;}).join('');
+    if(evs.length>3)evHtml+=`<div class="cal-more">+${evs.length-3}건</div>`;
+    html+=`<div class="${cls}" data-day="${iso}"><div class="dn">${dnum}</div>${evHtml}</div>`;
+  }
+  html+='</div>';
+  byId('schedCal').innerHTML=html;
+  byId('schedCal').querySelectorAll('.cal-day[data-day]').forEach(el=>el.onclick=()=>openSched(null,el.dataset.day));
+  byId('schedCal').querySelectorAll('.cal-ev').forEach(el=>el.onclick=e=>{e.stopPropagation();openSched(el.dataset.ev);});
+}
+/* 리스트 */
+function renderSchedList(){
+  const box=byId('schedList');
+  const now=Date.now();
+  const up=DB.schedules.filter(s=>schedStatus(s)!=='done'&&s.status!=='cancelled').sort((a,b)=>schedStart(a)-schedStart(b));
+  const past=DB.schedules.filter(s=>schedStatus(s)==='done').sort((a,b)=>schedStart(b)-schedStart(a));
+  const weekEnd=now+7*86400000;
+  const groups=[
+    ['오늘·이번 주',up.filter(s=>schedStart(s).getTime()<weekEnd)],
+    ['이후 예정',up.filter(s=>schedStart(s).getTime()>=weekEnd)],
+    ['지난 방송',past],
+  ];
+  let html='';
+  groups.forEach(([title,arr])=>{ if(!arr.length)return;
+    html+=`<div class="sched-group"><div class="gh">${title} · ${arr.length}건</div>`+arr.map(schedRowHtml).join('')+`</div>`;});
+  box.innerHTML=html||`<div class="empty" style="padding:50px"><div class="ic">🗓️</div><div class="t">등록된 방송 일정이 없습니다</div></div>`;
+  box.querySelectorAll('[data-edit]').forEach(el=>el.onclick=()=>openSched(el.dataset.edit));
+  box.querySelectorAll('[data-start]').forEach(el=>el.onclick=()=>startFromSched(el.dataset.start));
+  box.querySelectorAll('[data-announce]').forEach(el=>el.onclick=()=>announceSched(el.dataset.announce));
+}
+function schedRowHtml(s){
+  const c=SCHED_CATS[s.category]||SCHED_CATS['기타'], st=schedStatus(s), dt=schedStart(s);
+  return `<div class="sched-row ${st==='done'?'done':''}">
+    <div class="sr-date"><div class="d">${dt.getDate()}</div><div class="w">${dt.getMonth()+1}월 (${WD[dt.getDay()]})</div></div>
+    <div class="sr-cat" style="background:${c.color}22">${c.icon}</div>
+    <div class="sr-meta"><div class="t">${s.title}
+      <span class="sched-badge ${st}">${SCHED_STLBL[st]}</span>
+      ${s.repeat==='weekly'?'<span class="sched-badge repeat">🔁 매주</span>':''}
+      ${!s.visible?'<span class="sched-badge cancelled">비공개</span>':''}</div>
+      <div class="s">${s.start||''}${s.end?'~'+s.end:''} · ${s.category}${s.memo?' · '+s.memo:''}</div></div>
+    <div class="sr-acts">
+      ${st==='upcoming'?`<button class="btn ghost sm" data-announce="${s.id}">📢 공지</button><button class="btn primary sm" data-start="${s.id}">방송 시작</button>`:''}
+      <button class="btn ghost sm" data-edit="${s.id}">편집</button>
+    </div></div>`;
+}
+
+/* 추가/편집 모달 */
+byId('addSchedBtn').onclick=()=>openSched(null);
+function openSched(id,datePrefill){
+  const cats=byId('schedCats'); cats.innerHTML='';
+  Object.entries(SCHED_CATS).forEach(([k,c])=>{const el=document.createElement('div');el.className='cat-chip';el.dataset.c=k;
+    el.innerHTML=`${c.icon} ${k}`; el.onclick=()=>{schedEdit.cat=k;syncCats();}; cats.appendChild(el);});
+  const dp=byId('schedDays'); dp.innerHTML='';
+  [1,2,3,4,5,6,0].forEach(d=>{const b=document.createElement('button');b.type='button';b.className='day';b.textContent=WD[d];
+    b.onclick=()=>{schedEdit.days=schedEdit.days.includes(d)?schedEdit.days.filter(x=>x!==d):[...schedEdit.days,d];syncDays();};dp.appendChild(b);});
+  if(id){const s=DB.schedules.find(x=>x.id===id);
+    schedEdit={id,cat:s.category,repeat:s.repeat||'none',days:[...(s.days||[])],visible:s.visible?1:0};
+    byId('schedTitle').value=s.title;byId('schedDate').value=s.date;byId('schedStart').value=s.start||'';byId('schedEnd').value=s.end||'';
+    byId('schedMemo').value=s.memo||''; byId('schedNotify').classList.toggle('on',!!s.notify);
+    byId('schedModalTitle').textContent='방송 일정 편집'; byId('schedDelete').style.visibility='visible';
+  }else{
+    const d=datePrefill||`${new Date().getFullYear()}-${z2(new Date().getMonth()+1)}-${z2(new Date().getDate())}`;
+    schedEdit={id:null,cat:'게임',repeat:'none',days:[new Date(d).getDay()],visible:1};
+    byId('schedTitle').value='';byId('schedDate').value=d;byId('schedStart').value='20:00';byId('schedEnd').value='23:00';
+    byId('schedMemo').value='';byId('schedNotify').classList.add('on');
+    byId('schedModalTitle').textContent='방송 일정 추가'; byId('schedDelete').style.visibility='hidden';
+  }
+  syncCats();syncDays();
+  byId('schedRepeat').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.r===schedEdit.repeat));
+  byId('schedVisible').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.v===schedEdit.visible));
+  byId('schedDays').style.display=schedEdit.repeat==='weekly'?'flex':'none';
+  byId('schedOverlay').classList.add('show');
+}
+function syncCats(){byId('schedCats').querySelectorAll('.cat-chip').forEach(el=>{const on=el.dataset.c===schedEdit.cat;const c=SCHED_CATS[el.dataset.c];el.classList.toggle('on',on);el.style.background=on?c.color:'';el.style.borderColor=on?c.color:'';});}
+function syncDays(){byId('schedDays').querySelectorAll('.day').forEach((el,i)=>{const d=[1,2,3,4,5,6,0][i];el.classList.toggle('on',schedEdit.days.includes(d));});}
+byId('schedRepeat').querySelectorAll('button').forEach(b=>b.onclick=()=>{schedEdit.repeat=b.dataset.r;byId('schedRepeat').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));byId('schedDays').style.display=schedEdit.repeat==='weekly'?'flex':'none';});
+byId('schedVisible').querySelectorAll('button').forEach(b=>b.onclick=()=>{schedEdit.visible=+b.dataset.v;byId('schedVisible').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));});
+byId('schedNotify').onclick=()=>byId('schedNotify').classList.toggle('on');
+byId('schedClose').onclick=byId('schedCancel').onclick=()=>byId('schedOverlay').classList.remove('show');
+byId('schedOverlay').onclick=e=>{if(e.target===byId('schedOverlay'))byId('schedOverlay').classList.remove('show');};
+byId('schedSave').onclick=()=>{
+  const title=byId('schedTitle').value.trim(), date=byId('schedDate').value;
+  if(!title)return toast('방송 제목을 입력하세요','!'); if(!date)return toast('날짜를 선택하세요','!');
+  const base={title,date,start:byId('schedStart').value,end:byId('schedEnd').value,category:schedEdit.cat,
+    repeat:schedEdit.repeat,days:schedEdit.repeat==='weekly'?schedEdit.days:[],visible:!!schedEdit.visible,notify:byId('schedNotify').classList.contains('on'),memo:byId('schedMemo').value.trim()};
+  if(schedEdit.id){const s=DB.schedules.find(x=>x.id===schedEdit.id);Object.assign(s,base);toast('일정을 수정했습니다');}
+  else{ DB.schedules.push({id:uid(),...base});
+    if(base.repeat==='weekly'&&base.days.length){ // 다음 7주 반복 생성
+      const gid=uid(); const d0=new Date(date);
+      for(let w=1;w<=7;w++){const nd=new Date(d0.getFullYear(),d0.getMonth(),d0.getDate()+w*7);
+        DB.schedules.push({id:uid(),...base,date:`${nd.getFullYear()}-${z2(nd.getMonth()+1)}-${z2(nd.getDate())}`,repeatGroup:gid});}
+    }
+    toast('방송 일정을 추가했습니다 📅');
+  }
+  save(); byId('schedOverlay').classList.remove('show'); renderSchedule();
+};
+byId('schedDelete').onclick=()=>{const s=DB.schedules.find(x=>x.id===schedEdit.id);if(!s)return;
+  askConfirm('일정 삭제',`‘${s.title}’ 방송 일정을 삭제할까요?`,()=>{DB.schedules=DB.schedules.filter(x=>x.id!==schedEdit.id);save();byId('schedOverlay').classList.remove('show');renderSchedule();toast('일정을 삭제했습니다');});};
+
+function startFromSched(id){const s=DB.schedules.find(x=>x.id===id);if(!s)return;
+  document.querySelector('.tab[data-tab="live"]').click();
+  if(!LIVE.on) goLive();
+  toast(`‘${s.title}’ 방송을 시작합니다 🔴`);
+}
+function announceSched(id){const s=DB.schedules.find(x=>x.id===id);if(!s)return;
+  const dt=schedStart(s); const txt=`${dt.getMonth()+1}월 ${dt.getDate()}일(${WD[dt.getDay()]}) ${s.start}에 「${s.title}」 방송 시작합니다! 많이들 와주세요 🎉`;
+  DB.stories.forEach(x=>x.pinned=false);
+  DB.stories.unshift({id:uid(),text:txt,pinned:true,ts:Date.now()});
+  save(); toast('스토리로 공지했습니다 📢 (투네톡)');
+}
+
 /* ---------- init ---------- */
 renderSwatches();
 renderGrades();
@@ -3546,6 +3861,7 @@ resetTitleForm();
 renderTitles();
 renderLive();
 renderToonStats();
+renderScheduleCount();
 </script>
 </body>
 </html>
