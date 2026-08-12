@@ -739,9 +739,11 @@ tbody tr.blocked:hover{opacity:.72}
 .cal-day:hover{border-color:var(--line-strong)}
 .cal-day.blank{background:transparent;border:none;cursor:default}
 .cal-day.today{border-color:var(--accent)}
+.cal-top{display:flex;align-items:center;justify-content:space-between;gap:4px}
 .cal-day .dn{font-size:12px;font-weight:700;color:var(--muted)}
 .cal-day.today .dn{color:var(--accent)}
 .cal-day.sat .dn{color:#7aa2ff}.cal-day.sun .dn{color:#ff6b81}
+.cal-cash{font-size:9.5px;font-weight:800;color:var(--accent);background:var(--accent-soft);padding:1px 5px;border-radius:5px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .cal-ev{font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border-left:2px solid}
 .cal-ev.done{opacity:.5}
 .cal-more{font-size:10px;color:var(--muted-2);font-weight:700}
@@ -3783,7 +3785,9 @@ function renderCalendar(){
     let evHtml=evs.slice(0,3).map(s=>{const c=SCHED_CATS[s.category]||SCHED_CATS['기타'];const done=schedStatus(s)==='done';
       return `<div class="cal-ev ${done?'done':''}" data-ev="${s.id}" style="background:${c.color}1e;color:${c.color};border-left-color:${c.color}">${c.icon} ${s.start||''} ${s.title}</div>`;}).join('');
     if(evs.length>3)evHtml+=`<div class="cal-more">+${evs.length-3}건</div>`;
-    html+=`<div class="${cls}" data-day="${iso}"><div class="dn">${dnum}</div>${evHtml}</div>`;
+    const dd=dayDonations(iso);
+    const cashHtml=(!dd.future&&dd.total>0)?`<span class="cal-cash" title="이 날 총 후원 ${won(dd.total)}캐시">💰 ${compactWon(dd.total)}</span>`:'';
+    html+=`<div class="${cls}" data-day="${iso}"><div class="cal-top"><span class="dn">${dnum}</span>${cashHtml}</div>${evHtml}</div>`;
   }
   html+='</div>';
   byId('schedCal').innerHTML=html;
@@ -3828,6 +3832,7 @@ function schedRowHtml(s){
 }
 
 /* 날짜별 후원 인사이트 (달력 날짜 클릭) */
+function compactWon(n){ if(n>=10000){const m=n/10000;return (m>=100?String(Math.round(m)):m.toFixed(1).replace(/\.0$/,''))+'만';} return won(n); }
 function seedRand(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}
   return ()=>{h+=0x6D2B79F5;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
 function dayDonations(iso){
