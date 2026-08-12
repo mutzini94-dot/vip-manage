@@ -771,6 +771,20 @@ tbody tr.blocked:hover{opacity:.72}
 .sched-badge.cancelled{background:var(--surface-3);color:var(--muted-2)}
 .sched-badge.repeat{background:var(--accent-soft);color:var(--accent)}
 
+/* 날짜별 후원 인사이트 */
+.day-dons{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto}
+.day-don{display:flex;align-items:center;gap:10px;padding:7px 9px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2)}
+.day-don .ava{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:11px}
+.day-gbar{display:flex;align-items:center;gap:8px;margin-bottom:9px;font-size:12.5px}
+.day-gbar .lbl{width:50px;font-weight:700;color:var(--muted)}
+.day-gbar .bar{flex:1;height:8px;border-radius:5px;background:var(--surface-3);overflow:hidden}
+.day-gbar .bar i{display:block;height:100%;border-radius:5px}
+.day-gbar .pc{width:38px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+.day-sched{display:flex;align-items:center;gap:11px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);margin-bottom:8px}
+.day-sched .sr-cat{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:16px;flex:none}
+.cal-day .dn::after{content:"";display:inline-block}
+.cal-day[data-day]{position:relative}
+
 @media(max-width:640px){
   .wrap{padding:18px 14px 50px}
   .tab .cnt{display:none}
@@ -1644,6 +1658,15 @@ tbody tr.blocked:hover{opacity:.72}
     </div>
     <div class="modal-foot"><button class="btn ghost" id="remindCancel">취소</button><div class="spacer"></div>
       <button class="btn primary" id="remindSend"><span id="remindCount">0</span>명에게 발송</button></div>
+  </div>
+</div>
+
+<!-- ============ 날짜별 후원 인사이트 ============ -->
+<div class="overlay" id="dayOverlay">
+  <div class="modal wide">
+    <div class="modal-head"><h2 id="dayTitle">날짜</h2><div class="spacer"></div><button class="xbtn" id="dayClose">✕</button></div>
+    <div class="modal-body"><div id="daySched"></div><div id="dayInsight"></div></div>
+    <div class="modal-foot"><div class="spacer"></div><button class="btn ghost" id="dayCloseBtn">닫기</button><button class="btn primary" id="dayAddBtn">＋ 이 날 일정 추가</button></div>
   </div>
 </div>
 
@@ -2678,7 +2701,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','stockOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','stockOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -3764,7 +3787,7 @@ function renderCalendar(){
   }
   html+='</div>';
   byId('schedCal').innerHTML=html;
-  byId('schedCal').querySelectorAll('.cal-day[data-day]').forEach(el=>el.onclick=()=>openSched(null,el.dataset.day));
+  byId('schedCal').querySelectorAll('.cal-day[data-day]').forEach(el=>el.onclick=()=>openDay(el.dataset.day));
   byId('schedCal').querySelectorAll('.cal-ev').forEach(el=>el.onclick=e=>{e.stopPropagation();openSched(el.dataset.ev);});
 }
 /* 리스트 */
@@ -3803,6 +3826,65 @@ function schedRowHtml(s){
       <button class="btn ghost sm" data-edit="${s.id}">편집</button>
     </div></div>`;
 }
+
+/* 날짜별 후원 인사이트 (달력 날짜 클릭) */
+function seedRand(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}
+  return ()=>{h+=0x6D2B79F5;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+function dayDonations(iso){
+  const date=new Date(iso+'T00:00:00'), today=new Date(); today.setHours(0,0,0,0);
+  if(date.getTime()>today.getTime()) return {future:true,list:[]};
+  const rnd=seedRand(iso);
+  const hasBroadcast=DB.schedules.some(s=>s.date===iso&&s.status!=='cancelled'&&schedStatus(s)!=='cancelled');
+  const pool=DB.donators.filter(d=>!d.blocked&&gradeForCash(d.cash));
+  if(!pool.length) return {future:false,list:[],total:0,hasBroadcast};
+  const n=Math.min(pool.length,(hasBroadcast?6:2)+Math.floor(rnd()*(hasBroadcast?8:4)));
+  const picked=new Set(), list=[];
+  for(let i=0;i<n;i++){let d,tr=0;do{d=pool[Math.floor(rnd()*pool.length)];tr++;}while(picked.has(d.id)&&tr<12);if(picked.has(d.id))continue;picked.add(d.id);
+    const amt=[1000,3000,5000,10000,30000,50000][Math.floor(rnd()*6)]*(hasBroadcast&&rnd()>.7?2:1);
+    const hh=String(hasBroadcast?18+Math.floor(rnd()*5):Math.floor(rnd()*24)).padStart(2,'0'), mm=String(Math.floor(rnd()*60)).padStart(2,'0');
+    list.push({d,amt,time:`${hh}:${mm}`});}
+  list.sort((a,b)=>b.amt-a.amt);
+  return {future:false,hasBroadcast,list,total:list.reduce((s,x)=>s+x.amt,0)};
+}
+function gradeSplitBars(gmap,total){
+  const gColor=name=>{const g=DB.grades.find(x=>x.name===name);return g?g.color:'#6a6e80';};
+  return Object.entries(gmap).sort((a,b)=>b[1]-a[1]).map(([name,amt])=>
+    `<div class="day-gbar"><span class="lbl">${name}</span><div class="bar"><i style="width:${Math.round(amt/total*100)}%;background:${gColor(name)}"></i></div><span class="pc">${Math.round(amt/total*100)}%</span></div>`).join('');
+}
+let dayIso=null;
+function openDay(iso){
+  dayIso=iso; const dt=new Date(iso+'T00:00:00');
+  byId('dayTitle').textContent=`${dt.getFullYear()}년 ${dt.getMonth()+1}월 ${dt.getDate()}일 (${WD[dt.getDay()]})`;
+  const scheds=schedsOn(iso);
+  byId('daySched').innerHTML = scheds.length ? `<div class="section-lbl" style="margin-top:0">📅 이 날 방송 일정</div>`+scheds.map(s=>{const c=SCHED_CATS[s.category]||SCHED_CATS['기타'];const st=schedStatus(s);
+    return `<div class="day-sched"><div class="sr-cat" style="background:${c.color}22">${c.icon}</div><div style="flex:1;min-width:0"><div style="font-weight:800">${s.title} <span class="sched-badge ${st}">${SCHED_STLBL[st]}</span></div><div style="font-size:12px;color:var(--muted)">${s.start||''}${s.end?'~'+s.end:''} · ${s.category}</div></div></div>`;}).join('') : '';
+  const dd=dayDonations(iso), box=byId('dayInsight');
+  if(dd.future){
+    box.innerHTML=`<div class="section-lbl">💰 후원 인사이트</div><div class="empty" style="padding:28px"><div class="ic">🗓️</div><div class="t">예정된 날짜입니다</div><div class="s">아직 후원 데이터가 없습니다.</div></div>`;
+  }else if(!dd.list.length){
+    box.innerHTML=`<div class="section-lbl">💰 후원 인사이트</div><div class="empty" style="padding:28px"><div class="ic">💤</div><div class="t">이 날은 후원이 없었습니다</div></div>`;
+  }else{
+    const uniq=new Set(dd.list.map(x=>x.d.id)).size, max=dd.list[0].amt;
+    const gmap={}; dd.list.forEach(x=>{const g=gradeForCash(x.d.cash);const k=g?g.name:'미분류';gmap[k]=(gmap[k]||0)+x.amt;});
+    box.innerHTML=`
+      <div class="section-lbl">💰 후원 인사이트 ${dd.hasBroadcast?'<span class="sched-badge live" style="margin-left:6px">📡 방송일 · 후원 상승</span>':''}</div>
+      <div class="stats" style="margin-bottom:14px">
+        <div class="stat"><div class="k">총 후원</div><div class="v tnum">${won(dd.total)}<small>캐시</small></div></div>
+        <div class="stat"><div class="k">후원 건수</div><div class="v tnum">${dd.list.length}<small>건</small></div></div>
+        <div class="stat"><div class="k">참여 VIP</div><div class="v tnum">${uniq}<small>명</small></div></div>
+        <div class="stat"><div class="k">최고 후원</div><div class="v tnum">${won(max)}<small>캐시</small></div></div>
+      </div>
+      <div class="cols" style="grid-template-columns:1.4fr 1fr">
+        <div><div class="mini-lbl" style="margin-bottom:8px">후원 내역 (금액순)</div>
+          <div class="day-dons">${dd.list.map(x=>{const g=gradeForCash(x.d.cash);return `<div class="day-don"><div class="ava" style="background:${avaColor(x.d.name)}">${x.d.name.slice(0,2)}</div><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13px">${x.d.alias||x.d.name} ${g?gradeBadge(g):''}</div><div style="font-size:11.5px;color:var(--muted-2)">🕐 ${x.time}</div></div><div style="font-weight:800;color:var(--accent);white-space:nowrap">${won(x.amt)}</div></div>`;}).join('')}</div></div>
+        <div><div class="mini-lbl" style="margin-bottom:8px">등급 분포</div>${gradeSplitBars(gmap,dd.total)}</div>
+      </div>`;
+  }
+  byId('dayAddBtn').onclick=()=>{byId('dayOverlay').classList.remove('show');openSched(null,iso);};
+  byId('dayOverlay').classList.add('show');
+}
+byId('dayClose').onclick=byId('dayCloseBtn').onclick=()=>byId('dayOverlay').classList.remove('show');
+byId('dayOverlay').onclick=e=>{if(e.target===byId('dayOverlay'))byId('dayOverlay').classList.remove('show');};
 
 /* 추가/편집 모달 */
 byId('addSchedBtn').onclick=()=>openSched(null);
