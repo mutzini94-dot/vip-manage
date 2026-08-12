@@ -87,6 +87,7 @@ const ROUTES = [
     return {status:200,data:{sent:true,channel:'kakao_alimtalk',recipients,schedule:s.title},mut:1}; }],
   // broadcasts
   ['POST','/broadcasts/start',(DB)=>{ const r=D.fireBroadcastStart(DB); return {status:200,data:{started:true,...r,next:D.nextSched(DB)?D.schedDTO(D.nextSched(DB)):null},mut:1}; }],
+  ['POST','/broadcasts/prestart',(DB)=>{ const r=D.firePrestart(DB); return {status:200,data:{...r},mut:1}; }],
   // admin
   ['POST','/admin/reset',()=>{ reset(); return {status:200,data:{reset:true}}; }],
   // webhooks

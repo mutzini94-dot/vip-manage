@@ -773,6 +773,13 @@ tbody tr.blocked:hover{opacity:.72}
 .sched-badge.cancelled{background:var(--surface-3);color:var(--muted-2)}
 .sched-badge.repeat{background:var(--accent-soft);color:var(--accent)}
 
+/* 방송 예정 자동화 바 */
+.prestart-bar{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:13px;margin-bottom:16px;
+  background:var(--surface);border:1px solid var(--line)}
+.prestart-bar .pb-ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:19px;flex:none;background:var(--accent-soft)}
+.prestart-bar .pb-tx{flex:1;min-width:0;font-size:13.5px}
+.prestart-bar .pb-tx b{font-weight:800}
+.prestart-bar .pb-s{font-size:12px;color:var(--muted);margin-top:2px}
 /* 최적 방송 시간 히트맵 */
 .ht-scroll{overflow-x:auto}
 .ht-grid{display:grid;grid-template-columns:30px repeat(24,minmax(20px,1fr));gap:2px;min-width:560px}
@@ -1291,6 +1298,7 @@ tbody tr.blocked:hover{opacity:.72}
       </div>
 
       <div id="schedCountdown" class="sched-hero"></div>
+      <div id="prestartBar" class="prestart-bar hidden"></div>
 
       <div class="panel" id="bestTimeWrap" style="margin-bottom:16px">
         <div class="panel-head"><h3>💡 최적 방송 시간</h3><span class="hint">최근 8주 후원 데이터 기반</span><div class="spacer"></div>
@@ -1380,6 +1388,13 @@ tbody tr.blocked:hover{opacity:.72}
             <span class="to" id="amtTo">~</span>
             <input class="inp tnum" id="amtMax" inputmode="numeric" placeholder="100,000">
             <span class="to">원</span>
+          </div>
+        </div>
+
+        <div id="leadWrap" class="hidden">
+          <div class="section-lbl">발동 시점 <span style="color:var(--muted-2);font-weight:600">· 방송 시작 몇 시간 전</span></div>
+          <div class="seg" id="leadSel" style="max-width:360px">
+            <button data-h="1">1시간 전</button><button data-h="3" class="on">3시간 전</button><button data-h="6">6시간 전</button><button data-h="24">24시간 전</button>
           </div>
         </div>
       </div>
@@ -2199,6 +2214,7 @@ function renderDonators(){
    ========================================================= */
 const SITU={
   login:  {label:'방송 시작 시',      icon:'📡',desc:'방송을 켜면 도네이터에게 알림',target:true},
+  prestart:{label:'방송 예정 (사전 알림)',icon:'⏰',desc:'예정된 방송 시작 전에 팬에게 알림',target:true,lead:true},
   first:  {label:'첫 후원 시',        icon:'🌱',desc:'처음 후원한 신규 팬에게 발동',target:false},
   donate: {label:'특정 도네이터 후원 시',icon:'💝',desc:'지정한 도네이터가 후원하면 발동',target:true},
   amount: {label:'특정 금액 이상 후원 시',icon:'💰',desc:'설정 금액대의 후원이 오면 발동',target:false,amount:true},
@@ -2206,9 +2222,9 @@ const SITU={
   anniv:  {label:'가입 기념일',        icon:'🎂',desc:'가입 기념일이 되면 발동',target:true},
 };
 const ACTIONS={
-  kakao_send:{label:'도네이터 카카오 알림톡 발송',icon:'💬',desc:'도네이터에게 알림톡을 보냅니다',for:['login','first','donate','amount','promote','anniv']},
-  kakao_recv:{label:'카카오 알림톡 받기',icon:'📩',desc:'크리에이터가 알림톡을 받습니다',for:['first','donate','amount','promote']},
-  remote:{label:'리모컨 알림 받기',icon:'🎛',desc:'리모컨 앱으로 실시간 알림',for:['first','donate','amount','promote']},
+  kakao_send:{label:'도네이터 카카오 알림톡 발송',icon:'💬',desc:'도네이터에게 알림톡을 보냅니다',for:['login','prestart','first','donate','amount','promote','anniv']},
+  kakao_recv:{label:'카카오 알림톡 받기',icon:'📩',desc:'크리에이터가 알림톡을 받습니다',for:['prestart','first','donate','amount','promote']},
+  remote:{label:'리모컨 알림 받기',icon:'🎛',desc:'리모컨 앱으로 실시간 알림',for:['prestart','first','donate','amount','promote']},
   widget:{label:'위젯 효과 추가하기',icon:'🎉',desc:'방송 화면에 위젯 효과 재생',for:['first','donate','amount','promote','anniv']},
   tts:{label:'TTS 음성 알림',icon:'🔊',desc:'음성으로 후원을 읽어줍니다',for:['login','first','donate','amount','promote','anniv']},
 };
@@ -2257,6 +2273,7 @@ function situText(a){
   let who='대상';
   if(a.targetMode==='class'){const names=(a.classes||[]).map(id=>DB.grades.find(g=>g.id===id)?.name).filter(Boolean);who=names.join(', ')||'대상';}
   else if(a.targetMode==='pick'){const names=(a.picks||[]).map(id=>{const d=DB.donators.find(x=>x.id===id);return d?(d.alias||d.name):'';}).filter(Boolean);who=`${names.slice(0,3).join(', ')}${names.length>3?` 외 ${names.length-3}명`:''}`;}
+  if(a.situ==='prestart') return `${who}에게 방송 ${a.lead||3}시간 전`;
   const suffix={login:'에게 방송 시작 시',donate:'후원 시',promote:'승급 시',anniv:'가입 기념일'}[a.situ]||s.label;
   return `${who} ${suffix}`;
 }
@@ -2271,6 +2288,7 @@ function renderAutos(){
     const tags=[];
     if(a.targetMode==='class')(a.classes||[]).forEach(id=>{const g=DB.grades.find(x=>x.id===id);if(g)tags.push(g.name);});
     acts.forEach(ac=>{ if(ac.type==='widget')tags.push('효과: '+(ac.cfg?.widget||'')); if(ac.type==='tts')tags.push('보이스: '+(VOICES.find(v=>v.k===ac.cfg?.voice)?.n||'기본')); });
+    if(a.situ==='prestart')tags.push(`⏰ ${a.lead||3}시간 전`);
     if(a.cooldown?.on)tags.push(`⏱ ${a.cooldown.minutes}분`+(a.cooldown.dailyCap>0?` · ${a.cooldown.dailyCap}회/일`:''));
     if(a.schedule?.on){const dc=(a.schedule.days||[]).length;tags.push('📅 '+(dc?`${dc}개 요일`:'스케줄'));}
     const summary=acts.map(ac=>ACTIONS[ac.type]?.label).filter(Boolean).join(' + ')||'액션 없음';
@@ -2312,11 +2330,11 @@ function openWizard(id){
   if(id){
     const a=DB.autos.find(x=>x.id===id);
     W={step:1,id,situ:a.situ,targetMode:a.targetMode||'class',classes:[...(a.classes||[])],picks:[...(a.picks||[])],
-       amt:{...(a.amt||{mode:'range',min:0,max:0})},actions:(a.actions||[]).map(x=>({type:x.type,cfg:{...x.cfg}})),
+       amt:{...(a.amt||{mode:'range',min:0,max:0})},lead:a.lead||3,actions:(a.actions||[]).map(x=>({type:x.type,cfg:{...x.cfg}})),
        cooldown:{...defCooldown(),...(a.cooldown||{})},schedule:{...defSchedule(),...(a.schedule||{}),days:[...((a.schedule||{}).days||[])]}};
     byId('wizTitle').textContent='자동화 수정';
   }else{
-    W={step:1,id:null,situ:null,targetMode:'class',classes:[],picks:[],amt:{mode:'range',min:0,max:0},actions:[],cooldown:defCooldown(),schedule:defSchedule()};
+    W={step:1,id:null,situ:null,targetMode:'class',classes:[],picks:[],amt:{mode:'range',min:0,max:0},lead:3,actions:[],cooldown:defCooldown(),schedule:defSchedule()};
     byId('wizTitle').textContent='자동화 추가';
   }
   advOpen=W.cooldown.on||W.schedule.on;
@@ -2354,9 +2372,12 @@ function renderStep1(){
   const s=W.situ?SITU[W.situ]:null;
   byId('targetWrap').classList.toggle('hidden',!(s&&s.target));
   byId('amountWrap').classList.toggle('hidden',!(s&&s.amount));
+  byId('leadWrap').classList.toggle('hidden',!(s&&s.lead));
   if(s&&s.target) renderTarget();
   if(s&&s.amount) renderAmount();
+  if(s&&s.lead) byId('leadSel').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.h===W.lead));
 }
+byId('leadSel').querySelectorAll('button').forEach(b=>b.onclick=()=>{W.lead=+b.dataset.h;byId('leadSel').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));updateWizNext();});
 byId('targetMode').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   W.targetMode=b.dataset.t;
   byId('targetMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
@@ -2583,6 +2604,7 @@ byId('wizNext').onclick=()=>{
     cooldown:{...W.cooldown},schedule:{...W.schedule,days:[...W.schedule.days]}};
   const s=SITU[W.situ];
   if(s.amount) obj.amt={...W.amt};
+  if(s.lead) obj.lead=W.lead;
   if(s.target){obj.targetMode=W.targetMode;obj.classes=[...W.classes];obj.picks=[...W.picks];}
   if(W.id){const idx=DB.autos.findIndex(x=>x.id===W.id);DB.autos[idx]={...DB.autos[idx],...obj};}
   else DB.autos.push(obj);
@@ -2595,6 +2617,8 @@ function clsIds(...cls){return [...new Set(cls.map(gradeIdByCls).filter(Boolean)
 const AUTO_PRESETS=[
   {key:'vvip_live',icon:'📡',title:'VVIP 방송 시작 알림',desc:'방송을 켜면 VVIP에게 카카오 알림톡으로 알려요.',
     make:()=>({situ:'login',targetMode:'class',classes:clsIds('vvip'),actions:[{type:'kakao_send',cfg:{msg:'{크리에이터} 님이 방송을 시작하였습니다! 보러 오세요 💜'}}]})},
+  {key:'prestart',icon:'⏰',title:'방송 예정 사전 알림',desc:'예정된 방송 3시간 전, VIP에게 미리 알림톡으로 예고해요.',
+    make:()=>({situ:'prestart',lead:3,targetMode:'class',classes:clsIds('vvip','vip'),actions:[{type:'kakao_send',cfg:{msg:'{닉네임}님, 오늘 방송 곧 시작해요! 잊지 말고 놀러오세요 ⏰'}}]})},
   {key:'welcome',icon:'🌱',title:'신규 팬 환영 패키지',desc:'첫 후원한 팬에게 하트비 위젯 + 환영 알림톡.',
     make:()=>({situ:'first',actions:[{type:'widget',cfg:{widget:'하트비'}},{type:'kakao_send',cfg:{msg:'{닉네임}님, 첫 후원 감사합니다! 앞으로 잘 부탁드려요 💕'}}]})},
   {key:'bighand',icon:'💎',title:'큰손 축포',desc:'5만원 이상 후원 시 폭죽 위젯 + TTS 낭독.',
@@ -2636,7 +2660,7 @@ function addPreset(key){
 function openPresetWizard(key){
   const p=AUTO_PRESETS.find(x=>x.key===key);if(!p)return;const obj=p.make();
   W={step:1,id:null,situ:obj.situ,targetMode:obj.targetMode||'class',classes:[...(obj.classes||[])],picks:[...(obj.picks||[])],
-     amt:{...(obj.amt||{mode:'range',min:0,max:0})},actions:obj.actions.map(a=>({type:a.type,cfg:{...a.cfg}})),cooldown:defCooldown(),schedule:defSchedule()};
+     amt:{...(obj.amt||{mode:'range',min:0,max:0})},lead:obj.lead||3,actions:obj.actions.map(a=>({type:a.type,cfg:{...a.cfg}})),cooldown:defCooldown(),schedule:defSchedule()};
   byId('wizTitle').textContent='자동화 추가';
   advOpen=false;
   closeTpl();renderWizard();wizOv.classList.add('show');
@@ -3293,8 +3317,8 @@ function targetHit(a,d){
   return false;
 }
 function amtHit(a,amt){const m=a.amt||{};return m.mode==='over'?amt>=m.min:(amt>=m.min&&amt<=m.max);}
-const SITU_LOG={login:'방송 시작 시',first:'첫 후원 시',donate:'후원 시',amount:'후원 시',promote:'등급 승급',anniv:'가입 기념일'};
-const NO_AMT_SITU=['login','promote','anniv'];
+const SITU_LOG={login:'방송 시작 시',prestart:'방송 예정',first:'첫 후원 시',donate:'후원 시',amount:'후원 시',promote:'등급 승급',anniv:'가입 기념일'};
+const NO_AMT_SITU=['login','prestart','promote','anniv'];
 /* 쿨다운·스케줄 게이트 (런타임 상태, 비영속) */
 const AUTO_RT={};
 function ymdTs(ts){const d=new Date(ts);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
@@ -3336,6 +3360,7 @@ function fireAutos(kind,d,amt){
     else if(a.situ==='amount'&&kind==='donate') match=amtHit(a,amt);
     else if(a.situ==='promote'&&kind==='promote') match=targetHit(a,d);
     else if(a.situ==='anniv'&&kind==='anniv') match=targetHit(a,d);
+    else if(a.situ==='prestart'&&kind==='prestart') match=targetHit(a,d);
     if(match && autoAllowed(a,d)){
       const g=gradeForCash(d.cash);
       (a.actions||[]).forEach(ac=>{
@@ -3770,7 +3795,25 @@ function nextSched(){return DB.schedules.filter(s=>schedStatus(s)!=='done'&&s.st
   .sort((a,b)=>schedStart(a)-schedStart(b))[0];}
 
 function renderScheduleCount(){byId('tabCntSched').textContent=DB.schedules.filter(s=>schedStatus(s)==='upcoming').length;}
-function renderSchedule(){ renderScheduleCount(); renderCountdown(); renderBestTime();
+function activePrestart(){return DB.autos.filter(a=>a.on&&a.situ==='prestart');}
+function fireSchedulePrestart(){
+  const before=DB.autoLogs.length, pres=activePrestart();
+  DB.donators.forEach(d=>{ if(!d.blocked && pres.some(a=>targetHit(a,d))) fireAutos('prestart',d,0); });
+  return DB.autoLogs.length-before;
+}
+function renderPrestartBar(){
+  const bar=byId('prestartBar'), all=DB.autos.filter(a=>a.situ==='prestart'), on=all.filter(a=>a.on).length;
+  if(!all.length){bar.classList.add('hidden');return;}
+  bar.classList.remove('hidden');
+  bar.innerHTML=`<div class="pb-ic">⏰</div>
+    <div class="pb-tx"><b>방송 예정 알림 자동화 ${on}개 활성</b> <span style="color:var(--muted)">/ 전체 ${all.length}개</span>
+      <div class="pb-s">예정된 방송 전 팬에게 자동 알림톡을 보냅니다. 각 자동화는 <b>자동화 탭에서 ON/OFF</b> 할 수 있어요.</div></div>
+    <button class="btn ghost sm" id="pbTest" ${on?'':'disabled'}>⏰ 발동 테스트</button>
+    <button class="btn ghost sm" id="pbManage">관리</button>`;
+  byId('pbManage').onclick=()=>document.querySelector('.tab[data-tab="auto"]').click();
+  byId('pbTest').onclick=()=>{const n=fireSchedulePrestart();toast(n?`예정 알림 자동화 ${n}건 발동(테스트)`:'발동된 자동화가 없습니다');};
+}
+function renderSchedule(){ renderScheduleCount(); renderCountdown(); renderPrestartBar(); renderBestTime();
   byId('schedCalWrap').classList.toggle('hidden',schedView!=='calendar');
   byId('schedListWrap').classList.toggle('hidden',schedView!=='list');
   if(schedView==='calendar') renderCalendar(); else renderSchedList();

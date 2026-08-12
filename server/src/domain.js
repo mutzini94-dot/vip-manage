@@ -91,7 +91,7 @@ export function scheduleOk(a) {
   return true;
 }
 export const nowClock = () => { const d=new Date(); const z=n=>String(n).padStart(2,'0'); return `${z(d.getMonth()+1)}-${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}:${z(d.getSeconds())}`; };
-const NO_AMT = ['login','promote','anniv'];
+const NO_AMT = ['login','prestart','promote','anniv'];
 // 이벤트 발생 → 매칭되는 자동화 발동, DB.autoLogs 에 적재, 발동 목록 반환
 export function fireEvent(DB, kind, d, amt) {
   if (d.blocked) return [];
@@ -99,6 +99,7 @@ export function fireEvent(DB, kind, d, amt) {
   DB.autos.filter(a=>a.on && scheduleOk(a)).forEach(a=>{
     let m=false;
     if (a.situ==='login'  && kind==='login')  m=targetHit(DB,a,d);
+    else if (a.situ==='prestart' && kind==='prestart') m=targetHit(DB,a,d);
     else if (a.situ==='first'   && kind==='first')   m=true;
     else if (a.situ==='donate'  && kind==='donate')  m=targetHit(DB,a,d);
     else if (a.situ==='amount'  && kind==='donate')  m=amtHit(a,amt);
@@ -162,6 +163,17 @@ export function fireBroadcastStart(DB){
   });
   while(DB.autoLogs.length>200)DB.autoLogs.pop();
   return { firedCount: DB.autoLogs.length-before, matches: fired.length };
+}
+// 방송 예정(사전) 알림 자동화 발동 (ON인 것만)
+export function firePrestart(DB){
+  const before=DB.autoLogs.length;
+  const pres=DB.autos.filter(a=>a.on && a.situ==='prestart' && scheduleOk(a));
+  DB.donators.forEach(d=>{ if(d.blocked)return;
+    pres.forEach(a=>{ if(!targetHit(DB,a,d))return; const g=gradeForCash(DB,d.cash);
+      (a.actions||[]).forEach(ac=>DB.autoLogs.unshift({when:nowClock(),situ:'prestart',name:d.alias||d.name,grade:g?g.name:'',action:ac.type,amt:0})); });
+  });
+  while(DB.autoLogs.length>200)DB.autoLogs.pop();
+  return { firedCount: DB.autoLogs.length-before, active: pres.length };
 }
 export const AUTO_TEMPLATES = [
   { key:'vvip_live',   title:'VVIP 방송 시작 알림', situ:'login',   actions:['kakao_send'] },

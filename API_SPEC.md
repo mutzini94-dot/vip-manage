@@ -226,6 +226,9 @@ WebSocket 이벤트 예:
 | 메서드 | 경로 | 설명 |
 |--------|------|------|
 | POST | `/broadcasts/start` | 방송 시작 → **login 트리거 자동화 발동** → `{firedCount, matches, next}` |
+| POST | `/broadcasts/prestart` | **방송 예정(사전) 알림 자동화 발동**(ON인 것만) → `{firedCount, active}` |
+
+> `situ='prestart'` 자동화는 `lead`(방송 N시간 전) 필드를 가집니다. 모든 자동화는 `PATCH /automations/{id} {on}`으로 **ON/OFF** 가능.
 
 ### 4.11 설정 Settings
 | 메서드 | 경로 | 설명 |

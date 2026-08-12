@@ -119,7 +119,8 @@ export class ApiClient {
       icsUrl: ()       => `${this.a.baseUrl || ''}/schedules/export.ics`, // 브라우저에서 직접 열기/다운로드
     };
     this.broadcasts = {
-      start: () => req('POST', '/broadcasts/start'),
+      start:    () => req('POST', '/broadcasts/start'),    // login 트리거 자동화 발동
+      prestart: () => req('POST', '/broadcasts/prestart'), // 방송 예정(사전) 알림 자동화 발동
     };
     this.webhooks = {
       donation: (body) => req('POST', '/webhooks/donation', { body }),
