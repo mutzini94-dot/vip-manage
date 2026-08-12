@@ -773,6 +773,25 @@ tbody tr.blocked:hover{opacity:.72}
 .sched-badge.cancelled{background:var(--surface-3);color:var(--muted-2)}
 .sched-badge.repeat{background:var(--accent-soft);color:var(--accent)}
 
+/* 최적 방송 시간 히트맵 */
+.ht-scroll{overflow-x:auto}
+.ht-grid{display:grid;grid-template-columns:30px repeat(24,minmax(20px,1fr));gap:2px;min-width:560px}
+.ht-hh{font-size:9px;color:var(--muted-2);text-align:center;font-weight:700;padding-bottom:2px}
+.ht-corner{}
+.ht-wd{font-size:11px;font-weight:800;color:var(--muted);display:flex;align-items:center;justify-content:flex-end;padding-right:4px}
+.ht-wd.sun{color:#ff6b81}.ht-wd.sat{color:#7aa2ff}
+.ht-cell{height:18px;border-radius:3px;transition:.1s}
+.ht-cell:hover{outline:2px solid var(--line-strong);outline-offset:-1px}
+.ht-cell.peak{outline:2px solid var(--accent);outline-offset:-1px}
+.ht-legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted-2);font-weight:600}
+.ht-lg{width:60px;height:9px;border-radius:5px;background:linear-gradient(90deg,var(--surface-3),rgba(255,61,104,.9))}
+.best-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:720px){.best-slots{grid-template-columns:1fr}}
+.best-slot{border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:var(--surface-2);display:flex;align-items:center;gap:12px}
+.best-slot .bs-rank{font-size:22px;flex:none}
+.best-slot .bs-tx{flex:1;min-width:0}
+.best-slot .bs-t{font-weight:800;font-size:14px}
+.best-slot .bs-s{font-size:11.5px;color:var(--muted);margin-top:2px}
 /* 날짜별 후원 인사이트 */
 .day-dons{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto}
 .day-don{display:flex;align-items:center;gap:10px;padding:7px 9px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2)}
@@ -1272,6 +1291,16 @@ tbody tr.blocked:hover{opacity:.72}
       </div>
 
       <div id="schedCountdown" class="sched-hero"></div>
+
+      <div class="panel" id="bestTimeWrap" style="margin-bottom:16px">
+        <div class="panel-head"><h3>💡 최적 방송 시간</h3><span class="hint">최근 8주 후원 데이터 기반</span><div class="spacer"></div>
+          <div class="ht-legend"><span>적음</span><i class="ht-lg"></i><span>많음</span></div></div>
+        <div class="panel-body">
+          <div class="ht-scroll"><div id="bestHeat"></div></div>
+          <div class="section-lbl" style="margin:18px 0 10px">추천 시간대 <span style="color:var(--muted-2);font-weight:600">· 클릭하면 다음 해당 요일로 예약</span></div>
+          <div id="bestSlots" class="best-slots"></div>
+        </div>
+      </div>
 
       <div id="schedCalWrap" class="panel">
         <div class="panel-head">
@@ -3741,7 +3770,7 @@ function nextSched(){return DB.schedules.filter(s=>schedStatus(s)!=='done'&&s.st
   .sort((a,b)=>schedStart(a)-schedStart(b))[0];}
 
 function renderScheduleCount(){byId('tabCntSched').textContent=DB.schedules.filter(s=>schedStatus(s)==='upcoming').length;}
-function renderSchedule(){ renderScheduleCount(); renderCountdown();
+function renderSchedule(){ renderScheduleCount(); renderCountdown(); renderBestTime();
   byId('schedCalWrap').classList.toggle('hidden',schedView!=='calendar');
   byId('schedListWrap').classList.toggle('hidden',schedView!=='list');
   if(schedView==='calendar') renderCalendar(); else renderSchedList();
@@ -3831,6 +3860,50 @@ function schedRowHtml(s){
     </div></div>`;
 }
 
+/* 최적 방송 시간 추천 (스케줄 × 인사이트) */
+function bestTimeMatrix(){
+  const now=new Date(), mat=Array.from({length:7},()=>Array(24).fill(0));
+  for(let back=0;back<56;back++){
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-back);
+    const iso=`${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())}`;
+    const dd=dayDonations(iso); if(dd.future||!dd.list||!dd.list.length)continue;
+    const wd=d.getDay();
+    dd.list.forEach(x=>{const hr=+String(x.time).split(':')[0]||0; mat[wd][hr]+=x.amt;});
+  }
+  return mat;
+}
+function bestSlots(mat){
+  const perDay=[];
+  for(let wd=0;wd<7;wd++){let best={wd,h:0,sum:-1};
+    for(let h=0;h<=21;h++){const sum=mat[wd][h]+mat[wd][h+1]+mat[wd][h+2];if(sum>best.sum)best={wd,h,sum};}
+    perDay.push(best);}
+  return perDay.filter(s=>s.sum>0).sort((a,b)=>b.sum-a.sum).slice(0,3);
+}
+function htColor(a){ return a<=0?'var(--surface-3)':`rgba(255,61,104,${(0.10+a*0.82).toFixed(2)})`; }
+function renderBestTime(){
+  const mat=bestTimeMatrix(), max=Math.max(1,...mat.flat()), slots=bestSlots(mat);
+  const peak=new Set(); slots.forEach(s=>{for(let k=0;k<3;k++)peak.add(s.wd+'_'+(s.h+k));});
+  let hm='<div class="ht-grid"><div class="ht-corner"></div>'+Array.from({length:24},(_,h)=>`<div class="ht-hh">${h%3===0?h:''}</div>`).join('');
+  ['일','월','화','수','목','금','토'].forEach((w,wd)=>{
+    hm+=`<div class="ht-wd ${wd===0?'sun':wd===6?'sat':''}">${w}</div>`;
+    for(let h=0;h<24;h++){const v=mat[wd][h];
+      hm+=`<div class="ht-cell ${peak.has(wd+'_'+h)?'peak':''}" style="background:${htColor(v/max)}" title="${w} ${h}시 · ${won(v)}캐시"></div>`;}
+  });
+  hm+='</div>';
+  byId('bestHeat').innerHTML=hm;
+  byId('bestSlots').innerHTML=slots.length?slots.map((s,i)=>{const w=WD[s.wd];
+    return `<div class="best-slot"><div class="bs-rank">${['🥇','🥈','🥉'][i]}</div>
+      <div class="bs-tx"><div class="bs-t">${w}요일 ${z2(s.h)}:00~${z2(s.h+3)}:00</div><div class="bs-s">이 시간대 후원 최다 · 예상 ${compactWon(s.sum)}</div></div>
+      <button class="btn primary sm" data-slot="${s.wd}_${s.h}">예약</button></div>`;}).join(''):'<div class="helper">아직 분석할 후원 데이터가 부족합니다.</div>';
+  byId('bestSlots').querySelectorAll('[data-slot]').forEach(el=>el.onclick=()=>{const[wd,h]=el.dataset.slot.split('_').map(Number);scheduleAtSlot(wd,h);});
+}
+function scheduleAtSlot(wd,h){
+  const now=new Date(); let add=(wd-now.getDay()+7)%7; if(add===0)add=7;
+  const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+add);
+  openSched(null,`${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())}`);
+  byId('schedStart').value=`${z2(h)}:00`; byId('schedEnd').value=`${z2(Math.min(23,h+3))}:00`;
+}
+
 /* 날짜별 후원 인사이트 (달력 날짜 클릭) */
 function compactWon(n){ if(n>=10000){const m=n/10000;return (m>=100?String(Math.round(m)):m.toFixed(1).replace(/\.0$/,''))+'만';} return won(n); }
 function seedRand(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}
@@ -3846,7 +3919,7 @@ function dayDonations(iso){
   const picked=new Set(), list=[];
   for(let i=0;i<n;i++){let d,tr=0;do{d=pool[Math.floor(rnd()*pool.length)];tr++;}while(picked.has(d.id)&&tr<12);if(picked.has(d.id))continue;picked.add(d.id);
     const amt=[1000,3000,5000,10000,30000,50000][Math.floor(rnd()*6)]*(hasBroadcast&&rnd()>.7?2:1);
-    const hh=String(hasBroadcast?18+Math.floor(rnd()*5):Math.floor(rnd()*24)).padStart(2,'0'), mm=String(Math.floor(rnd()*60)).padStart(2,'0');
+    const hh=String(hasBroadcast?18+Math.floor(rnd()*5):13+Math.floor(rnd()*10)).padStart(2,'0'), mm=String(Math.floor(rnd()*60)).padStart(2,'0');
     list.push({d,amt,time:`${hh}:${mm}`});}
   list.sort((a,b)=>b.amt-a.amt);
   return {future:false,hasBroadcast,list,total:list.reduce((s,x)=>s+x.amt,0)};
