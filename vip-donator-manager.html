@@ -800,6 +800,35 @@ tbody tr.blocked:hover{opacity:.72}
 .recap-card .rc-t{font-weight:800;font-size:13.5px}
 .recap-card .rc-s{font-size:12px;color:var(--muted);margin-top:2px}
 .recap-card .rc-total{margin-left:auto;font-weight:800;color:var(--accent);white-space:nowrap}
+/* 명예의 전당 */
+.hall-tier{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:20px;white-space:nowrap;border:1px solid transparent}
+.hall-tier.king{background:rgba(255,203,69,.18);color:var(--vvip);border-color:rgba(255,203,69,.35)}
+.hall-tier.fame{background:rgba(255,138,92,.16);color:#ff9a6b;border-color:rgba(255,138,92,.3)}
+.hall-tier.legend{background:rgba(79,192,232,.16);color:#5fcbe8;border-color:rgba(79,192,232,.3)}
+.podium{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:12px;align-items:end;margin-bottom:18px}
+@media(max-width:640px){.podium{grid-template-columns:1fr;align-items:stretch}}
+.pod{border:1px solid var(--line);border-radius:16px;padding:18px 14px;text-align:center;background:linear-gradient(180deg,var(--surface-2),var(--surface));position:relative;overflow:hidden}
+.pod.p1{border-color:rgba(255,203,69,.4);background:linear-gradient(180deg,rgba(255,203,69,.1),var(--surface));padding-top:26px}
+.pod.p2{border-color:rgba(180,190,210,.3)}
+.pod.p3{border-color:rgba(255,138,92,.3)}
+.pod .medal{font-size:30px;line-height:1}
+.pod .pod-ava{width:64px;height:64px;border-radius:50%;margin:10px auto;display:grid;place-items:center;color:#fff;font-weight:800;font-size:22px;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.pod.p1 .pod-ava{width:76px;height:76px;font-size:26px;box-shadow:0 0 0 3px rgba(255,203,69,.4),0 6px 20px rgba(0,0,0,.35)}
+.pod .pod-nm{font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+.pod .pod-amt{font-size:19px;font-weight:800;letter-spacing:-.02em;margin-top:6px;color:var(--accent)}
+.pod.p1 .pod-amt{font-size:23px}
+.pod .pod-sub{font-size:11.5px;color:var(--muted);margin-top:4px}
+.pod .crown{position:absolute;top:10px;left:0;right:0;font-size:22px}
+.hall-list{display:flex;flex-direction:column}
+.hall-row{display:flex;align-items:center;gap:14px;padding:12px 6px;border-bottom:1px solid var(--line);cursor:pointer;transition:.1s}
+.hall-row:last-child{border:none}
+.hall-row:hover{background:var(--surface-2)}
+.hall-row .hr-rank{width:30px;text-align:center;font-weight:800;font-size:16px;color:var(--muted);flex:none}
+.hall-row .ava{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px}
+.hall-row .hr-nm{flex:1;min-width:0;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hall-row .hr-nm .al{font-size:11.5px;color:var(--muted);font-weight:600}
+.hall-row .hr-amt{font-weight:800;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.hall-row .hr-amt small{display:block;font-size:11px;color:var(--muted);font-weight:600}
 /* 후원 내역 */
 .dtype-badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:7px;white-space:nowrap}
 .dl-msg{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:280px}
@@ -936,6 +965,10 @@ tbody tr.blocked:hover{opacity:.72}
     <button class="tab" data-tab="market">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-5 3 3 4-6 3 4M3 21h18"/><path d="M14 6h5v5"/></svg>
       투스닥
+    </button>
+    <button class="tab" data-tab="hall">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v4a6 6 0 0 1-12 0zM4 5h2M18 5h2M9 15h6M8 21h8M12 15v6"/></svg>
+      명예의 전당
     </button>
     <button class="tab" data-tab="grade">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 6 .5-4.5 4 1.5 6-6-3.5L6 18.5 7.5 12.5 3 8.5 9 8z"/></svg>
@@ -1075,6 +1108,25 @@ tbody tr.blocked:hover{opacity:.72}
             <tbody id="tickerBody"></tbody>
           </table>
         </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB: 명예의 전당 ============ -->
+    <section id="page-hall" class="hidden">
+      <div class="page-head">
+        <div>
+          <h1>🏆 명예의 전당</h1>
+          <p>가장 큰 사랑을 보내주신 분들. 큰손 VIP를 특별하게 예우합니다.</p>
+        </div>
+        <div class="spacer"></div>
+        <div class="seg" id="hallMode" style="flex:none">
+          <button data-m="total" class="on">역대 누적</button><button data-m="month">이번 달</button>
+        </div>
+      </div>
+      <div id="hallPodium" class="podium"></div>
+      <div class="panel">
+        <div class="panel-head"><h3>랭킹</h3><span class="hint" id="hallHint"></span></div>
+        <div class="panel-body"><div id="hallList" class="hall-list"></div></div>
       </div>
     </section>
 
@@ -2164,7 +2216,7 @@ function titleBadge(t){return `<span class="tbadge" style="--tc:${t.color}"><spa
 /* =========================================================
    Tabs
    ========================================================= */
-const pages={insight:byId('page-insight'),market:byId('page-market'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),donations:byId('page-donations'),auto:byId('page-auto'),toon:byId('page-toon'),sched:byId('page-sched'),live:byId('page-live')};
+const pages={insight:byId('page-insight'),market:byId('page-market'),hall:byId('page-hall'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),donations:byId('page-donations'),auto:byId('page-auto'),toon:byId('page-toon'),sched:byId('page-sched'),live:byId('page-live')};
 function byId(id){return document.getElementById(id);}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
@@ -2172,6 +2224,7 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   Object.entries(pages).forEach(([k,el])=>el.classList.toggle('hidden',k!==tab));
   if(tab==='insight') renderInsights();
   if(tab==='market') renderMarket();
+  if(tab==='hall') renderHall();
   if(tab==='toon') renderToon();
   if(tab==='sched') renderSchedule();
   if(tab==='donations') renderDonationList();
@@ -2877,7 +2930,7 @@ function openDrawer(id){
   const d=DB.donators.find(x=>x.id===id); if(!d)return;
   const g=gradeForCash(d.cash);
   byId('drAva').textContent=d.name.slice(0,2); byId('drAva').style.background=avaColor(d.name);
-  byId('drName').innerHTML=`${d.name} ${gradeBadge(g)}`;
+  byId('drName').innerHTML=`${d.name} ${gradeBadge(g)} ${hallTierBadge(donatorRank(d.id))}`;
   byId('drAlias').textContent=d.alias?'@'+d.alias:'별칭 없음';
   byId('drLast').textContent=d.last; byId('drJoin').textContent=d.join; byId('drCount').textContent=won(d.count)+'건';
   byId('drCash').innerHTML=`${won(d.cash)}<small>캐시</small>`;
@@ -4493,6 +4546,54 @@ byId('dlExport').onclick=()=>{const rows=filteredDonations();const head=['시간
   const esc=v=>{v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
   const lines=[head.join(',')].concat(rows.map(r=>{const g=gradeForCash(r.d.cash);return [fmtDT(r.ts),r.d.name,g?g.name:'미분류',r.kind,r.amount,r.msg,r.source].map(esc).join(',');}));
   const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=`후원내역_${rows.length}건.csv`;a.click();URL.revokeObjectURL(u);toast(`${rows.length}건을 CSV로 내보냈습니다`);};
+
+/* =========================================================
+   TAB — 명예의 전당 (큰손 VIP 예우) + 전용 뱃지
+   ========================================================= */
+let hallMode='total';
+function hallTier(rank){
+  if(rank===1) return {key:'king',label:'후원왕',icon:'👑'};
+  if(rank<=5) return {key:'fame',label:'명예의 전당',icon:'🏆'};
+  if(rank<=10) return {key:'legend',label:'레전드',icon:'💎'};
+  return null;
+}
+function hallTierBadge(rank){if(!rank)return '';const t=hallTier(rank);return t?`<span class="hall-tier ${t.key}">${t.icon} ${t.label}</span>`:'';}
+function hallRanking(mode){
+  const ds=DB.donators.filter(d=>!d.blocked);
+  if(mode==='month'){
+    const now=new Date(), map={};
+    for(let day=1;day<=now.getDate();day++){const iso=`${now.getFullYear()}-${z2(now.getMonth()+1)}-${z2(day)}`;const dd=dayDonations(iso);if(dd.future||!dd.list)continue;dd.list.forEach(x=>{map[x.d.id]=(map[x.d.id]||0)+x.amt;});}
+    return ds.map(d=>({d,amount:map[d.id]||0})).filter(x=>x.amount>0).sort((a,b)=>b.amount-a.amount);
+  }
+  return ds.map(d=>({d,amount:d.cash})).sort((a,b)=>b.amount-a.amount);
+}
+// 도네이터의 역대 누적 랭크(1-based) → 전용 뱃지용
+function donatorRank(id){const r=hallRanking('total');const i=r.findIndex(x=>x.d.id===id);return i<0?null:i+1;}
+function renderHall(){
+  const rank=hallRanking(hallMode);
+  byId('hallHint').textContent=`${hallMode==='total'?'역대 누적 후원':'이번 달 후원'} · TOP ${Math.min(rank.length,15)}`;
+  // 시상대 (1,2,3)
+  const pod=byId('hallPodium'), medals=['🥇','🥈','🥉'];
+  const order=[1,0,2]; // 2등, 1등(가운데), 3등
+  pod.innerHTML=order.map(idx=>{const e=rank[idx];if(!e)return '<div></div>';const g=gradeForCash(e.d.cash);const cls=idx===0?'p1':idx===1?'p2':'p3';
+    return `<div class="pod ${cls}" data-don="${e.d.id}" style="cursor:pointer">${idx===0?'<div class="crown">👑</div>':''}
+      <div class="medal">${medals[idx]}</div>
+      <div class="pod-ava" style="background:${avaColor(e.d.name)}">${e.d.name.slice(0,2)}</div>
+      <div class="pod-nm">${e.d.alias||e.d.name} ${hallTierBadge(idx+1)}</div>
+      <div class="pod-amt">${won(e.amount)}<small style="font-size:12px;color:var(--muted)"> 캐시</small></div>
+      <div class="pod-sub">${g?g.name:'미분류'} · ${idx+1}위</div></div>`;}).join('');
+  // 리스트 (전체 TOP 15)
+  const box=byId('hallList');
+  box.innerHTML=rank.slice(0,15).map((e,i)=>{const g=gradeForCash(e.d.cash);const rk=i+1;
+    return `<div class="hall-row" data-don="${e.d.id}">
+      <div class="hr-rank" ${rk<=3?`style="color:var(--vvip)"`:''}>${rk}</div>
+      <div class="ava" style="background:${avaColor(e.d.name)}">${e.d.name.slice(0,2)}</div>
+      <div class="hr-nm">${e.d.alias||e.d.name} ${g?gradeBadge(g):''} ${hallTierBadge(rk)}</div>
+      <div class="hr-amt">${won(e.amount)}<small>캐시</small></div></div>`;}).join('')||'<div class="empty" style="padding:40px"><div class="t">아직 후원 기록이 없습니다</div></div>';
+  pod.querySelectorAll('[data-don]').forEach(el=>el.onclick=()=>openDrawer(el.dataset.don));
+  box.querySelectorAll('[data-don]').forEach(el=>el.onclick=()=>openDrawer(el.dataset.don));
+}
+byId('hallMode').querySelectorAll('button').forEach(b=>b.onclick=()=>{hallMode=b.dataset.m;byId('hallMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderHall();});
 
 /* ---------- init ---------- */
 renderSwatches();
