@@ -773,6 +773,36 @@ tbody tr.blocked:hover{opacity:.72}
 .sched-badge.cancelled{background:var(--surface-3);color:var(--muted-2)}
 .sched-badge.repeat{background:var(--accent-soft);color:var(--accent)}
 
+/* 알림 센터 (할 일 허브) */
+.bell-wrap{position:relative}
+.bell{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);position:relative;transition:.12s}
+.bell:hover{color:var(--text);border-color:var(--line-strong)}
+.bell.active{color:var(--accent);border-color:var(--accent)}
+.bell-badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:#fff;font-size:10.5px;font-weight:800;display:grid;place-items:center;border:2px solid var(--surface)}
+.alert-panel{position:absolute;top:46px;right:0;width:340px;background:var(--surface-2);border:1px solid var(--line-strong);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.5);z-index:60;overflow:hidden}
+.ap-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);font-size:14px}
+.ap-count{font-size:11.5px;font-weight:800;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:20px}
+.alert-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:.1s}
+.alert-row:last-child{border-bottom:none}
+.alert-row:hover{background:var(--surface-3)}
+.alert-row .ar-ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:16px;flex:none;background:var(--surface)}
+.alert-row .ar-tx{flex:1;min-width:0}
+.alert-row .ar-t{font-weight:700;font-size:13px}
+.alert-row .ar-s{font-size:11.5px;color:var(--muted);margin-top:2px}
+.alert-row .ar-go{color:var(--muted-2);flex:none}
+.alert-empty{padding:34px 16px;text-align:center;color:var(--muted);font-size:13px}
+/* 도네이터 활동 타임라인 */
+.tl{position:relative;padding-left:6px}
+.tl-item{position:relative;padding:0 0 16px 26px;border-left:2px solid var(--line)}
+.tl-item:last-child{border-left-color:transparent;padding-bottom:0}
+.tl-item .tl-dot{position:absolute;left:-11px;top:0;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;background:var(--surface-3);border:2px solid var(--surface)}
+.tl-item.donation .tl-dot,.tl-item.toon .tl-dot{background:var(--accent-soft)}
+.tl-item.join .tl-dot{background:rgba(51,214,159,.16)}
+.tl-item.block .tl-dot{background:rgba(255,70,70,.16)}
+.tl-item .tl-t{font-weight:700;font-size:13px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.tl-item .tl-amt{color:var(--accent);font-weight:800}
+.tl-item .tl-when{font-size:11px;color:var(--muted-2);font-variant-numeric:tabular-nums}
+.tl-item .tl-s{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.45;word-break:break-word}
 /* 방송 예정 자동화 바 */
 .prestart-bar{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:13px;margin-bottom:16px;
   background:var(--surface);border:1px solid var(--line)}
@@ -832,6 +862,16 @@ tbody tr.blocked:hover{opacity:.72}
     </div>
     <div class="spacer"></div>
     <div class="gnb-chip"><span class="dot"></span>리모컨 연동됨</div>
+    <div class="bell-wrap">
+      <button class="bell" id="bellBtn" title="할 일 · 알림">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <span class="bell-badge hidden" id="bellBadge">0</span>
+      </button>
+      <div class="alert-panel hidden" id="alertPanel">
+        <div class="ap-head"><b>할 일 · 알림</b><span id="apCount" class="ap-count"></span></div>
+        <div id="alertList"></div>
+      </div>
+    </div>
     <div class="avatar" title="크리에이터">CR</div>
   </div>
 
@@ -1507,8 +1547,8 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="grant-row" id="drGrant"></div>
     </div>
     <div class="dr-sec">
-      <div class="h">🧾 최근 후원 이력</div>
-      <div class="hist" id="drHist"></div>
+      <div class="h">🧭 활동 타임라인</div>
+      <div class="tl" id="drTimeline"></div>
     </div>
   </div>
 </div>
@@ -2725,12 +2765,8 @@ function openDrawer(id){
   }).join('');
   // titles
   renderDrTitles(d);
-  // history
-  byId('drHist').innerHTML=(d.history||[]).map(h=>{
-    const [dt,tm]=h.time.split(' ');
-    return `<div class="hist-row"><div class="ht">${dt}<br>${tm}</div><div class="hk">${h.kind}</div>
-      <div class="hc"><div class="msg">${h.msg}</div><div class="amt">${won(h.amt)} 캐시</div></div></div>`;
-  }).join('');
+  // 활동 타임라인
+  renderTimeline(d);
   byId('drawerOverlay').classList.add('show');
   byId('donDrawer').classList.add('show');
 }
@@ -2965,7 +3001,7 @@ byId('nudgeSend').onclick=()=>{
   toast('승급 넛지 알림톡을 발송했습니다 🎯');
 };
 
-function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderChurn();renderPareto();renderNudge();renderAnniv();}
+function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderChurn();renderPareto();renderNudge();renderAnniv();if(typeof renderAlerts==='function')renderAlerts();}
 
 /* =========================================================
    TAB — 칭호 관리 (규칙 엔진)
@@ -3673,7 +3709,7 @@ function renderToonStats(){
     <div class="stat"><div class="k">⌛ 만료</div><div class="v tnum">${expired}<small>건</small></div></div>`;
   byId('tabCntToon').textContent=pending;
 }
-function renderToon(){ byId('toonAlert').classList.toggle('on',!!DB.toonUnreadAlert); renderToonStats(); renderToonList(); renderStories(); }
+function renderToon(){ byId('toonAlert').classList.toggle('on',!!DB.toonUnreadAlert); renderToonStats(); renderToonList(); renderStories(); if(typeof renderAlerts==='function')renderAlerts(); }
 function renderToonList(){
   const box=byId('toonList');
   let list=DB.toontalks.map(t=>({t,eff:toonEffStatus(t)}));
@@ -4124,6 +4160,59 @@ function announceSched(id){const s=DB.schedules.find(x=>x.id===id);if(!s)return;
   save(); toast('스토리로 공지했습니다 📢 (투네톡)');
 }
 
+/* =========================================================
+   도네이터 활동 타임라인 (프로필 통합 이력)
+   ========================================================= */
+function renderTimeline(d){
+  const ev=[];
+  ev.push({ts:parseD(d.join),cls:'join',icon:'🎉',t:'투네이션 가입'});
+  (d.history||[]).forEach(h=>{const ts=new Date(String(h.time).replace(' ','T')).getTime();ev.push({ts,cls:'donation',icon:'💰',t:`${h.kind} 후원`,amt:h.amt,s:h.msg});});
+  DB.toontalks.filter(t=>t.donatorId===d.id).forEach(t=>{
+    ev.push({ts:t.createdTs,cls:'toon',icon:'💬',t:'투네톡 후원',amt:t.amount,s:t.message});
+    if(t.status==='done'&&t.respondedTs)ev.push({ts:t.respondedTs,cls:'toon',icon:'✅',t:'투네톡 답장 완료',s:t.reply});
+  });
+  if(d.blocked&&d.blockedAt)ev.push({ts:parseD(d.blockedAt),cls:'block',icon:'⛔',t:'차단됨',s:d.blockReason||''});
+  if(d.nudged)ev.push({ts:Date.now(),cls:'',icon:'🎯',t:'승급 넛지 발송'});
+  if(d.celebrated)ev.push({ts:Date.now(),cls:'',icon:'🎂',t:'기념일 축하 발송'});
+  ev.sort((a,b)=>b.ts-a.ts);
+  byId('drTimeline').innerHTML=ev.map(e=>{const dt=new Date(e.ts);const ds=`${dt.getFullYear()}-${z2(dt.getMonth()+1)}-${z2(dt.getDate())}`;
+    return `<div class="tl-item ${e.cls}"><div class="tl-dot">${e.icon}</div>
+      <div class="tl-t">${e.t}${e.amt?` <span class="tl-amt">${won(e.amt)} 캐시</span>`:''} <span class="tl-when">· ${ds}</span></div>
+      ${e.s?`<div class="tl-s">${(e.s||'').replace(/</g,'&lt;')}</div>`:''}</div>`;}).join('')||'<div class="helper">활동 이력이 없습니다</div>';
+}
+
+/* =========================================================
+   알림 센터 (할 일 허브)
+   ========================================================= */
+function goTab(t){document.querySelector(`.tab[data-tab="${t}"]`).click();}
+function alertItems(){
+  const items=[];
+  const pend=DB.toontalks.filter(t=>toonEffStatus(t)==='pending').length;
+  if(pend)items.push({icon:'💬',t:`투네톡 답장 대기 ${pend}건`,s:'72시간 내 답장하면 후원 완료',go:()=>{toonFilter='pending';goTab('toon');byId('toonFilter').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.f==='pending'));renderToon();}});
+  const ch=churnData(churnThreshold).length;
+  if(ch)items.push({icon:'⚠️',t:`이탈 위험 VIP ${ch}명`,s:`무후원 ${churnThreshold}일 이상 · 복귀 유도 필요`,go:()=>goTab('insight')});
+  const nu=nudgeData(nudgeThreshold).filter(x=>!x.d.nudged).length;
+  if(nu)items.push({icon:'🎯',t:`승급 임박 VIP ${nu}명`,s:'다음 등급까지 얼마 안 남았어요',go:()=>goTab('insight')});
+  const an=annivList().filter(x=>x.days<=7&&!x.d.celebrated).length;
+  if(an)items.push({icon:'🎂',t:`다가오는 기념일 ${an}명`,s:'7일 이내 가입 기념일 · 축하하기',go:()=>goTab('insight')});
+  const today=`${new Date().getFullYear()}-${z2(new Date().getMonth()+1)}-${z2(new Date().getDate())}`;
+  const sc=DB.schedules.filter(s=>s.date===today&&schedStatus(s)==='upcoming').length;
+  if(sc)items.push({icon:'📅',t:`오늘 방송 예정 ${sc}건`,s:'예정된 방송을 확인하세요',go:()=>goTab('sched')});
+  return items;
+}
+function renderAlerts(){
+  const items=alertItems(), n=items.length, badge=byId('bellBadge');
+  if(badge){badge.textContent=n;badge.classList.toggle('hidden',!n);}
+  const list=byId('alertList'); if(!list)return;
+  byId('apCount').textContent=n?`${n}개 영역`:'';
+  list.innerHTML=n?items.map((it,i)=>`<div class="alert-row" data-i="${i}"><div class="ar-ic">${it.icon}</div><div class="ar-tx"><div class="ar-t">${it.t}</div><div class="ar-s">${it.s}</div></div><svg class="ar-go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>`).join(''):'<div class="alert-empty">✅ 지금 처리할 일이 없어요</div>';
+  list.querySelectorAll('.alert-row').forEach(el=>el.onclick=()=>{alertItems()[+el.dataset.i]?.go();closeAlerts();});
+}
+function openAlerts(){renderAlerts();byId('alertPanel').classList.remove('hidden');byId('bellBtn').classList.add('active');}
+function closeAlerts(){byId('alertPanel').classList.add('hidden');byId('bellBtn').classList.remove('active');}
+byId('bellBtn').onclick=e=>{e.stopPropagation();byId('alertPanel').classList.contains('hidden')?openAlerts():closeAlerts();};
+document.addEventListener('click',e=>{if(!e.target.closest('.bell-wrap'))closeAlerts();});
+
 /* ---------- init ---------- */
 renderSwatches();
 renderGrades();
@@ -4135,6 +4224,7 @@ renderTitles();
 renderLive();
 renderToonStats();
 renderScheduleCount();
+renderAlerts();
 </script>
 </body>
 </html>
