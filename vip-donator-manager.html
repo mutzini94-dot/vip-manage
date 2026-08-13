@@ -4464,13 +4464,14 @@ function renderDonationList(){
   const slice=rows.slice((dlPage-1)*DL_PER,dlPage*DL_PER);
   const tb=byId('dlTbody');
   tb.innerHTML=slice.length?slice.map(r=>{const g=gradeForCash(r.d.cash),ty=DON_TYPES[r.kind]||DON_TYPES['텍스트'];
-    return `<tr>
+    return `<tr data-don="${r.d.id}" title="프로필 보기">
       <td class="tnum" style="color:var(--muted);font-size:12.5px">${fmtDT(r.ts)}</td>
       <td><div class="dn-cell"><div class="ava" style="width:30px;height:30px;font-size:11px;background:${avaColor(r.d.name)}">${r.d.name.slice(0,2)}</div><div><div class="nm" style="font-size:13px">${r.d.alias||r.d.name}</div><div class="al">${g?g.name:'미분류'}</div></div></div></td>
       <td><span class="dtype-badge" style="background:${ty.color}22;color:${ty.color}">${ty.icon} ${r.kind}</span></td>
       <td><div class="cash">${won(r.amount)}<small> 캐시</small></div></td>
       <td><div class="dl-msg" title="${(r.msg||'').replace(/"/g,'&quot;')}">${(r.msg||'').replace(/</g,'&lt;')||'-'}</div></td>
       <td><span class="dl-src ${r.source==='투네톡'?'toon':''}">${r.source}</span></td></tr>`;}).join(''):`<tr><td colspan="6"><div class="empty" style="padding:40px"><div class="t">해당하는 후원이 없습니다</div></div></td></tr>`;
+  tb.querySelectorAll('tr[data-don]').forEach(el=>el.onclick=()=>openDrawer(el.dataset.don));
   // pager
   const pg=byId('dlPager');
   if(cnt<=DL_PER){pg.innerHTML=cnt?`<span class="pg-info">${won(cnt)}건</span>`:'';}
