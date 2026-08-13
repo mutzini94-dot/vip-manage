@@ -800,6 +800,17 @@ tbody tr.blocked:hover{opacity:.72}
 .recap-card .rc-t{font-weight:800;font-size:13.5px}
 .recap-card .rc-s{font-size:12px;color:var(--muted);margin-top:2px}
 .recap-card .rc-total{margin-left:auto;font-weight:800;color:var(--accent);white-space:nowrap}
+/* 후원 내역 */
+.dtype-badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:7px;white-space:nowrap}
+.dl-msg{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:280px}
+.dl-src{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--surface-3);color:var(--muted)}
+.dl-src.toon{background:rgba(255,92,122,.14);color:#ff8aa2}
+.dl-pager{display:flex;align-items:center;justify-content:center;gap:6px;padding:14px;border-top:1px solid var(--line)}
+.dl-pager button{min-width:32px;height:32px;padding:0 8px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:12.5px}
+.dl-pager button:hover:not(:disabled){color:var(--text);border-color:var(--line-strong)}
+.dl-pager button.on{background:var(--accent);border-color:transparent;color:#fff}
+.dl-pager button:disabled{opacity:.4;pointer-events:none}
+.dl-pager .pg-info{font-size:12px;color:var(--muted);margin:0 8px}
 /* 팬 여정 퍼널 */
 .funnel{display:flex;flex-direction:column;gap:9px}
 .fn-row{display:flex;align-items:center;gap:12px}
@@ -937,6 +948,10 @@ tbody tr.blocked:hover{opacity:.72}
     <button class="tab" data-tab="donator">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 6.5a3 3 0 0 1 0 5.6M20.5 20a4.8 4.8 0 0 0-3-4.4"/></svg>
       도네이터 관리 <span class="cnt" id="tabCntDon">0</span>
+    </button>
+    <button class="tab" data-tab="donations">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      후원 내역
     </button>
     <button class="tab" data-tab="auto">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 13a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 6.6 19a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H2a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 3.7 6.6a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>
@@ -1242,6 +1257,53 @@ tbody tr.blocked:hover{opacity:.72}
             <tbody id="donTbody"></tbody>
           </table>
         </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB: 후원 내역 ============ -->
+    <section id="page-donations" class="hidden">
+      <div class="page-head">
+        <div>
+          <h1>후원 내역</h1>
+          <p>모든 후원을 시간순으로 모아봅니다. 검색·정렬·유형/등급/기간별로 분류하세요.</p>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn ghost" id="dlExport">📥 CSV 내보내기</button>
+      </div>
+
+      <div class="stats" id="dlStats"></div>
+
+      <div class="toolbar-row">
+        <div class="searchbar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+          <input id="dlSearch" placeholder="도네이터·내용 검색">
+        </div>
+        <div class="seg" id="dlType" style="flex:none">
+          <button data-t="all" class="on">전체</button><button data-t="텍스트">텍스트</button><button data-t="음성">음성</button><button data-t="시그니처">시그니처</button><button data-t="퀘스트">퀘스트</button><button data-t="투네톡">투네톡</button>
+        </div>
+        <select class="inp" id="dlGrade" style="width:auto;flex:none;padding:9px 32px 9px 12px"></select>
+        <div class="seg" id="dlRange" style="flex:none">
+          <button data-r="all" class="on">전체</button><button data-r="7">7일</button><button data-r="30">30일</button><button data-r="90">90일</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="sortable" data-col="ts" style="width:150px">시간 <span class="arr">↓</span></th>
+                <th>도네이터</th>
+                <th style="width:110px">유형</th>
+                <th class="sortable" data-col="amount" style="width:120px">금액 <span class="arr"></span></th>
+                <th>내용</th>
+                <th style="width:70px">출처</th>
+              </tr>
+            </thead>
+            <tbody id="dlTbody"></tbody>
+          </table>
+        </div>
+        <div class="dl-pager" id="dlPager"></div>
       </div>
     </section>
 
@@ -2102,7 +2164,7 @@ function titleBadge(t){return `<span class="tbadge" style="--tc:${t.color}"><spa
 /* =========================================================
    Tabs
    ========================================================= */
-const pages={insight:byId('page-insight'),market:byId('page-market'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),auto:byId('page-auto'),toon:byId('page-toon'),sched:byId('page-sched'),live:byId('page-live')};
+const pages={insight:byId('page-insight'),market:byId('page-market'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),donations:byId('page-donations'),auto:byId('page-auto'),toon:byId('page-toon'),sched:byId('page-sched'),live:byId('page-live')};
 function byId(id){return document.getElementById(id);}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
@@ -2112,6 +2174,7 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   if(tab==='market') renderMarket();
   if(tab==='toon') renderToon();
   if(tab==='sched') renderSchedule();
+  if(tab==='donations') renderDonationList();
   if(tab==='donator') renderDonators();
   if(tab==='auto') renderAutos();
   if(tab==='grade') renderGrades();
@@ -4142,7 +4205,9 @@ function dayDonations(iso){
   for(let i=0;i<n;i++){let d,tr=0;do{d=pool[Math.floor(rnd()*pool.length)];tr++;}while(picked.has(d.id)&&tr<12);if(picked.has(d.id))continue;picked.add(d.id);
     const amt=[1000,3000,5000,10000,30000,50000][Math.floor(rnd()*6)]*(hasBroadcast&&rnd()>.7?2:1);
     const hh=String(hasBroadcast?18+Math.floor(rnd()*5):13+Math.floor(rnd()*10)).padStart(2,'0'), mm=String(Math.floor(rnd()*60)).padStart(2,'0');
-    list.push({d,amt,time:`${hh}:${mm}`});}
+    const kind=['텍스트','음성','시그니처','퀘스트'][Math.floor(rnd()*4)];
+    const msg=['후원합니다!','오늘도 화이팅','방송 잘보고있어요','1일 1후원','고생 많으셨어요','늘 감사해요','최고예요 👍'][Math.floor(rnd()*7)];
+    list.push({d,amt,time:`${hh}:${mm}`,kind,msg});}
   list.sort((a,b)=>b.amt-a.amt);
   return {future:false,hasBroadcast,list,total:list.reduce((s,x)=>s+x.amt,0)};
 }
@@ -4356,6 +4421,77 @@ function openAlerts(){renderAlerts();byId('alertPanel').classList.remove('hidden
 function closeAlerts(){byId('alertPanel').classList.add('hidden');byId('bellBtn').classList.remove('active');}
 byId('bellBtn').onclick=e=>{e.stopPropagation();byId('alertPanel').classList.contains('hidden')?openAlerts():closeAlerts();};
 document.addEventListener('click',e=>{if(!e.target.closest('.bell-wrap'))closeAlerts();});
+
+/* =========================================================
+   TAB — 후원 내역 (통합 후원 리스트)
+   ========================================================= */
+const DON_TYPES={텍스트:{icon:'📝',color:'#5b8cff'},음성:{icon:'🎤',color:'#33d69f'},시그니처:{icon:'✍️',color:'#a45bff'},퀘스트:{icon:'🎯',color:'#ff8a5c'},투네톡:{icon:'💬',color:'#ff5c7a'}};
+let dlQuery='',dlTypeF='all',dlGradeF='all',dlRangeF='all',dlSortCol='ts',dlSortDir=-1,dlPage=1;
+const DL_PER=15;
+function buildDonations(){
+  const list=[], now=new Date();
+  for(let back=0;back<90;back++){
+    const dt=new Date(now.getFullYear(),now.getMonth(),now.getDate()-back);
+    const iso=`${dt.getFullYear()}-${z2(dt.getMonth()+1)}-${z2(dt.getDate())}`;
+    const dd=dayDonations(iso); if(dd.future||!dd.list)continue;
+    dd.list.forEach(x=>{const[hh,mm]=x.time.split(':');const ts=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate(),+hh,+mm).getTime();
+      list.push({ts,d:x.d,amount:x.amt,kind:x.kind||'텍스트',msg:x.msg||'',source:'일반'});});
+  }
+  DB.toontalks.filter(t=>t.status==='done').forEach(t=>{const d=DB.donators.find(x=>x.id===t.donatorId);if(d)list.push({ts:t.respondedTs,d,amount:t.amount,kind:'투네톡',msg:t.message,source:'투네톡'});});
+  return list;
+}
+function filteredDonations(){
+  let rows=buildDonations();
+  if(dlRangeF!=='all'){const from=Date.now()-(+dlRangeF)*86400000;rows=rows.filter(r=>r.ts>=from);}
+  if(dlTypeF!=='all')rows=rows.filter(r=>r.kind===dlTypeF);
+  if(dlGradeF!=='all')rows=rows.filter(r=>{const g=gradeForCash(r.d.cash);return g&&g.id===dlGradeF;});
+  if(dlQuery){const q=dlQuery.toLowerCase();rows=rows.filter(r=>r.d.name.toLowerCase().includes(q)||(r.d.alias||'').toLowerCase().includes(q)||(r.msg||'').toLowerCase().includes(q));}
+  rows.sort((a,b)=>dlSortDir*((a[dlSortCol]||0)-(b[dlSortCol]||0)));
+  return rows;
+}
+function fmtDT(ts){const d=new Date(ts);return `${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())} ${z2(d.getHours())}:${z2(d.getMinutes())}`;}
+function renderDonationList(){
+  // grade select (once)
+  if(byId('dlGrade').options.length===0){byId('dlGrade').innerHTML='<option value="all">전체 등급</option>'+DB.grades.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');}
+  const rows=filteredDonations();
+  const total=rows.reduce((s,r)=>s+r.amount,0), cnt=rows.length, avg=cnt?Math.round(total/cnt):0, max=cnt?Math.max(...rows.map(r=>r.amount)):0;
+  byId('dlStats').innerHTML=`
+    <div class="stat"><div class="k">💰 총 후원</div><div class="v tnum">${won(total)}<small>캐시</small></div></div>
+    <div class="stat"><div class="k">🧾 후원 건수</div><div class="v tnum">${won(cnt)}<small>건</small></div></div>
+    <div class="stat"><div class="k">📊 평균 후원</div><div class="v tnum">${won(avg)}<small>캐시</small></div></div>
+    <div class="stat"><div class="k">🏆 최고 후원</div><div class="v tnum">${won(max)}<small>캐시</small></div></div>`;
+  const pages=Math.max(1,Math.ceil(cnt/DL_PER)); if(dlPage>pages)dlPage=pages;
+  const slice=rows.slice((dlPage-1)*DL_PER,dlPage*DL_PER);
+  const tb=byId('dlTbody');
+  tb.innerHTML=slice.length?slice.map(r=>{const g=gradeForCash(r.d.cash),ty=DON_TYPES[r.kind]||DON_TYPES['텍스트'];
+    return `<tr>
+      <td class="tnum" style="color:var(--muted);font-size:12.5px">${fmtDT(r.ts)}</td>
+      <td><div class="dn-cell"><div class="ava" style="width:30px;height:30px;font-size:11px;background:${avaColor(r.d.name)}">${r.d.name.slice(0,2)}</div><div><div class="nm" style="font-size:13px">${r.d.alias||r.d.name}</div><div class="al">${g?g.name:'미분류'}</div></div></div></td>
+      <td><span class="dtype-badge" style="background:${ty.color}22;color:${ty.color}">${ty.icon} ${r.kind}</span></td>
+      <td><div class="cash">${won(r.amount)}<small> 캐시</small></div></td>
+      <td><div class="dl-msg" title="${(r.msg||'').replace(/"/g,'&quot;')}">${(r.msg||'').replace(/</g,'&lt;')||'-'}</div></td>
+      <td><span class="dl-src ${r.source==='투네톡'?'toon':''}">${r.source}</span></td></tr>`;}).join(''):`<tr><td colspan="6"><div class="empty" style="padding:40px"><div class="t">해당하는 후원이 없습니다</div></div></td></tr>`;
+  // pager
+  const pg=byId('dlPager');
+  if(cnt<=DL_PER){pg.innerHTML=cnt?`<span class="pg-info">${won(cnt)}건</span>`:'';}
+  else{let btns='';const win=2;
+    btns+=`<button ${dlPage===1?'disabled':''} data-p="${dlPage-1}">‹</button>`;
+    for(let p=1;p<=pages;p++){if(p===1||p===pages||Math.abs(p-dlPage)<=win)btns+=`<button class="${p===dlPage?'on':''}" data-p="${p}">${p}</button>`;else if(Math.abs(p-dlPage)===win+1)btns+='<span class="pg-info">…</span>';}
+    btns+=`<button ${dlPage===pages?'disabled':''} data-p="${dlPage+1}">›</button>`;
+    pg.innerHTML=`<span class="pg-info">${won(cnt)}건 · ${dlPage}/${pages}p</span>`+btns;
+    pg.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{dlPage=+b.dataset.p;renderDonationList();});
+  }
+}
+byId('dlSearch').addEventListener('input',e=>{dlQuery=e.target.value.trim().toLowerCase();dlPage=1;renderDonationList();});
+byId('dlType').querySelectorAll('button').forEach(b=>b.onclick=()=>{dlTypeF=b.dataset.t;byId('dlType').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));dlPage=1;renderDonationList();});
+byId('dlRange').querySelectorAll('button').forEach(b=>b.onclick=()=>{dlRangeF=b.dataset.r;byId('dlRange').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));dlPage=1;renderDonationList();});
+byId('dlGrade').addEventListener('change',e=>{dlGradeF=e.target.value;dlPage=1;renderDonationList();});
+document.querySelectorAll('#page-donations th.sortable').forEach(th=>th.onclick=()=>{const c=th.dataset.col;if(dlSortCol===c)dlSortDir*=-1;else{dlSortCol=c;dlSortDir=-1;}
+  document.querySelectorAll('#page-donations th.sortable').forEach(x=>x.querySelector('.arr').textContent='');th.querySelector('.arr').textContent=dlSortDir<0?'↓':'↑';renderDonationList();});
+byId('dlExport').onclick=()=>{const rows=filteredDonations();const head=['시간','도네이터','등급','유형','금액','내용','출처'];
+  const esc=v=>{v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  const lines=[head.join(',')].concat(rows.map(r=>{const g=gradeForCash(r.d.cash);return [fmtDT(r.ts),r.d.name,g?g.name:'미분류',r.kind,r.amount,r.msg,r.source].map(esc).join(',');}));
+  const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=`후원내역_${rows.length}건.csv`;a.click();URL.revokeObjectURL(u);toast(`${rows.length}건을 CSV로 내보냈습니다`);};
 
 /* ---------- init ---------- */
 renderSwatches();
