@@ -773,6 +773,33 @@ tbody tr.blocked:hover{opacity:.72}
 .sched-badge.cancelled{background:var(--surface-3);color:var(--muted-2)}
 .sched-badge.repeat{background:var(--accent-soft);color:var(--accent)}
 
+/* 방송 성과 리캡 */
+.recap-hero{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;margin-bottom:16px;background:linear-gradient(120deg,var(--accent-soft),var(--surface-2));border:1px solid var(--line)}
+.recap-hero .rh-ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:24px;flex:none}
+.recap-hero .rh-t{font-size:17px;font-weight:800}
+.recap-hero .rh-s{font-size:12.5px;color:var(--muted);margin-top:3px}
+.recap-hero .rh-total{margin-left:auto;text-align:right}
+.recap-hero .rh-total .v{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.recap-hero .rh-total .k{font-size:11px;color:var(--muted);font-weight:700}
+.recap-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:640px){.recap-stats{grid-template-columns:repeat(2,1fr)}}
+.recap-stat{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:13px 14px}
+.recap-stat .k{font-size:11.5px;color:var(--muted);font-weight:600}
+.recap-stat .v{font-size:19px;font-weight:800;margin-top:5px}
+.recap-stat .v small{font-size:12px;color:var(--muted);font-weight:600}
+.recap-top .rt-row{display:flex;align-items:center;gap:11px;padding:8px 4px;border-bottom:1px solid var(--line)}
+.recap-top .rt-row:last-child{border:none}
+.recap-top .rt-medal{width:24px;text-align:center;font-weight:800;color:var(--muted)}
+.recap-top .rt-nm{flex:1;font-weight:700;font-size:13px;display:flex;align-items:center;gap:7px}
+.recap-top .rt-amt{font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+/* 지난 방송 성과 리스트 */
+.recap-list{display:flex;flex-direction:column;gap:10px;margin-top:18px;max-width:520px;margin-left:auto;margin-right:auto;text-align:left}
+.recap-card{display:flex;align-items:center;gap:13px;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);cursor:pointer;transition:.14s}
+.recap-card:hover{border-color:var(--line-strong)}
+.recap-card .rc-ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:18px;flex:none;background:var(--accent-soft)}
+.recap-card .rc-t{font-weight:800;font-size:13.5px}
+.recap-card .rc-s{font-size:12px;color:var(--muted);margin-top:2px}
+.recap-card .rc-total{margin-left:auto;font-weight:800;color:var(--accent);white-space:nowrap}
 /* 팬 여정 퍼널 */
 .funnel{display:flex;flex-direction:column;gap:9px}
 .fn-row{display:flex;align-items:center;gap:12px}
@@ -1270,6 +1297,7 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="t">방송이 꺼져 있습니다</div>
         <div class="s">‘방송 시작’을 누르면 접속한 VIP가 실시간으로 표시됩니다.</div>
       </div>
+      <div id="liveRecaps" class="hidden"></div>
 
       <!-- 라이브 상태 -->
       <div id="liveOn" class="hidden">
@@ -1766,6 +1794,15 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
 </div>
 
+<!-- ============ 방송 성과 리캡 ============ -->
+<div class="overlay" id="recapOverlay">
+  <div class="modal wide">
+    <div class="modal-head"><h2>📊 방송 성과 리캡</h2><div class="spacer"></div><button class="xbtn" id="recapClose">✕</button></div>
+    <div class="modal-body" id="recapBody"></div>
+    <div class="modal-foot"><div class="spacer"></div><button class="btn ghost" id="recapCloseBtn">닫기</button><button class="btn primary" id="recapAnnounce">📢 성과 공유(스토리)</button></div>
+  </div>
+</div>
+
 <!-- ============ 날짜별 후원 인사이트 ============ -->
 <div class="overlay" id="dayOverlay">
   <div class="modal wide">
@@ -1869,6 +1906,7 @@ function seed(){
     stories: seedStories(),
     toonUnreadAlert: true,
     schedules: seedSchedules(),
+    recaps: seedRecaps(donators),
     autos:[
       {id:uid(),on:true,situ:'login',targetMode:'class',classes:['g_vvip'],
        actions:[{type:'kakao_send',cfg:{msg:'{크리에이터} 님이 방송을 시작하였습니다'}}]},
@@ -1915,6 +1953,16 @@ function seedToontalks(donators){
     return {id:uid(),donatorId:d.id,amount:r.amt,message:msgs[k%msgs.length],
       status:r.status,createdTs:created,respondedTs:r.status==='done'?created+2*H:null,reply:r.reply||''};});
 }
+function seedRecaps(donators){
+  const top=donators.filter(d=>!d.blocked).sort((a,b)=>b.cash-a.cash).slice(0,5);
+  const gname=c=>c>=300000?'VVIP':c>=100000?'VIP':c>=30000?'열혈':'';
+  const now=Date.now();
+  return [{id:uid(),schedId:null,title:'지난 게임 방송',category:'게임',
+    startedTs:now-2*86400000,endedTs:now-2*86400000+3*3600000,durationSec:3*3600,
+    totalDonation:428000,donationCount:37,uniqueDonors:14,peakOnline:9,
+    top:top.map((d,i)=>({name:d.alias||d.name,grade:gname(d.cash),amount:[90000,70000,55000,40000,30000][i]||10000})),
+    happyHour:true,toonCompleted:3}];
+}
 function seedStories(){const now=Date.now();return [
   {id:uid(),text:'오늘 오전 10시에 방송 시작합니다. 많이들 와주세요! 🎮',pinned:true,ts:now-30*60000},
   {id:uid(),text:'지난 방송 함께해주셔서 감사했어요 🙌 다음 주도 기대해주세요!',pinned:false,ts:now-26*3600000},
@@ -1951,12 +1999,13 @@ function normalize(){
   if(!DB.stories) DB.stories=[];
   if(DB.toonUnreadAlert===undefined) DB.toonUnreadAlert=true;
   if(!DB.schedules) DB.schedules=[];
+  if(!DB.recaps) DB.recaps=[];
   (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;});
   // 구버전 마이그레이션: 단일 action → actions 배열
   (DB.autos||[]).forEach(a=>{ if(!a.actions){a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[];delete a.action;delete a.cfg;} });
   (DB.autoLogs||[]).forEach(l=>{ if(!l.situ&&l.type) l.situ=l.type; });
 }
-function save(){ localStorage.setItem(LS, JSON.stringify(DB)); }
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(DB)); }catch(e){} }
 
 /* ---------- grade helpers ---------- */
 const clsOf = g => g.cls || 'none';
@@ -2811,7 +2860,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','stockOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','stockOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -3208,7 +3257,7 @@ function todayStr(){const t=refNow();const dt=new Date(t);return `${dt.getFullYe
 /* =========================================================
    TAB — 라이브 VIP 뷰
    ========================================================= */
-const LIVE={on:false,online:new Map(),feed:[],donation:0,elapsed:0,rank:new Map(),happy:{on:false,mult:2,ends:0},tick:null,clock:null};
+const LIVE={on:false,online:new Map(),feed:[],donation:0,elapsed:0,rank:new Map(),happy:{on:false,mult:2,ends:0},donCount:0,peakOnline:0,schedId:null,title:'',category:'',hadHappy:false,startTs:0,tick:null,clock:null};
 const DONATE_AMTS=[1000,3000,5000,10000,30000,50000];
 function liveEligible(){return DB.donators.filter(d=>!d.blocked && gradeForCash(d.cash));}
 function pick(arr){return arr.length?arr[Math.floor(Math.random()*arr.length)]:null;}
@@ -3219,18 +3268,66 @@ byId('stopLiveBtn').onclick=stopLive;
 function goLive(){
   clearInterval(LIVE.tick); clearInterval(LIVE.clock);   // 중복 타이머 방지
   LIVE.on=true; LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0; LIVE.rank=new Map(); LIVE.happy={on:false,mult:2,ends:0};
+  LIVE.donCount=0; LIVE.peakOnline=0; LIVE.hadHappy=false; LIVE.startTs=Date.now(); LIVE.schedId=null; LIVE.title=''; LIVE.category='';
   const pool=liveEligible().sort(()=>Math.random()-.5);
   pool.slice(0,Math.min(6,pool.length)).forEach(d=>LIVE.online.set(d.id,{mins:1+Math.floor(Math.random()*35)}));
+  LIVE.peakOnline=LIVE.online.size;
   pushFeed('start',null,'방송을 시작했습니다');
   LIVE.tick=setInterval(liveTick,3000);
   LIVE.clock=setInterval(()=>{LIVE.elapsed++;updateElapsed();tickHappy();},1000);
   renderLive();
 }
 function stopLive(){
+  const recap=buildRecap();
   LIVE.on=false; clearInterval(LIVE.tick); clearInterval(LIVE.clock);
   LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0; LIVE.rank=new Map(); LIVE.happy={on:false,mult:2,ends:0};
-  renderLive();
+  if(recap){ DB.recaps.unshift(recap); if(DB.recaps.length>50)DB.recaps.pop(); save(); renderLive(); openRecap(recap.id); toast('방송 성과 리캡이 저장되었습니다 📊'); }
+  else renderLive();
 }
+function buildRecap(){
+  if(LIVE.elapsed<2 && LIVE.donation===0) return null;
+  const ranked=[...LIVE.rank.entries()].map(([id,amt])=>{const d=DB.donators.find(x=>x.id===id);if(!d)return null;const g=gradeForCash(d.cash);return {name:d.alias||d.name,grade:g?g.name:'',amount:amt};}).filter(Boolean).sort((a,b)=>b.amount-a.amount);
+  const st=LIVE.startTs, en=Date.now();
+  const toonDone=DB.toontalks.filter(t=>t.status==='done'&&t.respondedTs>=st&&t.respondedTs<=en).length;
+  return {id:uid(),schedId:LIVE.schedId,title:LIVE.title||'라이브 방송',category:LIVE.category||'',
+    startedTs:st,endedTs:en,durationSec:LIVE.elapsed,totalDonation:LIVE.donation,donationCount:LIVE.donCount,
+    uniqueDonors:LIVE.rank.size,peakOnline:LIVE.peakOnline,top:ranked.slice(0,5),happyHour:!!LIVE.hadHappy,toonCompleted:toonDone};
+}
+function fmtDur(s){const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?`${h}시간 ${m}분`:`${Math.max(1,m)}분`;}
+function gbByName(name){const g=DB.grades.find(x=>x.name===name);return g?gradeBadge(g):(name?`<span class="gb none"><span class="d"></span>${name}</span>`:'');}
+let recapId=null;
+function openRecap(id){
+  const r=DB.recaps.find(x=>x.id===id); if(!r)return; recapId=id;
+  const cat=SCHED_CATS[r.category]||{icon:'📺',color:'#8b8fa3'}, dt=new Date(r.startedTs);
+  byId('recapBody').innerHTML=`
+    <div class="recap-hero"><div class="rh-ic" style="background:${cat.color}22">${cat.icon}</div>
+      <div><div class="rh-t">${r.title}</div><div class="rh-s">${dt.getMonth()+1}월 ${dt.getDate()}일(${WD[dt.getDay()]}) · ${fmtDur(r.durationSec)} 방송${r.happyHour?' · ⚡ 해피아워':''}</div></div>
+      <div class="rh-total"><div class="v tnum">${won(r.totalDonation)}<small> 캐시</small></div><div class="k">총 후원</div></div></div>
+    <div class="recap-stats">
+      <div class="recap-stat"><div class="k">후원 건수</div><div class="v tnum">${r.donationCount}<small>건</small></div></div>
+      <div class="recap-stat"><div class="k">참여 후원자</div><div class="v tnum">${r.uniqueDonors}<small>명</small></div></div>
+      <div class="recap-stat"><div class="k">최고 동시 접속</div><div class="v tnum">${r.peakOnline}<small>명</small></div></div>
+      <div class="recap-stat"><div class="k">완료 투네톡</div><div class="v tnum">${r.toonCompleted}<small>건</small></div></div>
+    </div>
+    <div class="section-lbl">🏆 TOP 후원자</div>
+    <div class="recap-top">${r.top&&r.top.length?r.top.map((t,i)=>`<div class="rt-row"><div class="rt-medal">${['🥇','🥈','🥉'][i]||(i+1)}</div><div class="rt-nm">${t.name} ${gbByName(t.grade)}</div><div class="rt-amt">${won(t.amount)} 캐시</div></div>`).join(''):'<div class="helper">후원 기록이 없습니다</div>'}</div>`;
+  byId('recapOverlay').classList.add('show');
+}
+function renderLiveRecaps(){
+  const box=byId('liveRecaps'); if(!box)return;
+  box.classList.toggle('hidden',LIVE.on||!DB.recaps.length);
+  if(LIVE.on||!DB.recaps.length){box.innerHTML='';return;}
+  box.innerHTML=`<div class="section-lbl" style="max-width:520px;margin:8px auto 6px;text-align:left">📊 지난 방송 성과</div>
+    <div class="recap-list">${DB.recaps.slice(0,6).map(r=>{const cat=SCHED_CATS[r.category]||{icon:'📺',color:'#8b8fa3'};const dt=new Date(r.startedTs);
+      return `<div class="recap-card" data-r="${r.id}"><div class="rc-ic" style="background:${cat.color}22">${cat.icon}</div><div style="flex:1;min-width:0"><div class="rc-t">${r.title}</div><div class="rc-s">${dt.getMonth()+1}월 ${dt.getDate()}일 · ${fmtDur(r.durationSec)} · ${r.uniqueDonors}명 참여</div></div><div class="rc-total">${won(r.totalDonation)}</div></div>`;}).join('')}</div>`;
+  box.querySelectorAll('.recap-card').forEach(el=>el.onclick=()=>openRecap(el.dataset.r));
+}
+byId('recapClose').onclick=byId('recapCloseBtn').onclick=()=>byId('recapOverlay').classList.remove('show');
+byId('recapOverlay').onclick=e=>{if(e.target===byId('recapOverlay'))byId('recapOverlay').classList.remove('show');};
+byId('recapAnnounce').onclick=()=>{const r=DB.recaps.find(x=>x.id===recapId);if(!r)return;
+  DB.stories.forEach(s=>s.pinned=false);
+  DB.stories.unshift({id:uid(),text:`오늘 방송 함께해주셔서 감사해요! 🙌 총 ${won(r.totalDonation)}캐시 후원, ${r.uniqueDonors}분이 함께했어요. 다음에도 놀러오세요 💛`,pinned:true,ts:Date.now()});
+  save();byId('recapOverlay').classList.remove('show');toast('성과를 스토리로 공유했습니다 📢');};
 function liveTick(){
   // 접속 시간 증가
   LIVE.online.forEach(v=>v.mins++);
@@ -3248,12 +3345,13 @@ function liveTick(){
     if(d){
       const base=pick(DONATE_AMTS), boost=hh?LIVE.happy.mult:1, amt=base*boost;
       LIVE.donation+=amt;
-      LIVE.rank.set(d.id,(LIVE.rank.get(d.id)||0)+amt);
+      LIVE.rank.set(d.id,(LIVE.rank.get(d.id)||0)+amt); LIVE.donCount++;
       pushFeed('donate',d,null,amt,boost>1?boost:0);
       fireAutos('donate',d,amt);        // 특정 도네이터 / 특정 금액 트리거
       if(Math.random()<0.15) fireAutos('first',d,amt);   // 가끔 첫 후원 트리거
     }
   }
+  LIVE.peakOnline=Math.max(LIVE.peakOnline,LIVE.online.size);
   renderLive();
 }
 function loginRandom(offline){
@@ -3278,6 +3376,7 @@ function renderLive(){
     : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5v14l11-7z"/></svg> 방송 시작`;
   byId('liveOff').classList.toggle('hidden',LIVE.on);
   byId('liveOn').classList.toggle('hidden',!LIVE.on);
+  renderLiveRecaps();
   if(!LIVE.on) return;
   // stats
   const onl=[...LIVE.online.entries()].map(([id,v])=>({d:DB.donators.find(x=>x.id===id),v})).filter(x=>x.d);
@@ -3373,7 +3472,7 @@ byId('happyDur').querySelectorAll('button').forEach(b=>b.onclick=()=>{happyCfg.d
 byId('happyClose').onclick=byId('happyCancel').onclick=()=>byId('happyOverlay').classList.remove('show');
 byId('happyOverlay').onclick=e=>{if(e.target===byId('happyOverlay'))byId('happyOverlay').classList.remove('show');};
 byId('happyStart').onclick=()=>{
-  LIVE.happy={on:true,mult:happyCfg.mult,ends:LIVE.elapsed+happyCfg.dur*60};
+  LIVE.happy={on:true,mult:happyCfg.mult,ends:LIVE.elapsed+happyCfg.dur*60}; LIVE.hadHappy=true;
   byId('happyOverlay').classList.remove('show');
   renderLive();
   toast(`⚡ 해피아워 시작! ${happyCfg.dur}분간 ${happyCfg.mult}배`);
@@ -3964,6 +4063,7 @@ function renderSchedList(){
   box.querySelectorAll('[data-start]').forEach(el=>el.onclick=()=>startFromSched(el.dataset.start));
   box.querySelectorAll('[data-announce]').forEach(el=>el.onclick=()=>announceSched(el.dataset.announce));
   box.querySelectorAll('[data-remind]').forEach(el=>el.onclick=()=>openRemind(el.dataset.remind));
+  box.querySelectorAll('[data-recapsched]').forEach(el=>el.onclick=()=>{const r=DB.recaps.find(x=>x.schedId===el.dataset.recapsched);if(r)openRecap(r.id);});
 }
 function schedRowHtml(s){
   const c=SCHED_CATS[s.category]||SCHED_CATS['기타'], st=schedStatus(s), dt=schedStart(s);
@@ -3977,6 +4077,7 @@ function schedRowHtml(s){
       <div class="s">${s.start||''}${s.end?'~'+s.end:''} · ${s.category}${s.memo?' · '+s.memo:''}</div></div>
     <div class="sr-acts">
       ${st==='upcoming'?`<button class="btn ghost sm" data-announce="${s.id}">📢 공지</button><button class="btn ghost sm" data-remind="${s.id}">${s.reminded?'✓ 알림톡':'🔔 알림톡'}</button><button class="btn primary sm" data-start="${s.id}">방송 시작</button>`:''}
+      ${st==='done'&&DB.recaps.find(r=>r.schedId===s.id)?`<button class="btn primary sm" data-recapsched="${s.id}">📊 성과</button>`:''}
       <button class="btn ghost sm" data-edit="${s.id}">편집</button>
     </div></div>`;
 }
@@ -4149,6 +4250,7 @@ function startFromSched(id){const s=DB.schedules.find(x=>x.id===id);if(!s)return
   const fired=fireBroadcastStart();
   document.querySelector('.tab[data-tab="live"]').click();
   if(!LIVE.on) goLive();
+  LIVE.schedId=s.id; LIVE.title=s.title; LIVE.category=s.category;
   toast(`‘${s.title}’ 방송 시작 🔴${fired?` · 자동화 ${fired}건 발동`:''}`);
 }
 
