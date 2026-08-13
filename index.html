@@ -773,6 +773,20 @@ tbody tr.blocked:hover{opacity:.72}
 .sched-badge.cancelled{background:var(--surface-3);color:var(--muted-2)}
 .sched-badge.repeat{background:var(--accent-soft);color:var(--accent)}
 
+/* 팬 여정 퍼널 */
+.funnel{display:flex;flex-direction:column;gap:9px}
+.fn-row{display:flex;align-items:center;gap:12px}
+.fn-lbl{width:104px;flex:none;font-size:13px;font-weight:700;text-align:right;color:var(--muted)}
+.fn-lbl b{color:var(--text)}
+.fn-track{flex:1;display:flex;justify-content:center;min-width:0}
+.fn-bar{height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;min-width:52px;box-shadow:0 2px 10px rgba(0,0,0,.2);transition:width .6s cubic-bezier(.4,0,.2,1);white-space:nowrap}
+.fn-conv{width:104px;flex:none;font-size:12px;color:var(--muted-2)}
+.fn-conv b{color:var(--on);font-weight:800}
+.fn-conv.drop b{color:#ff8a5c}
+.fn-dormant{font-size:12.5px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:8px}
+.fn-dormant .n{color:#ff6b81;font-weight:800}
+.fn-dormant a{color:var(--accent);cursor:pointer;text-decoration:none;font-weight:700}
+.fn-dormant a:hover{text-decoration:underline}
 /* 알림 센터 (할 일 허브) */
 .bell-wrap{position:relative}
 .bell{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);position:relative;transition:.12s}
@@ -938,6 +952,11 @@ tbody tr.blocked:hover{opacity:.72}
           <div class="panel-head"><h3>등급별 매출 비중</h3></div>
           <div class="panel-body" id="gradeMix"></div>
         </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-head"><h3>🔀 팬 여정 퍼널</h3><span class="hint">누적 후원 기준 단계별 전환</span><div class="spacer"></div><div id="funnelDormant"></div></div>
+        <div class="panel-body"><div id="funnel" class="funnel"></div></div>
       </div>
 
       <div class="ins-grid">
@@ -3001,7 +3020,30 @@ byId('nudgeSend').onclick=()=>{
   toast('승급 넛지 알림톡을 발송했습니다 🎯');
 };
 
-function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderChurn();renderPareto();renderNudge();renderAnniv();if(typeof renderAlerts==='function')renderAlerts();}
+/* --- 팬 여정 퍼널 --- */
+function funnelData(){
+  const ds=DB.donators.filter(d=>!d.blocked), total=ds.length;
+  const grades=[...DB.grades].sort((a,b)=>a.min-b.min);
+  const stages=[{key:'전체 도네이터',n:total,color:'#6a6e80'}];
+  grades.forEach(g=>stages.push({key:g.name,n:ds.filter(d=>d.cash>=g.min).length,color:g.color}));
+  const graded=ds.filter(d=>gradeForCash(d.cash));
+  const dormant=graded.filter(d=>daysAgo(d)>=churnThreshold).length;
+  return {stages,total,graded:graded.length,dormant};
+}
+function renderFunnel(){
+  const f=funnelData(), max=f.total||1;
+  byId('funnel').innerHTML=f.stages.map((s,i)=>{
+    const w=Math.max(6,Math.round(s.n/max*100));
+    const prev=i>0?f.stages[i-1].n:s.n, conv=i>0?(prev?Math.round(s.n/prev*100):0):100;
+    return `<div class="fn-row"><div class="fn-lbl"><b>${s.key}</b></div>
+      <div class="fn-track"><div class="fn-bar" style="width:${w}%;background:${s.color}">${s.n}명</div></div>
+      <div class="fn-conv ${i>0&&conv<60?'drop':''}">${i===0?`전체의 <b style="color:var(--text)">100%</b>`:`전환 <b>${conv}%</b>`}</div></div>`;
+  }).join('');
+  const dr=f.graded?Math.round(f.dormant/f.graded*100):0;
+  byId('funnelDormant').innerHTML=`<div class="fn-dormant">💤 등급 보유 ${f.graded}명 중 휴면 <span class="n">${f.dormant}명 (${dr}%)</span> <a id="fnChurnGo">복귀 유도 ▸</a></div>`;
+  byId('fnChurnGo')?.addEventListener('click',()=>byId('churnBox')?.scrollIntoView({behavior:'smooth',block:'center'}));
+}
+function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderFunnel();renderChurn();renderPareto();renderNudge();renderAnniv();if(typeof renderAlerts==='function')renderAlerts();}
 
 /* =========================================================
    TAB — 칭호 관리 (규칙 엔진)
