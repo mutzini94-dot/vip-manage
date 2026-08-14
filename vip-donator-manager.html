@@ -903,6 +903,17 @@ tbody tr.blocked:hover{opacity:.72}
 .or-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .or-list{max-height:340px;overflow-y:auto}
 .or-list .or-row{padding:11px 2px}
+/* 자동화 성과 스트립 */
+.ac-stats{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:12px 0 2px;padding-top:12px;border-top:1px solid var(--line);cursor:pointer;transition:.12s}
+.ac-stats:hover{opacity:.85}
+.ac-stats .as-m{display:flex;flex-direction:column;gap:1px;flex:none}
+.ac-stats .as-k{font-size:10.5px;color:var(--muted-2);font-weight:700}
+.ac-stats .as-v{font-size:14.5px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text)}
+.ac-stats .as-v small{font-size:11px;color:var(--muted);font-weight:600}
+.ac-stats .as-v.on{color:var(--on)} .ac-stats .as-v.ac{color:var(--accent)}
+.ac-stats .as-bar{flex:1;min-width:50px;height:6px;border-radius:4px;background:var(--surface-3);overflow:hidden}
+.ac-stats .as-bar i{display:block;height:100%;background:var(--on);border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.ac-stats .as-more{font-size:11px;font-weight:800;color:var(--accent);white-space:nowrap;flex:none}
 /* 도네이터 활동 타임라인 */
 .tl{position:relative;padding-left:6px}
 .tl-item{position:relative;padding:0 0 16px 26px;border-left:2px solid var(--line)}
@@ -1823,6 +1834,22 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
 </div>
 
+<!-- ============ 자동화 성과 ============ -->
+<div class="overlay" id="autoStatsOverlay">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-head">
+      <h2 id="asTitle">자동화 성과</h2><div class="spacer"></div><button class="xbtn" id="asClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="or-summary" id="asSummary"></div>
+      <div class="or-filters">
+        <div class="seg" id="asResF" style="flex:none"><button data-r="all" class="on">전체</button><button data-r="converted">전환</button><button data-r="none">무응답</button><button data-r="pending">대기</button></div>
+      </div>
+      <div class="or-list" id="asList"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ============ 복귀 유도·넛지 성과 분석 ============ -->
 <div class="overlay" id="outreachOverlay">
   <div class="modal" style="max-width:600px">
@@ -2147,6 +2174,7 @@ function normalize(){
   if(!DB.recaps) DB.recaps=[];
   if(!DB.msgCredit) DB.msgCredit={balance:300,sent:0,log:[{ts:Date.now(),type:'init',amount:300,balance:300}]};
   if(!DB.outreach) DB.outreach=seedOutreach();
+  if(!DB.autoRuns) DB.autoRuns=seedAutoRuns();
   (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;});
   // 구버전 마이그레이션: 단일 action → actions 배열
   (DB.autos||[]).forEach(a=>{ if(!a.actions){a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[];delete a.action;delete a.cfg;} });
@@ -2574,6 +2602,7 @@ function renderAutos(){
     if(a.schedule?.on){const dc=(a.schedule.days||[]).length;tags.push('📅 '+(dc?`${dc}개 요일`:'스케줄'));}
     const summary=acts.map(ac=>ACTIONS[ac.type]?.label).filter(Boolean).join(' + ')||'액션 없음';
     const actChips=acts.map(ac=>{const A=ACTIONS[ac.type];return `<span class="flow-chip act">${A?.icon||''} ${A?.label||''}</span>`;}).join('<span class="flow-arrow">+</span>');
+    const st=autoRunStats(a.id);
     card.innerHTML=`
       <div class="ac-top">
         <div class="ac-ic" style="background:var(--accent-soft)">${firstAct?.icon||'⚡'}${acts.length>1?`<span class="act-count">${acts.length}</span>`:''}</div>
@@ -2585,12 +2614,21 @@ function renderAutos(){
         <span class="flow-arrow">→</span>
         ${actChips}
       </div>
+      <div class="ac-stats" data-stats="${a.id}" title="클릭하여 상세 성과 보기">
+        <div class="as-m"><div class="as-k">발동</div><div class="as-v">${won(st.runs)}<small>회</small></div></div>
+        <div class="as-m"><div class="as-k">전환</div><div class="as-v on">${won(st.conv)}<small> · ${st.rate}%</small></div></div>
+        <div class="as-m"><div class="as-k">전환 후원</div><div class="as-v ac">${won(st.cash)}<small> 캐시</small></div></div>
+        ${st.pending?`<div class="as-m"><div class="as-k">대기</div><div class="as-v">${won(st.pending)}</div></div>`:''}
+        <div class="as-bar" title="전환율 ${st.rate}%"><i style="width:${st.rate}%"></i></div>
+        <span class="as-more">📊 성과 ▸</span>
+      </div>
       <div class="ac-foot">
         <div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
         <div class="spacer"></div>
         <button class="btn ghost sm" data-edit="${a.id}">수정</button>
         <button class="btn ghost sm danger" data-del="${a.id}">삭제</button>
       </div>`;
+    card.querySelector('[data-stats]').onclick=()=>openAutoStats(a.id);
     card.querySelector('[data-t]').onclick=()=>{a.on=!a.on;save();renderAutos();};
     card.querySelector('[data-edit]').onclick=()=>openWizard(a.id);
     card.querySelector('[data-del]').onclick=()=>askConfirm('자동화 삭제','이 자동화를 삭제할까요?',()=>{
@@ -3033,7 +3071,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','creditOverlay','outreachOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','creditOverlay','outreachOverlay','autoStatsOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -3835,11 +3873,14 @@ function fireAutos(kind,d,amt){
       (a.actions||[]).forEach(ac=>{
         DB.autoLogs.unshift({when:nowClock(),situ:a.situ,name:d.alias||d.name,grade:g?g.name:'',action:ac.type,amt:NO_AMT_SITU.includes(a.situ)?0:amt});
       });
+      // 자동화별 발동 기록 (전환 효과 추적 · 결과는 대기중)
+      (DB.autoRuns=DB.autoRuns||[]).unshift({id:'ar_live_'+a.id+'_'+Date.now()+'_'+DB.autoRuns.length,autoId:a.id,donatorId:d.id,ts:Date.now(),result:'pending',convAmount:0});
     }
   });
   while(DB.autoLogs.length>200) DB.autoLogs.pop();
+  while((DB.autoRuns||[]).length>600) DB.autoRuns.pop();
   save();
-  if(!pages.auto.classList.contains('hidden')) renderAutoLogs();
+  if(!pages.auto.classList.contains('hidden')) renderAutos();
 }
 function renderAutoLogs(){
   const box=byId('autoLogList');
@@ -3854,6 +3895,62 @@ function renderAutoLogs(){
   }).join('');
 }
 byId('clearLogs').onclick=()=>askConfirm('실행 로그 삭제','모든 자동화 실행 기록을 지울까요?',()=>{DB.autoLogs=[];save();renderAutoLogs();toast('실행 로그를 지웠습니다');});
+
+/* =========================================================
+   자동화별 발동 횟수 · 전환 효과 분석
+   ========================================================= */
+/* 발동 이력 시드: 자동화별 결정적 과거 발동·전환 데이터 생성 */
+function seedAutoRuns(){
+  const now=Date.now(), out=[];
+  const rateOf={login:.30,prestart:.34,anniv:.44,promote:.52,first:.28,donate:.40,amount:.46};
+  const pool=(DB.donators||[]).filter(d=>!d.blocked);
+  if(!pool.length) return out;
+  (DB.autos||[]).forEach(a=>{
+    const r=seedRand('autorun_'+a.id);
+    const n=8+Math.floor(r()*20);                 // 8~27회
+    const rate=rateOf[a.situ]!=null?rateOf[a.situ]:.35;
+    for(let k=0;k<n;k++){
+      const d=pool[Math.floor(r()*pool.length)]; if(!d)continue;
+      const ts=now-Math.floor((0.2+r()*30)*864e5);
+      const g=gradeForCash(d.cash);
+      const bonus=g&&g.id==='g_vvip'?.14:g&&g.id==='g_vip'?.06:0;
+      const converted=r()<(rate+bonus);
+      out.push({id:'ar_'+a.id+'_'+k,autoId:a.id,donatorId:d.id,ts,result:converted?'converted':'none',
+        convAmount:converted?Math.round((3000+r()*55000)/100)*100:0});
+    }
+  });
+  return out.sort((a,b)=>b.ts-a.ts);
+}
+function autoRunStats(autoId){
+  const s={runs:0,conv:0,pending:0,cash:0};
+  (DB.autoRuns||[]).forEach(o=>{if(o.autoId!==autoId)return;s.runs++;if(o.result==='converted'){s.conv++;s.cash+=o.convAmount||0;}else if(o.result==='pending')s.pending++;});
+  const decided=s.runs-s.pending; s.rate=decided>0?Math.round(s.conv/decided*100):0;
+  return s;
+}
+function autoRunRow(o){
+  const d=DB.donators.find(x=>x.id===o.donatorId); if(!d)return '';
+  const g=gradeForCash(d.cash);
+  const res=o.result==='converted'?`<span class="or-res ok">후원함${o.convAmount?` +${won(o.convAmount)}`:''}</span>`
+    :o.result==='pending'?'<span class="or-res pend">대기중</span>':'<span class="or-res no">무응답</span>';
+  return `<div class="or-row"><div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+    <div class="or-nm">${d.alias||d.name} ${gradeBadge(g)}</div><span class="or-when">${fmtAgo(o.ts)}</span>${res}</div>`;
+}
+let asAutoId=null, asResSel='all';
+function renderAutoStatsModal(){
+  const a=DB.autos.find(x=>x.id===asAutoId); if(!a){byId('autoStatsOverlay').classList.remove('show');return;}
+  byId('asTitle').textContent=`${situText(a)} · 성과`;
+  const st=autoRunStats(asAutoId);
+  byId('asSummary').innerHTML=`
+    <div class="os"><div class="k">발동 횟수</div><div class="v">${won(st.runs)}<small>회</small></div></div>
+    <div class="os"><div class="k">전환</div><div class="v" style="color:var(--on)">${won(st.conv)}<small>건 · ${st.rate}%</small></div></div>
+    <div class="os"><div class="k">전환 후원</div><div class="v" style="color:var(--accent)">${won(st.cash)}<small>캐시</small></div></div>`;
+  let list=(DB.autoRuns||[]).filter(o=>o.autoId===asAutoId&&(asResSel==='all'||o.result===asResSel));
+  byId('asList').innerHTML=list.length?list.map(autoRunRow).join(''):'<div class="helper" style="padding:24px;text-align:center">해당하는 발동 이력이 없습니다</div>';
+}
+function openAutoStats(id){asAutoId=id;asResSel='all';byId('asResF').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.r==='all'));renderAutoStatsModal();byId('autoStatsOverlay').classList.add('show');}
+byId('asClose').onclick=()=>byId('autoStatsOverlay').classList.remove('show');
+byId('autoStatsOverlay').onclick=e=>{if(e.target===byId('autoStatsOverlay'))byId('autoStatsOverlay').classList.remove('show');};
+byId('asResF').querySelectorAll('button').forEach(b=>b.onclick=()=>{asResSel=b.dataset.r;byId('asResF').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderAutoStatsModal();});
 
 /* =========================================================
    CSV 내보내기 · 일괄 작업
