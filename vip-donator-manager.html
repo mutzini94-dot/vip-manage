@@ -429,6 +429,14 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .churn-row .done-badge{font-size:11.5px;font-weight:800;color:var(--on);display:flex;align-items:center;gap:5px;white-space:nowrap}
 .churn-row .re-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none}
 .churn-row .re-last{font-size:11px;font-weight:700;color:var(--on);white-space:nowrap;display:flex;align-items:center;gap:4px}
+/* 도네이터 타깃 필터 + 행 액션 */
+.seg-cnt{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;margin-left:4px;border-radius:8px;background:var(--surface-3);color:var(--muted);font-size:10px;font-weight:800;vertical-align:middle}
+#donTarget button.on .seg-cnt{background:var(--accent);color:#fff}
+.btn.xs{padding:4px 9px;font-size:11.5px;border-radius:7px;font-weight:700}
+.act-cell{white-space:nowrap}
+.act-cell .act-wrap{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.act-done{font-size:11px;font-weight:800;color:var(--on);white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+.act-none{font-size:11px;color:var(--muted-2)}
 /* pareto */
 .pareto-hero{text-align:center;padding:6px 0 20px;border-bottom:1px solid var(--line);margin-bottom:16px}
 .pareto-hero .big{font-size:34px;font-weight:800;letter-spacing:-.02em}
@@ -1136,7 +1144,7 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="page-head">
         <div>
           <h1>도네이터 관리</h1>
-          <p>후원 순위·등급별로 도네이터를 정렬하고 등급·별칭을 관리합니다.</p>
+          <p>후원 순위·등급별로 정렬하고, 복귀 유도·승급 넛지 대상을 필터해 바로 발송하세요.</p>
         </div>
         <div class="spacer"></div>
       </div>
@@ -1145,6 +1153,11 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="searchbar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
           <input id="donSearch" placeholder="도네이터 명 또는 별칭 검색 (Like 검색)">
+        </div>
+        <div class="seg" id="donTarget" style="flex:none">
+          <button data-tg="all" class="on">전체</button>
+          <button data-tg="churn">💤 복귀 유도 대상 <span class="seg-cnt" id="tgChurnCnt">0</span></button>
+          <button data-tg="nudge">🎯 넛지 대상 <span class="seg-cnt" id="tgNudgeCnt">0</span></button>
         </div>
         <div class="seg" id="donSort" style="flex:none">
           <button data-sort="rank" class="on">후원 순위별</button>
@@ -1187,6 +1200,7 @@ tbody tr.blocked:hover{opacity:.72}
                 <th class="sortable" data-col="count">누적 후원 건수 <span class="arr"></span></th>
                 <th>등급</th>
                 <th>별칭</th>
+                <th style="width:158px">액션</th>
               </tr>
             </thead>
             <tbody id="donTbody"></tbody>
@@ -2205,8 +2219,16 @@ function renderGrades(){
 /* =========================================================
    TAB 2 — 도네이터 관리
    ========================================================= */
-let donSort='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active';
+let donSort='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active', donTarget='all';
 byId('donSearch').addEventListener('input',e=>{donQuery=e.target.value.trim().toLowerCase();renderDonators();});
+byId('donTarget').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  donTarget=b.dataset.tg;
+  byId('donTarget').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  renderDonators();
+});
+/* 도네이터 관리에서 바로 쓰는 액션 대상 판별 (인사이트 탭 기준과 동일) */
+function isChurnTarget(d){return !d.blocked && !!gradeForCash(d.cash) && daysAgo(d)>=churnThreshold;}
+function isNudgeTarget(d){if(d.blocked)return false;const g=gaugeData(d);return !g.top && g.remaining<=nudgeThreshold;}
 byId('donSort').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   donSort=b.dataset.sort;
   byId('donSort').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
@@ -2226,9 +2248,13 @@ document.querySelectorAll('th.sortable').forEach(th=>th.onclick=()=>{
 });
 function renderDonators(){
   const tb=byId('donTbody'); tb.innerHTML='';
+  byId('tgChurnCnt').textContent=DB.donators.filter(isChurnTarget).length;
+  byId('tgNudgeCnt').textContent=DB.donators.filter(isNudgeTarget).length;
   let rows=DB.donators.filter(d=>{
     if(donStatus==='active' && d.blocked) return false;
     if(donStatus==='blocked' && !d.blocked) return false;
+    if(donTarget==='churn' && !isChurnTarget(d)) return false;
+    if(donTarget==='nudge' && !isNudgeTarget(d)) return false;
     if(!donQuery) return true;
     return d.name.toLowerCase().includes(donQuery) || (d.alias||'').toLowerCase().includes(donQuery)
       || (d.tags||[]).some(t=>t.toLowerCase().includes(donQuery)) || (d.memo||'').toLowerCase().includes(donQuery);
@@ -2256,6 +2282,15 @@ function renderDonators(){
     const gMs=(gg.top||d.blocked)?null:milestoneOf(gg.pct);
     const gaugeHtml=(gg.top||d.blocked)?'':`<div class="goal-mini"><div class="gauge mini" title="다음 등급 ${gg.nx.name}까지 ${won(gg.remaining)}원 · 달성 ${Math.round(gg.pct)}%"><i style="width:${gg.pct}%;background:${gg.nx.color}"></i></div>${gMs.lv>=80?`<span class="ms-badge ${gMs.cls}" style="padding:1px 6px">${gMs.icon}${gMs.lv}</span>`:''}</div>`;
     if(d.blocked) tr.classList.add('blocked');
+    // 행 액션: 복귀 유도 / 넛지 (대상일 때만)
+    const acts=[];
+    if(isChurnTarget(d)) acts.push(d.reengagedAt
+      ? `<button class="btn ghost xs act-re" title="마지막 복귀 유도 ${fmtAgo(d.reengagedAt)}">💤 다시 유도</button>`
+      : `<button class="btn primary xs act-re">💤 복귀 유도</button>`);
+    if(isNudgeTarget(d)) acts.push(d.nudged
+      ? `<span class="act-done">✓ 넛지 보냄</span>`
+      : `<button class="btn primary xs act-nudge">🎯 넛지</button>`);
+    const actHtml=acts.length?`<div class="act-wrap">${acts.join('')}</div>`:'<span class="act-none">—</span>';
     tr.innerHTML=`
       <td><input type="checkbox" class="cbx rowcbx" ${donSelected.has(d.id)?'checked':''}></td>
       <td><div class="rank ${rank<=3?'top':''}">${rank}</div></td>
@@ -2268,7 +2303,11 @@ function renderDonators(){
       <td><div class="cash">${won(d.cash)}<small> 캐시</small></div></td>
       <td class="tnum">${won(d.count)}건</td>
       <td>${gradeBadge(g)}${gaugeHtml}</td>
-      <td></td>`;
+      <td></td>
+      <td class="act-cell">${actHtml}</td>`;
+    // 액션 버튼 (행 클릭=프로필 열기와 분리)
+    const reBtn=tr.querySelector('.act-re'); if(reBtn)reBtn.onclick=e=>{e.stopPropagation();openReengage(d.id);};
+    const nuBtn=tr.querySelector('.act-nudge'); if(nuBtn)nuBtn.onclick=e=>{e.stopPropagation();openNudge(d.id);};
     // checkbox
     const cb=tr.querySelector('.rowcbx');
     cb.onclick=e=>e.stopPropagation();
@@ -2284,7 +2323,7 @@ function renderDonators(){
     tb.appendChild(tr);
   });
   if(!rows.length){
-    tb.innerHTML=`<tr><td colspan="7"><div class="empty" style="padding:40px"><div class="t">검색 결과가 없습니다</div></div></td></tr>`;
+    tb.innerHTML=`<tr><td colspan="8"><div class="empty" style="padding:40px"><div class="t">${donTarget==='churn'?'복귀 유도 대상이 없습니다':donTarget==='nudge'?'넛지 대상이 없습니다':'검색 결과가 없습니다'}</div></div></td></tr>`;
   }
   updateBulkBar();
 }
@@ -2973,7 +3012,7 @@ byId('reClose').onclick=byId('reCancel').onclick=()=>byId('reOverlay').classList
 byId('reOverlay').onclick=e=>{if(e.target===byId('reOverlay'))byId('reOverlay').classList.remove('show');};
 byId('reSend').onclick=()=>{
   const d=DB.donators.find(x=>x.id===reId);if(d){d.reengaged=true;d.reengagedAt=Date.now();save();}
-  byId('reOverlay').classList.remove('show');renderChurn();renderKpis();
+  byId('reOverlay').classList.remove('show');renderChurn();renderKpis();renderDonators();
   toast('복귀 유도 알림톡을 발송했습니다');
 };
 
@@ -3039,7 +3078,7 @@ byId('nudgeClose').onclick=byId('nudgeCancel').onclick=()=>byId('nudgeOverlay').
 byId('nudgeOverlay').onclick=e=>{if(e.target===byId('nudgeOverlay'))byId('nudgeOverlay').classList.remove('show');};
 byId('nudgeSend').onclick=()=>{
   const d=DB.donators.find(x=>x.id===nudgeId);if(d){d.nudged=true;save();}
-  byId('nudgeOverlay').classList.remove('show');renderNudge();
+  byId('nudgeOverlay').classList.remove('show');renderNudge();renderDonators();
   // 프로필이 열려 있고 같은 도네이터면 목표 카드 갱신
   if(d && drId===d.id && byId('donDrawer').classList.contains('show')) renderGoalCard(d);
   toast('승급 넛지 알림톡을 발송했습니다 🎯');
