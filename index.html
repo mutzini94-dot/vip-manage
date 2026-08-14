@@ -928,6 +928,15 @@ tbody tr.blocked:hover{opacity:.72}
 .set-toggle:last-of-type{border-bottom:none}
 .set-toggle .st-t{font-size:13.5px;font-weight:700}
 .set-toggle .st-s{font-size:12px;color:var(--muted);margin-top:2px}
+.storage-bar{flex:1;min-width:160px;max-width:280px;height:8px;border-radius:5px;background:var(--surface-3);overflow:hidden;margin-top:5px}
+.storage-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--on),var(--accent));border-radius:5px;transition:width .4s}
+.set-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0 16px}
+.snap-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;font-weight:700;margin:14px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+.snap-list{display:flex;flex-direction:column;gap:8px}
+.snap-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+.snap-row .snap-nm{flex:1;min-width:0;font-size:13px;font-weight:700}
+.snap-row .snap-t{display:block;font-size:11px;color:var(--muted-2);font-weight:500;margin-top:2px}
+#confirmOverlay{z-index:110}
 /* 도네이터 활동 타임라인 */
 .tl{position:relative;padding-left:6px}
 .tl-item{position:relative;padding:0 0 16px 26px;border-left:2px solid var(--line)}
@@ -1878,6 +1887,20 @@ tbody tr.blocked:hover{opacity:.72}
         <label class="set-toggle"><div><div class="st-t">투네톡 미답장 알림</div><div class="st-s">미응답 투네톡 하루 1회 알림</div></div><div class="tgl" id="setToonAlert"></div></label>
         <div class="set-row"><label>이탈 위험 기준</label><div class="seg" id="setChurn"><button data-d="14">14일</button><button data-d="30">30일</button><button data-d="60">60일</button></div></div>
         <div class="set-row"><label>승급 임박 기준</label><div class="seg" id="setNudge"><button data-n="30000">3만</button><button data-n="50000">5만</button><button data-n="100000">10만</button></div></div>
+      </div>
+      <div class="set-sec">
+        <div class="set-h">💾 데이터 · 백업</div>
+        <div class="set-row" style="align-items:flex-start"><label>저장소 사용량 <span class="set-hint" id="setStorageInfo">-</span></label>
+          <div class="storage-bar"><i id="setStorageBar"></i></div></div>
+        <div class="set-actions">
+          <button class="btn ghost sm" id="setExport">⬇ JSON 내보내기</button>
+          <button class="btn ghost sm" id="setImport">⬆ JSON 가져오기</button>
+          <input type="file" id="setImportFile" accept="application/json" class="hidden">
+          <div class="spacer"></div>
+          <button class="btn ghost sm danger" id="setReset">↺ 데이터 초기화</button>
+        </div>
+        <div class="snap-head"><span>📸 스냅샷 백업 <span class="set-hint">앱 안에 저장 · 최대 8개</span></span><button class="btn ghost sm" id="setSnapNew">＋ 현재 상태 저장</button></div>
+        <div class="snap-list" id="setSnapList"></div>
       </div>
     </div>
     <div class="modal-foot"><div class="spacer"></div><button class="btn primary" id="setDone">완료</button></div>
@@ -4844,7 +4867,53 @@ function renderSettings(){
   byId('setToonAlert').classList.toggle('on',!!DB.toonUnreadAlert);
   byId('setChurn').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.d===churnThreshold));
   byId('setNudge').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.n===nudgeThreshold));
+  renderStorageInfo(); renderSnapshots();
 }
+/* ---------- 데이터 · 백업 ---------- */
+const SNAP_KEY='toon_vip_snapshots';
+function bytesOf(s){return new Blob([s||'']).size;}
+function loadSnaps(){try{return JSON.parse(localStorage.getItem(SNAP_KEY))||[];}catch(e){return [];}}
+function saveSnaps(a){try{localStorage.setItem(SNAP_KEY,JSON.stringify(a));return true;}catch(e){toast('저장 공간이 부족합니다');return false;}}
+function renderStorageInfo(){
+  let total=0,main=0;
+  try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);total+=bytesOf(k)+bytesOf(localStorage.getItem(k));}main=bytesOf(localStorage.getItem(LS));}catch(e){main=bytesOf(JSON.stringify(DB));total=main;}
+  const quota=5*1024*1024, pct=Math.min(100,Math.round(total/quota*100));
+  byId('setStorageInfo').textContent=`앱 데이터 ${(main/1024).toFixed(1)}KB · 전체 ${(total/1024).toFixed(1)}KB (${pct}%)`;
+  byId('setStorageBar').style.width=Math.max(2,pct)+'%';
+}
+function renderSnapshots(){
+  const list=loadSnaps(), box=byId('setSnapList');
+  box.innerHTML=list.length?list.map(s=>`<div class="snap-row"><div class="snap-nm">${(s.name||'스냅샷').replace(/</g,'&lt;')}<span class="snap-t">${fmtAgo(s.ts)} · ${(s.size/1024).toFixed(1)}KB</span></div>
+    <button class="btn ghost sm" data-restore="${s.id}">복원</button><button class="btn ghost sm danger" data-delsnap="${s.id}">✕</button></div>`).join(''):'<div class="helper" style="padding:10px;text-align:center">저장된 스냅샷이 없습니다</div>';
+  box.querySelectorAll('[data-restore]').forEach(b=>b.onclick=()=>{const s=loadSnaps().find(x=>x.id===b.dataset.restore);if(!s)return;
+    byId('settingsOverlay').classList.remove('show');
+    askConfirm('스냅샷 복원',`'${s.name}' 시점으로 되돌립니다. 현재 데이터는 교체됩니다.`,()=>{localStorage.setItem(LS,JSON.stringify(s.data));location.reload();});});
+  box.querySelectorAll('[data-delsnap]').forEach(b=>b.onclick=()=>{saveSnaps(loadSnaps().filter(x=>x.id!==b.dataset.delsnap));renderSnapshots();renderStorageInfo();});
+}
+byId('setExport').onclick=()=>{
+  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const u=URL.createObjectURL(blob), a=document.createElement('a');
+  const d=new Date(),z=n=>String(n).padStart(2,'0');
+  a.href=u;a.download=`toon_vip_backup_${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}.json`;a.click();URL.revokeObjectURL(u);
+  toast('데이터를 JSON으로 내보냈습니다');
+};
+byId('setImport').onclick=()=>byId('setImportFile').click();
+byId('setImportFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{let j;try{j=JSON.parse(rd.result);}catch(err){return toast('JSON 파싱 실패');}
+    if(!j||!Array.isArray(j.donators))return toast('올바른 백업 파일이 아닙니다');
+    byId('settingsOverlay').classList.remove('show');
+    askConfirm('데이터 가져오기','현재 데이터를 가져온 파일로 교체합니다. 계속할까요?',()=>{localStorage.setItem(LS,JSON.stringify(j));location.reload();});};
+  rd.readAsText(f);e.target.value='';};
+byId('setReset').onclick=()=>{byId('settingsOverlay').classList.remove('show');
+  askConfirm('데이터 초기화','모든 데이터를 초기 샘플로 되돌립니다. 되돌릴 수 없어요. 계속할까요?',()=>{localStorage.setItem(LS,JSON.stringify(seed()));location.reload();});};
+byId('setSnapNew').onclick=()=>{
+  const list=loadSnaps(), dataStr=JSON.stringify(DB);
+  const d=new Date(),z=n=>String(n).padStart(2,'0');
+  const name=`백업 ${z(d.getMonth()+1)}/${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}`;
+  list.unshift({id:'snap'+Date.now(),name,ts:Date.now(),size:bytesOf(dataStr),data:JSON.parse(dataStr)});
+  while(list.length>8)list.pop();
+  if(saveSnaps(list)){renderSnapshots();renderStorageInfo();toast('현재 상태를 스냅샷으로 저장했습니다 📸');}
+};
 function openSettings(){renderSettings();byId('settingsOverlay').classList.add('show');}
 byId('settingsBtn').onclick=openSettings;
 byId('gnbAvatar').onclick=openSettings;
