@@ -493,6 +493,14 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .act-cell .act-wrap{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .act-done{font-size:11px;font-weight:800;color:var(--on);white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
 .act-none{font-size:11px;color:var(--muted-2)}
+.act-blocked{font-size:11px;font-weight:800;color:#ff8a5c;background:rgba(255,138,92,.13);padding:4px 9px;border-radius:7px;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+.consent-no{font-size:10.5px;font-weight:800;color:#ff8a5c;background:rgba(255,138,92,.14);padding:1px 7px;border-radius:6px;white-space:nowrap;margin-left:2px}
+.dr-consent{display:flex;align-items:center;gap:12px;margin-top:14px;padding:13px 15px;border-radius:12px;border:1px solid var(--line)}
+.dr-consent.on{background:rgba(51,214,159,.08);border-color:rgba(51,214,159,.25)}
+.dr-consent.off{background:rgba(255,138,92,.08);border-color:rgba(255,138,92,.28)}
+.dr-consent .dc-tx{flex:1;min-width:0}
+.dr-consent .dc-t{font-size:13px;font-weight:800}
+.dr-consent .dc-s{font-size:11.5px;color:var(--muted);margin-top:2px}
 /* pareto */
 .pareto-hero{text-align:center;padding:6px 0 20px;border-bottom:1px solid var(--line);margin-bottom:16px}
 .pareto-hero .big{font-size:34px;font-weight:800;letter-spacing:-.02em}
@@ -1306,6 +1314,11 @@ tbody tr.blocked:hover{opacity:.72}
           <button data-tg="churn">💤 복귀 유도 대상 <span class="seg-cnt" id="tgChurnCnt">0</span></button>
           <button data-tg="nudge">🎯 넛지 대상 <span class="seg-cnt" id="tgNudgeCnt">0</span></button>
         </div>
+        <div class="seg" id="donConsent" style="flex:none">
+          <button data-cs="all" class="on">전체</button>
+          <button data-cs="yes">✅ 수신 동의 <span class="seg-cnt" id="csYesCnt">0</span></button>
+          <button data-cs="no">🚫 미동의 <span class="seg-cnt" id="csNoCnt">0</span></button>
+        </div>
         <div class="seg" id="donSort" style="flex:none">
           <button data-sort="rank" class="on">후원 순위별</button>
           <button data-sort="grade">등급별</button>
@@ -1730,6 +1743,7 @@ tbody tr.blocked:hover{opacity:.72}
       </div>
     </div>
     <div class="gauge-box" id="drGauge"></div>
+    <div id="drConsent"></div>
     <div id="drBlock"></div>
   </div>
   <div class="dr-body">
@@ -2258,7 +2272,8 @@ function normalize(){
   if(S.churnDays===undefined) S.churnDays=30;
   if(S.nudgeAmount===undefined) S.nudgeAmount=50000;
   if(!DB.autoRuns) DB.autoRuns=seedAutoRuns();
-  (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;});
+  (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;
+    if(d.alimConsent===undefined) d.alimConsent=seedRand('consent_'+d.id)()>0.26;});
   // 구버전 마이그레이션: 단일 action → actions 배열
   (DB.autos||[]).forEach(a=>{ if(!a.actions){a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[];delete a.action;delete a.cfg;} });
   (DB.autoLogs||[]).forEach(l=>{ if(!l.situ&&l.type) l.situ=l.type; });
@@ -2492,11 +2507,16 @@ function renderGrades(){
 /* =========================================================
    TAB 2 — 도네이터 관리
    ========================================================= */
-let donSort='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active', donTarget='all';
+let donSort='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active', donTarget='all', donConsent='all';
 byId('donSearch').addEventListener('input',e=>{donQuery=e.target.value.trim().toLowerCase();renderDonators();});
 byId('donTarget').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   donTarget=b.dataset.tg;
   byId('donTarget').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  renderDonators();
+});
+byId('donConsent').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  donConsent=b.dataset.cs;
+  byId('donConsent').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
   renderDonators();
 });
 /* 도네이터 관리에서 바로 쓰는 액션 대상 판별 (인사이트 탭 기준과 동일) */
@@ -2523,11 +2543,15 @@ function renderDonators(){
   const tb=byId('donTbody'); tb.innerHTML='';
   byId('tgChurnCnt').textContent=DB.donators.filter(isChurnTarget).length;
   byId('tgNudgeCnt').textContent=DB.donators.filter(isNudgeTarget).length;
+  byId('csYesCnt').textContent=DB.donators.filter(d=>d.alimConsent).length;
+  byId('csNoCnt').textContent=DB.donators.filter(d=>!d.alimConsent).length;
   let rows=DB.donators.filter(d=>{
     if(donStatus==='active' && d.blocked) return false;
     if(donStatus==='blocked' && !d.blocked) return false;
     if(donTarget==='churn' && !isChurnTarget(d)) return false;
     if(donTarget==='nudge' && !isNudgeTarget(d)) return false;
+    if(donConsent==='yes' && !d.alimConsent) return false;
+    if(donConsent==='no' && d.alimConsent) return false;
     if(!donQuery) return true;
     return d.name.toLowerCase().includes(donQuery) || (d.alias||'').toLowerCase().includes(donQuery)
       || (d.tags||[]).some(t=>t.toLowerCase().includes(donQuery)) || (d.memo||'').toLowerCase().includes(donQuery);
@@ -2555,14 +2579,19 @@ function renderDonators(){
     const gMs=(gg.top||d.blocked)?null:milestoneOf(gg.pct);
     const gaugeHtml=(gg.top||d.blocked)?'':`<div class="goal-mini"><div class="gauge mini" title="다음 등급 ${gg.nx.name}까지 ${won(gg.remaining)}원 · 달성 ${Math.round(gg.pct)}%"><i style="width:${gg.pct}%;background:${gg.nx.color}"></i></div>${gMs.lv>=80?`<span class="ms-badge ${gMs.cls}" style="padding:1px 6px">${gMs.icon}${gMs.lv}</span>`:''}</div>`;
     if(d.blocked) tr.classList.add('blocked');
-    // 행 액션: 복귀 유도 / 넛지 (대상일 때만)
+    // 행 액션: 복귀 유도 / 넛지 (대상 + 알림톡 수신 동의 시에만 발송)
     const acts=[];
-    if(isChurnTarget(d)) acts.push(d.reengagedAt
-      ? `<button class="btn ghost xs act-re" title="마지막 복귀 유도 ${fmtAgo(d.reengagedAt)}">💤 다시 유도</button>`
-      : `<button class="btn primary xs act-re">💤 복귀 유도</button>`);
-    if(isNudgeTarget(d)) acts.push(d.nudged
-      ? `<span class="act-done">✓ 넛지 보냄</span>`
-      : `<button class="btn primary xs act-nudge">🎯 넛지</button>`);
+    const targeted=isChurnTarget(d)||isNudgeTarget(d);
+    if(targeted && !d.alimConsent){
+      acts.push('<span class="act-blocked" title="알림톡 수신에 동의하지 않아 발송할 수 없습니다">🚫 수신 거부</span>');
+    }else{
+      if(isChurnTarget(d)) acts.push(d.reengagedAt
+        ? `<button class="btn ghost xs act-re" title="마지막 복귀 유도 ${fmtAgo(d.reengagedAt)}">💤 다시 유도</button>`
+        : `<button class="btn primary xs act-re">💤 복귀 유도</button>`);
+      if(isNudgeTarget(d)) acts.push(d.nudged
+        ? `<span class="act-done">✓ 넛지 보냄</span>`
+        : `<button class="btn primary xs act-nudge">🎯 넛지</button>`);
+    }
     const actHtml=acts.length?`<div class="act-wrap">${acts.join('')}</div>`:'<span class="act-none">—</span>';
     tr.innerHTML=`
       <td><input type="checkbox" class="cbx rowcbx" ${donSelected.has(d.id)?'checked':''}></td>
@@ -2570,7 +2599,7 @@ function renderDonators(){
       <td>
         <div class="dn-cell">
           <div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
-          <div><div class="nm">${d.name}${d.blocked?' <span class="block-badge">⛔ 차단</span>':''}</div><div class="al">${d.alias?'@'+d.alias:'별칭 없음'}</div>${tagHtml}</div>
+          <div><div class="nm">${d.name}${d.blocked?' <span class="block-badge">⛔ 차단</span>':''}${d.alimConsent?'':' <span class="consent-no">🚫 수신거부</span>'}</div><div class="al">${d.alias?'@'+d.alias:'별칭 없음'}</div>${tagHtml}</div>
         </div>
       </td>
       <td><div class="cash">${won(d.cash)}<small> 캐시</small></div></td>
@@ -3125,6 +3154,8 @@ function openDrawer(id){
   byId('drCash').innerHTML=`${won(d.cash)}<small>캐시</small>`;
   // 개인 목표 카드
   renderGoalCard(d);
+  // 알림톡 수신 동의
+  renderDrConsent(d);
   // 차단 상태
   renderDrBlock(d);
   // 태그 & 메모
@@ -3274,7 +3305,9 @@ function renderChurn(){
     row.innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
       <div class="meta"><div class="nm">${d.alias||d.name} ${gradeBadge(g)} <span class="risk ${rc}">${rl}</span></div>
         <div class="info">마지막 후원 <b style="color:var(--text)">${dorm}일 전</b> · 누적 ${won(d.cash)}캐시 · ${won(d.count)}건</div></div>
-      ${reLast
+      ${!d.alimConsent
+        ? '<span class="act-blocked" title="알림톡 수신 미동의">🚫 수신 거부</span>'
+        : reLast
         ? `<div class="re-wrap"><span class="re-last">✓ ${reLast}</span><button class="btn ghost sm re-btn">다시 복귀 유도</button></div>`
         : '<button class="btn primary sm re-btn">복귀 유도</button>'}`;
     const btn=row.querySelector('.re-btn');if(btn)btn.onclick=()=>openReengage(d.id);
@@ -3356,6 +3389,8 @@ byId('reMsg').addEventListener('input',reRenderPrev);
 byId('reClose').onclick=byId('reCancel').onclick=()=>byId('reOverlay').classList.remove('show');
 byId('reOverlay').onclick=e=>{if(e.target===byId('reOverlay'))byId('reOverlay').classList.remove('show');};
 byId('reSend').onclick=()=>{
+  const dc=DB.donators.find(x=>x.id===reId);
+  if(dc&&!dc.alimConsent){toast('알림톡 수신에 동의하지 않은 도네이터입니다');byId('reOverlay').classList.remove('show');return;}
   if(!spendCredit()){toast('잔여 발송 건수가 부족합니다. 충전해주세요');byId('reOverlay').classList.remove('show');openRecharge();return;}
   const d=DB.donators.find(x=>x.id===reId);if(d){d.reengaged=true;d.reengagedAt=Date.now();logOutreach('reengage',d);save();}
   byId('reOverlay').classList.remove('show');renderChurn();renderKpis();renderDonators();renderOutreach();
@@ -3380,7 +3415,8 @@ function renderNudge(){
   rows.slice(0,8).forEach(({d,g})=>{
     const cur=gradeForCash(d.cash), ms=milestoneOf(g.pct);
     const auto=autoOn && g.pct>=90 && !d.nudged;
-    const right = d.nudged ? '<div class="done-badge">✓ 보냄</div>'
+    const right = !d.alimConsent ? '<span class="act-blocked" title="알림톡 수신 미동의">🚫 수신 거부</span>'
+      : d.nudged ? '<div class="done-badge">✓ 보냄</div>'
       : auto ? '<div class="done-badge" style="color:var(--muted)">🤖 자동 예약됨</div>'
       : '<button class="btn primary sm nudge-btn">넛지 보내기</button>';
     const row=document.createElement('div');row.className='churn-row';
@@ -3423,6 +3459,8 @@ byId('nudgeMsg').addEventListener('input',nudgePrev);
 byId('nudgeClose').onclick=byId('nudgeCancel').onclick=()=>byId('nudgeOverlay').classList.remove('show');
 byId('nudgeOverlay').onclick=e=>{if(e.target===byId('nudgeOverlay'))byId('nudgeOverlay').classList.remove('show');};
 byId('nudgeSend').onclick=()=>{
+  const dc=DB.donators.find(x=>x.id===nudgeId);
+  if(dc&&!dc.alimConsent){toast('알림톡 수신에 동의하지 않은 도네이터입니다');byId('nudgeOverlay').classList.remove('show');return;}
   if(!spendCredit()){toast('잔여 발송 건수가 부족합니다. 충전해주세요');byId('nudgeOverlay').classList.remove('show');openRecharge();return;}
   const d=DB.donators.find(x=>x.id===nudgeId);if(d){d.nudged=true;logOutreach('nudge',d);save();}
   byId('nudgeOverlay').classList.remove('show');renderNudge();renderDonators();renderOutreach();
@@ -3642,6 +3680,14 @@ function renderDrTitles(d){
 /* =========================================================
    블랙리스트 (도네이터 차단)
    ========================================================= */
+function renderDrConsent(d){
+  byId('drConsent').innerHTML=`<div class="dr-consent ${d.alimConsent?'on':'off'}">
+    <div class="dc-tx"><div class="dc-t">${d.alimConsent?'✅ 알림톡 수신 동의':'🚫 알림톡 수신 거부'}</div>
+      <div class="dc-s">${d.alimConsent?'복귀 유도·넛지·기념일 알림톡을 발송할 수 있어요':'동의 전까지 알림톡을 발송할 수 없습니다'}</div></div>
+    <div class="tgl ${d.alimConsent?'on':''}" id="drConsentTgl"></div></div>`;
+  byId('drConsentTgl').onclick=()=>{d.alimConsent=!d.alimConsent;save();renderDrConsent(d);renderDonators();renderInsights();
+    toast(d.alimConsent?'알림톡 수신 동의로 변경했습니다':'알림톡 수신 거부로 변경했습니다');};
+}
 let blockId=null;
 function renderDrBlock(d){
   const box=byId('drBlock');
@@ -3965,6 +4011,7 @@ function fireAutos(kind,d,amt){
     if(match && autoAllowed(a,d)){
       const g=gradeForCash(d.cash);
       (a.actions||[]).forEach(ac=>{
+        if(ac.type==='kakao_send' && !d.alimConsent) return;   // 수신 미동의 → 알림톡 발송 생략
         DB.autoLogs.unshift({when:nowClock(),situ:a.situ,name:d.alias||d.name,grade:g?g.name:'',action:ac.type,amt:NO_AMT_SITU.includes(a.situ)?0:amt});
       });
       // 자동화별 발동 기록 (전환 효과 추적 · 결과는 대기중)
@@ -4151,7 +4198,9 @@ byId('celebMsg').addEventListener('input',celebPrev);
 byId('celebClose').onclick=byId('celebCancel').onclick=()=>byId('celebOverlay').classList.remove('show');
 byId('celebOverlay').onclick=e=>{if(e.target===byId('celebOverlay'))byId('celebOverlay').classList.remove('show');};
 byId('celebSend').onclick=()=>{
-  const d=DB.donators.find(x=>x.id===celebId);if(d){d.celebrated=true;save();}
+  const d=DB.donators.find(x=>x.id===celebId);
+  if(d&&!d.alimConsent){toast('알림톡 수신에 동의하지 않은 도네이터입니다');byId('celebOverlay').classList.remove('show');return;}
+  if(d){d.celebrated=true;save();}
   byId('celebOverlay').classList.remove('show');renderAnniv();
   toast('기념일 축하 메시지를 발송했습니다 🎉');
 };
