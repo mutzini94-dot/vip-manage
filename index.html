@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>VIP 도네이터 관리 — 열혈시스템</title>
+<script>try{if(localStorage.getItem('toon_theme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}</script>
 <style>
 :root{
   --ground:#0d0e13; --surface:#171922; --surface-2:#20232e; --surface-3:#2a2e3c;
@@ -18,6 +19,29 @@
   --r:14px; --r-sm:9px;
   --font:"Pretendard","Pretendard Variable",-apple-system,BlinkMacSystemFont,"Malgun Gothic","Apple SD Gothic Neo","Segoe UI",Roboto,sans-serif;
 }
+/* ===== 라이트 모드 ===== */
+:root[data-theme="light"]{
+  --ground:#f2f3f8; --surface:#ffffff; --surface-2:#f4f5fa; --surface-3:#e8eaf2;
+  --line:rgba(20,22,40,.10); --line-strong:rgba(20,22,40,.18);
+  --text:#181b24; --muted:#59607a; --muted-2:#878da5;
+  --accent-soft:rgba(255,61,104,.10);
+  --on:#0e9a63; --warn:#b0730a; --live:#e23b3b;
+  --vvip-soft:rgba(180,135,10,.14); --vip-soft:rgba(124,58,237,.12); --yeol-soft:rgba(59,111,212,.14);
+}
+/* 라이트 모드 대비 보정 (다크 전용 밝은 텍스트 색 오버라이드) */
+:root[data-theme="light"] .gb.vvip{color:#96710a}
+:root[data-theme="light"] .gb.vip{color:#7c3aed}
+:root[data-theme="light"] .gb.yeol{color:#3762c4}
+:root[data-theme="light"] .kpi .sub .down{color:#e5484d}
+:root[data-theme="light"] .remote{background:var(--surface-2)}
+:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover{background:#c2c6d4}
+/* 테마 토글 버튼 */
+.theme-toggle{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);transition:.12s}
+.theme-toggle:hover{color:var(--text);border-color:var(--line-strong)}
+.theme-toggle svg{width:19px;height:19px}
+.theme-toggle .ic-light{display:none}
+:root[data-theme="light"] .theme-toggle .ic-dark{display:none}
+:root[data-theme="light"] .theme-toggle .ic-light{display:block}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--ground);color:var(--text);font-family:var(--font);
@@ -919,6 +943,10 @@ tbody tr.blocked:hover{opacity:.72}
       <span class="cr-plus">＋충전</span>
     </button>
     <div class="gnb-chip"><span class="dot"></span>리모컨 연동됨</div>
+    <button class="theme-toggle" id="themeToggle" title="라이트/다크 모드 전환" aria-label="테마 전환">
+      <svg class="ic-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <svg class="ic-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
     <div class="bell-wrap">
       <button class="bell" id="bellBtn" title="할 일 · 알림">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>
@@ -4446,6 +4474,21 @@ function renderHall(){
   box.querySelectorAll('[data-don]').forEach(el=>el.onclick=()=>openDrawer(el.dataset.don));
 }
 byId('hallMode').querySelectorAll('button').forEach(b=>b.onclick=()=>{hallMode=b.dataset.m;byId('hallMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderHall();});
+
+/* ---------- 테마 (라이트/다크) ---------- */
+const THEME_KEY='toon_theme';
+let theme=(()=>{try{return localStorage.getItem(THEME_KEY)||'dark';}catch(e){return 'dark';}})();
+function applyTheme(t){
+  if(t==='light')document.documentElement.setAttribute('data-theme','light');
+  else document.documentElement.removeAttribute('data-theme');
+}
+byId('themeToggle').onclick=()=>{
+  theme=theme==='light'?'dark':'light';
+  try{localStorage.setItem(THEME_KEY,theme);}catch(e){}
+  applyTheme(theme);
+  toast(theme==='light'?'☀️ 라이트 모드':'🌙 다크 모드');
+};
+applyTheme(theme);
 
 /* ---------- init ---------- */
 renderSwatches();
