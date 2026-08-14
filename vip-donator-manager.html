@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>VIP 도네이터 관리 — 열혈시스템</title>
-<script>try{if(localStorage.getItem('toon_theme')==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}</script>
+<script>try{var _t=localStorage.getItem('toon_theme');if(_t==='light'||(_t==='system'&&!window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','light');}catch(e){}</script>
 <style>
 :root{
   --ground:#0d0e13; --surface:#171922; --surface-2:#20232e; --surface-3:#2a2e3c;
@@ -916,6 +916,18 @@ tbody tr.blocked:hover{opacity:.72}
 .ac-stats .as-bar{flex:1;min-width:50px;height:6px;border-radius:4px;background:var(--surface-3);overflow:hidden}
 .ac-stats .as-bar i{display:block;height:100%;background:var(--on);border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
 .ac-stats .as-more{font-size:11px;font-weight:800;color:var(--accent);white-space:nowrap;flex:none}
+/* 설정 모달 */
+.set-sec{margin-bottom:22px}
+.set-sec:last-child{margin-bottom:0}
+.set-h{font-size:12.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px;flex-wrap:wrap}
+.set-row>label{font-size:13.5px;font-weight:700;flex:none}
+.set-row .set-hint{display:block;font-size:11.5px;color:var(--muted-2);font-weight:500;margin-top:2px}
+.set-row .inp{flex:1;min-width:180px;max-width:280px}
+.set-toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.set-toggle:last-of-type{border-bottom:none}
+.set-toggle .st-t{font-size:13.5px;font-weight:700}
+.set-toggle .st-s{font-size:12px;color:var(--muted);margin-top:2px}
 /* 도네이터 활동 타임라인 */
 .tl{position:relative;padding-left:6px}
 .tl-item{position:relative;padding:0 0 16px 26px;border-left:2px solid var(--line)}
@@ -996,6 +1008,9 @@ tbody tr.blocked:hover{opacity:.72}
       <svg class="ic-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       <svg class="ic-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
     </button>
+    <button class="theme-toggle" id="settingsBtn" title="설정" aria-label="설정">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
     <div class="bell-wrap">
       <button class="bell" id="bellBtn" title="할 일 · 알림">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>
@@ -1006,7 +1021,7 @@ tbody tr.blocked:hover{opacity:.72}
         <div id="alertList"></div>
       </div>
     </div>
-    <div class="avatar" title="크리에이터">CR</div>
+    <div class="avatar" id="gnbAvatar" title="설정" style="cursor:pointer">CR</div>
   </div>
 
   <!-- Tabs -->
@@ -1836,6 +1851,39 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
 </div>
 
+<!-- ============ 앱 설정 ============ -->
+<div class="overlay" id="settingsOverlay">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <h2>⚙️ 설정</h2><div class="spacer"></div><button class="xbtn" id="setClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="set-sec">
+        <div class="set-h">👤 크리에이터 프로필</div>
+        <div class="set-row"><label>크리에이터 이름 <span class="set-hint">메시지의 {크리에이터}에 반영</span></label><input class="inp" id="setCreator" maxlength="20" placeholder="크리에이터"></div>
+        <div class="set-row"><label>채널명</label><input class="inp" id="setChannel" maxlength="30" placeholder="예: 투네이션 게임채널"></div>
+        <div class="set-row"><label>이니셜 <span class="set-hint">상단 프로필 아이콘</span></label><input class="inp" id="setInitials" maxlength="2" placeholder="CR" style="max-width:120px"></div>
+        <div class="set-row"><label>방송 링크 <span class="set-hint">알림톡 "방송 보러가기" 목적지</span></label><input class="inp" id="setUrl" placeholder="https://..."></div>
+      </div>
+      <div class="set-sec">
+        <div class="set-h">🎨 표시 · 테마</div>
+        <div class="set-row"><label>테마</label><div class="seg" id="setTheme"><button data-m="light">☀️ 라이트</button><button data-m="dark">🌙 다크</button><button data-m="system">🖥 시스템</button></div></div>
+        <div class="set-row"><label>기본 시작 탭</label><select class="inp" id="setDefaultTab" style="max-width:220px"></select></div>
+        <div class="set-row"><label>강조 색상</label><div class="swatches" id="setAccent"></div></div>
+      </div>
+      <div class="set-sec">
+        <div class="set-h">🔔 알림 · 자동화 기본값</div>
+        <label class="set-toggle"><div><div class="st-t">기념일 자동 축하</div><div class="st-s">가입 기념일에 자동으로 축하 메시지</div></div><div class="tgl" id="setAnniv"></div></label>
+        <label class="set-toggle"><div><div class="st-t">마일스톤 자동 넛지</div><div class="st-s">승급 90% 도달 시 자동 넛지 발송</div></div><div class="tgl" id="setMilestone"></div></label>
+        <label class="set-toggle"><div><div class="st-t">투네톡 미답장 알림</div><div class="st-s">미응답 투네톡 하루 1회 알림</div></div><div class="tgl" id="setToonAlert"></div></label>
+        <div class="set-row"><label>이탈 위험 기준</label><div class="seg" id="setChurn"><button data-d="14">14일</button><button data-d="30">30일</button><button data-d="60">60일</button></div></div>
+        <div class="set-row"><label>승급 임박 기준</label><div class="seg" id="setNudge"><button data-n="30000">3만</button><button data-n="50000">5만</button><button data-n="100000">10만</button></div></div>
+      </div>
+    </div>
+    <div class="modal-foot"><div class="spacer"></div><button class="btn primary" id="setDone">완료</button></div>
+  </div>
+</div>
+
 <!-- ============ 자동화 성과 ============ -->
 <div class="overlay" id="autoStatsOverlay">
   <div class="modal" style="max-width:580px">
@@ -2176,6 +2224,16 @@ function normalize(){
   if(!DB.recaps) DB.recaps=[];
   if(!DB.msgCredit) DB.msgCredit={balance:300,sent:0,log:[{ts:Date.now(),type:'init',amount:300,balance:300}]};
   if(!DB.outreach) DB.outreach=seedOutreach();
+  if(!DB.settings) DB.settings={};
+  const S=DB.settings;
+  if(S.creatorName===undefined) S.creatorName='크리에이터';
+  if(S.channelName===undefined) S.channelName='';
+  if(S.initials===undefined) S.initials='CR';
+  if(S.broadcastUrl===undefined) S.broadcastUrl='';
+  if(S.defaultTab===undefined) S.defaultTab='insight';
+  if(S.accent===undefined) S.accent='#ff3d68';
+  if(S.churnDays===undefined) S.churnDays=30;
+  if(S.nudgeAmount===undefined) S.nudgeAmount=50000;
   if(!DB.autoRuns) DB.autoRuns=seedAutoRuns();
   (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;});
   // 구버전 마이그레이션: 단일 action → actions 배열
@@ -2874,7 +2932,7 @@ function sampleNudgeDonator(){
 function subMsg(msg,d){
   const g=d?gradeForCash(d.cash):null, gg=d?gaugeData(d):null;
   return (msg||'')
-    .replace(/{크리에이터}/g,'크리에이터 닉네임')
+    .replace(/{크리에이터}/g,creatorName())
     .replace(/{닉네임}/g,d?(d.alias||d.name):'도네이터')
     .replace(/{등급}/g,g?g.name:'VIP')
     .replace(/{주년}/g,'2')
@@ -3084,7 +3142,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','creditOverlay','outreachOverlay','autoStatsOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','creditOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -3173,7 +3231,7 @@ function renderPareto(){
 }
 
 /* --- 이탈 위험 VIP --- */
-let churnThreshold=30;
+let churnThreshold=(DB.settings&&DB.settings.churnDays)||30;
 function churnData(th){
   return DB.donators.map(d=>({d,dorm:daysAgo(d),g:gradeForCash(d.cash)}))
     .filter(x=>x.g&&!x.d.blocked&&x.dorm>=th)
@@ -3282,7 +3340,7 @@ byId('reSend').onclick=()=>{
 };
 
 /* --- 승급 임박 VIP (넛지) --- */
-let nudgeThreshold=50000;
+let nudgeThreshold=(DB.settings&&DB.settings.nudgeAmount)||50000;
 function nudgeData(maxRem){
   return DB.donators.filter(d=>!d.blocked).map(d=>({d,g:gaugeData(d)}))
     .filter(x=>!x.g.top && x.g.remaining<=maxRem)
@@ -4079,7 +4137,7 @@ byId('celebSend').onclick=()=>{
    TAB — 투네톡 (댓글 후원)
    ========================================================= */
 let toonFilter='pending';
-const CREATOR_NAME='크리에이터';
+function creatorName(){return (DB.settings&&DB.settings.creatorName)||'크리에이터';}
 function toonEffStatus(t){
   if(t.status==='done') return 'done';
   if(t.status==='cancelled') return 'cancelled';
@@ -4132,11 +4190,11 @@ function renderToonList(){
       <div class="ti-top">
         <div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
         <div class="who"><div class="nm">${d.alias||d.name} ${g?gradeBadge(g):''} <span class="toon-badge ${cls}">${lbl}</span></div>
-          <div class="sub">TO. ${CREATOR_NAME} · ${fmtAgo(t.createdTs)}</div></div>
+          <div class="sub">TO. ${creatorName()} · ${fmtAgo(t.createdTs)}</div></div>
         <div class="ti-amt">${won(t.amount)} C</div>
       </div>
       <div class="toon-msg">${(t.message||'').replace(/</g,'&lt;')}</div>
-      ${eff==='done'&&t.reply?`<div class="toon-reply"><div class="rl">${CREATOR_NAME} 님의 답장</div>${t.reply.replace(/</g,'&lt;')}</div>`:''}
+      ${eff==='done'&&t.reply?`<div class="toon-reply"><div class="rl">${creatorName()} 님의 답장</div>${t.reply.replace(/</g,'&lt;')}</div>`:''}
       <div class="ti-foot">${foot}</div>`;
     item.querySelector('[data-reply]')?.addEventListener('click',()=>openReply(t.id));
     item.querySelector('[data-cancel]')?.addEventListener('click',()=>cancelToon(t.id));
@@ -4746,22 +4804,71 @@ function renderHall(){
 }
 byId('hallMode').querySelectorAll('button').forEach(b=>b.onclick=()=>{hallMode=b.dataset.m;byId('hallMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderHall();});
 
-/* ---------- 테마 (라이트/다크) ---------- */
+/* ---------- 테마 (라이트/다크/시스템) ---------- */
 const THEME_KEY='toon_theme';
+const themeMQ=window.matchMedia('(prefers-color-scheme: dark)');
 let theme=(()=>{try{return localStorage.getItem(THEME_KEY)||'dark';}catch(e){return 'dark';}})();
-function applyTheme(t){
-  if(t==='light')document.documentElement.setAttribute('data-theme','light');
+function effTheme(){return theme==='system'?(themeMQ.matches?'dark':'light'):theme;}
+function applyTheme(){
+  if(effTheme()==='light')document.documentElement.setAttribute('data-theme','light');
   else document.documentElement.removeAttribute('data-theme');
 }
-byId('themeToggle').onclick=()=>{
-  theme=theme==='light'?'dark':'light';
-  try{localStorage.setItem(THEME_KEY,theme);}catch(e){}
-  applyTheme(theme);
-  toast(theme==='light'?'☀️ 라이트 모드':'🌙 다크 모드');
-};
-applyTheme(theme);
+function setTheme(mode){theme=mode;try{localStorage.setItem(THEME_KEY,mode);}catch(e){}applyTheme();if(byId('setTheme'))byId('setTheme').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.m===mode));}
+themeMQ.addEventListener('change',()=>{if(theme==='system')applyTheme();});
+byId('themeToggle').onclick=()=>{const next=effTheme()==='light'?'dark':'light';setTheme(next);toast(next==='light'?'☀️ 라이트 모드':'🌙 다크 모드');};
+applyTheme();
+
+/* ---------- 강조 색상 · 크리에이터 UI ---------- */
+function darken(hex,f){const h=(hex||'').replace('#','');const n=h.length===3?h.split('').map(c=>c+c).join(''):h;
+  const s=[0,2,4].map(i=>Math.max(0,Math.round(parseInt(n.slice(i,i+2),16)*f)).toString(16).padStart(2,'0'));return '#'+s.join('');}
+function applyAccent(hex){const r=document.documentElement.style;
+  if(hex&&hex.toLowerCase()!=='#ff3d68'){r.setProperty('--accent',hex);r.setProperty('--accent-soft',hexA(hex,0.14));r.setProperty('--accent-press',darken(hex,0.86));}
+  else{r.removeProperty('--accent');r.removeProperty('--accent-soft');r.removeProperty('--accent-press');}}
+function applyCreatorUI(){byId('gnbAvatar').textContent=(DB.settings.initials||'CR').slice(0,2);}
+
+/* ---------- 설정 ---------- */
+const ACCENT_PRESETS=['#ff3d68','#ff8a5c','#ffcb45','#33d69f','#4fc0e8','#5b8cff','#a45bff','#ff5c7a'];
+const TAB_LABELS={insight:'인사이트',hall:'명예의 전당',grade:'등급 관리',title:'칭호 관리',donator:'도네이터 관리',donations:'후원 내역',auto:'자동화 설정',toon:'투네톡',sched:'스케줄',live:'라이브'};
+function renderSettings(){
+  const S=DB.settings;
+  byId('setCreator').value=S.creatorName||''; byId('setChannel').value=S.channelName||'';
+  byId('setInitials').value=S.initials||''; byId('setUrl').value=S.broadcastUrl||'';
+  byId('setTheme').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.m===theme));
+  // 기본 시작 탭
+  const sel=byId('setDefaultTab'); sel.innerHTML=[...document.querySelectorAll('.tab[data-tab]')].map(t=>{const v=t.dataset.tab;return `<option value="${v}" ${S.defaultTab===v?'selected':''}>${TAB_LABELS[v]||v}</option>`;}).join('');
+  // 강조색
+  byId('setAccent').innerHTML=ACCENT_PRESETS.map(c=>`<div class="swatch ${(S.accent||'#ff3d68').toLowerCase()===c?'on':''}" data-c="${c}" style="background:${c}"></div>`).join('');
+  byId('setAccent').querySelectorAll('.swatch').forEach(sw=>sw.onclick=()=>{S.accent=sw.dataset.c;save();applyAccent(S.accent);renderSettings();});
+  byId('setAnniv').classList.toggle('on',!!DB.annivAuto);
+  byId('setMilestone').classList.toggle('on',!!DB.milestoneNudge);
+  byId('setToonAlert').classList.toggle('on',!!DB.toonUnreadAlert);
+  byId('setChurn').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.d===churnThreshold));
+  byId('setNudge').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.n===nudgeThreshold));
+}
+function openSettings(){renderSettings();byId('settingsOverlay').classList.add('show');}
+byId('settingsBtn').onclick=openSettings;
+byId('gnbAvatar').onclick=openSettings;
+byId('setClose').onclick=byId('setDone').onclick=()=>byId('settingsOverlay').classList.remove('show');
+byId('settingsOverlay').onclick=e=>{if(e.target===byId('settingsOverlay'))byId('settingsOverlay').classList.remove('show');};
+// 프로필 입력 (즉시 반영)
+byId('setCreator').oninput=e=>{DB.settings.creatorName=e.target.value.trim();save();};
+byId('setChannel').oninput=e=>{DB.settings.channelName=e.target.value.trim();save();};
+byId('setInitials').oninput=e=>{DB.settings.initials=e.target.value.trim()||'CR';save();applyCreatorUI();};
+byId('setUrl').oninput=e=>{DB.settings.broadcastUrl=e.target.value.trim();save();};
+byId('setTheme').querySelectorAll('button').forEach(b=>b.onclick=()=>setTheme(b.dataset.m));
+byId('setDefaultTab').onchange=e=>{DB.settings.defaultTab=e.target.value;save();toast('기본 시작 탭을 저장했습니다');};
+byId('setAnniv').onclick=()=>{DB.annivAuto=!DB.annivAuto;save();byId('setAnniv').classList.toggle('on',DB.annivAuto);if(byId('annivAuto'))byId('annivAuto').classList.toggle('on',DB.annivAuto);renderInsights();};
+byId('setMilestone').onclick=()=>{DB.milestoneNudge=!DB.milestoneNudge;save();byId('setMilestone').classList.toggle('on',DB.milestoneNudge);renderNudge();};
+byId('setToonAlert').onclick=()=>{DB.toonUnreadAlert=!DB.toonUnreadAlert;save();byId('setToonAlert').classList.toggle('on',DB.toonUnreadAlert);if(byId('toonAlert'))byId('toonAlert').classList.toggle('on',DB.toonUnreadAlert);};
+byId('setChurn').querySelectorAll('button').forEach(b=>b.onclick=()=>{churnThreshold=+b.dataset.d;DB.settings.churnDays=churnThreshold;save();
+  byId('setChurn').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  if(byId('churnThresh'))byId('churnThresh').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.d===churnThreshold));renderInsights();});
+byId('setNudge').querySelectorAll('button').forEach(b=>b.onclick=()=>{nudgeThreshold=+b.dataset.n;DB.settings.nudgeAmount=nudgeThreshold;save();
+  byId('setNudge').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  if(byId('nudgeThresh'))byId('nudgeThresh').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.n===nudgeThreshold));renderNudge();});
 
 /* ---------- init ---------- */
+applyAccent(DB.settings.accent); applyCreatorUI();
 renderSwatches();
 renderGrades();
 renderDonators();
@@ -4774,6 +4881,11 @@ renderToonStats();
 renderScheduleCount();
 renderAlerts();
 renderCredit();
+// 설정값 → 인탭 세그먼트 동기화
+if(byId('churnThresh'))byId('churnThresh').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.d===churnThreshold));
+if(byId('nudgeThresh'))byId('nudgeThresh').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.n===nudgeThreshold));
+// 기본 시작 탭
+if(DB.settings.defaultTab&&DB.settings.defaultTab!=='insight'){const _t=document.querySelector(`.tab[data-tab="${DB.settings.defaultTab}"]`);if(_t)_t.click();}
 </script>
 </body>
 </html>
