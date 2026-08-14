@@ -867,6 +867,9 @@ tbody tr.blocked:hover{opacity:.72}
 .alert-row .ar-s{font-size:11.5px;color:var(--muted);margin-top:2px}
 .alert-row .ar-go{color:var(--muted-2);flex:none}
 .alert-empty{padding:34px 16px;text-align:center;color:var(--muted);font-size:13px}
+/* 알림 클릭 → 해당 영역 하이라이트 */
+.flash-focus{animation:flashFocus 1.7s ease-out}
+@keyframes flashFocus{0%{box-shadow:0 0 0 3px var(--accent),0 0 22px rgba(255,61,104,.4)}100%{box-shadow:0 0 0 3px rgba(255,61,104,0),0 0 22px rgba(255,61,104,0)}}
 /* 도네이터 활동 타임라인 */
 .tl{position:relative;padding-left:6px}
 .tl-item{position:relative;padding:0 0 16px 26px;border-left:2px solid var(--line)}
@@ -4327,16 +4330,27 @@ function renderTimeline(d){
    알림 센터 (할 일 허브)
    ========================================================= */
 function goTab(t){document.querySelector(`.tab[data-tab="${t}"]`).click();}
+/* 특정 탭의 섹션으로 이동 + 스크롤 + 하이라이트 */
+function focusSection(tab,id){
+  goTab(tab);
+  requestAnimationFrame(()=>{
+    const el=byId(id); if(!el)return;
+    const target=el.closest('.panel')||el;
+    target.scrollIntoView({behavior:'smooth',block:'center'});
+    target.classList.remove('flash-focus'); void target.offsetWidth; target.classList.add('flash-focus');
+    setTimeout(()=>target.classList.remove('flash-focus'),1800);
+  });
+}
 function alertItems(){
   const items=[];
   const pend=DB.toontalks.filter(t=>toonEffStatus(t)==='pending').length;
   if(pend)items.push({icon:'💬',t:`투네톡 답장 대기 ${pend}건`,s:'72시간 내 답장하면 후원 완료',go:()=>{toonFilter='pending';goTab('toon');byId('toonFilter').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.f==='pending'));renderToon();}});
   const ch=churnData(churnThreshold).length;
-  if(ch)items.push({icon:'⚠️',t:`이탈 위험 VIP ${ch}명`,s:`무후원 ${churnThreshold}일 이상 · 복귀 유도 필요`,go:()=>goTab('insight')});
+  if(ch)items.push({icon:'⚠️',t:`이탈 위험 VIP ${ch}명`,s:`무후원 ${churnThreshold}일 이상 · 복귀 유도 필요`,go:()=>focusSection('insight','churnBox')});
   const nu=nudgeData(nudgeThreshold).filter(x=>!x.d.nudged).length;
-  if(nu)items.push({icon:'🎯',t:`승급 임박 VIP ${nu}명`,s:'다음 등급까지 얼마 안 남았어요',go:()=>goTab('insight')});
+  if(nu)items.push({icon:'🎯',t:`승급 임박 VIP ${nu}명`,s:'다음 등급까지 얼마 안 남았어요',go:()=>focusSection('insight','nudgeBox')});
   const an=annivList().filter(x=>x.days<=7&&!x.d.celebrated).length;
-  if(an)items.push({icon:'🎂',t:`다가오는 기념일 ${an}명`,s:'7일 이내 가입 기념일 · 축하하기',go:()=>goTab('insight')});
+  if(an)items.push({icon:'🎂',t:`다가오는 기념일 ${an}명`,s:'7일 이내 가입 기념일 · 축하하기',go:()=>focusSection('insight','annivList')});
   const today=`${new Date().getFullYear()}-${z2(new Date().getMonth()+1)}-${z2(new Date().getDate())}`;
   const sc=DB.schedules.filter(s=>s.date===today&&schedStatus(s)==='upcoming').length;
   if(sc)items.push({icon:'📅',t:`오늘 방송 예정 ${sc}건`,s:'예정된 방송을 확인하세요',go:()=>goTab('sched')});
