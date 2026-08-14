@@ -870,6 +870,39 @@ tbody tr.blocked:hover{opacity:.72}
 /* 알림 클릭 → 해당 영역 하이라이트 */
 .flash-focus{animation:flashFocus 1.7s ease-out}
 @keyframes flashFocus{0%{box-shadow:0 0 0 3px var(--accent),0 0 22px rgba(255,61,104,.4)}100%{box-shadow:0 0 0 3px rgba(255,61,104,0),0 0 22px rgba(255,61,104,0)}}
+/* 복귀 유도·넛지 성과 */
+.or-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+@media(max-width:640px){.or-stats{grid-template-columns:1fr}}
+.or-card{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.or-card .or-k{font-size:12.5px;font-weight:800;color:var(--muted);display:flex;align-items:center;gap:6px}
+.or-card .or-big{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:7px 0 9px}
+.or-card .or-big small{font-size:12.5px;color:var(--muted);font-weight:600;margin-left:3px}
+.or-card .or-bar{height:7px;border-radius:5px;background:var(--surface-3);overflow:hidden}
+.or-card .or-bar i{display:block;height:100%;border-radius:5px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.or-card .or-sub{font-size:11.5px;color:var(--muted);margin-top:8px}
+.or-card .or-sub b{color:var(--text);font-weight:800}
+.or-recent{display:flex;flex-direction:column}
+.or-row{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line);font-size:12.5px}
+.or-row:last-child{border-bottom:none}
+.or-row .ava{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:11px}
+.or-row .or-nm{font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.or-type{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:6px;white-space:nowrap;margin-left:auto;flex:none}
+.or-type.re{background:var(--yeol-soft);color:var(--yeol)}
+.or-type.nu{background:var(--accent-soft);color:var(--accent)}
+.or-when{font-size:11px;color:var(--muted-2);white-space:nowrap;flex:none;width:56px;text-align:right}
+.or-res{font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;white-space:nowrap;flex:none;width:96px;text-align:center}
+.or-res.ok{background:rgba(51,214,159,.16);color:var(--on)}
+.or-res.pend{background:var(--surface-3);color:var(--muted)}
+.or-res.no{background:rgba(255,107,129,.12);color:#ff6b81}
+/* 성과 모달 */
+.or-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.or-summary .os{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:12px 13px;text-align:center}
+.or-summary .os .k{font-size:11px;color:var(--muted);font-weight:700}
+.or-summary .os .v{font-size:20px;font-weight:800;margin-top:4px;letter-spacing:-.01em}
+.or-summary .os .v small{font-size:12px;color:var(--muted);font-weight:600}
+.or-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.or-list{max-height:340px;overflow-y:auto}
+.or-list .or-row{padding:11px 2px}
 /* 도네이터 활동 타임라인 */
 .tl{position:relative;padding-left:6px}
 .tl-item{position:relative;padding:0 0 16px 26px;border-left:2px solid var(--line)}
@@ -1057,6 +1090,17 @@ tbody tr.blocked:hover{opacity:.72}
           </div>
         </div>
         <div class="panel-body"><div id="nudgeBox"></div></div>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-head">
+          <h3>📈 복귀 유도·넛지 성과</h3><span class="hint" id="outreachHint">발송 대비 전환 분석</span><div class="spacer"></div>
+          <button class="btn ghost sm" id="outreachMore">전체 성과 보기 ▸</button>
+        </div>
+        <div class="panel-body">
+          <div class="or-stats" id="outreachStats"></div>
+          <div class="or-recent" id="outreachRecent"></div>
+        </div>
       </div>
 
       <div class="panel" style="margin-bottom:16px">
@@ -1779,6 +1823,23 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
 </div>
 
+<!-- ============ 복귀 유도·넛지 성과 분석 ============ -->
+<div class="overlay" id="outreachOverlay">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-head">
+      <h2>📈 복귀 유도·넛지 성과 분석</h2><div class="spacer"></div><button class="xbtn" id="outreachClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="or-summary" id="orSummary"></div>
+      <div class="or-filters">
+        <div class="seg" id="orTypeF" style="flex:none"><button data-t="all" class="on">전체</button><button data-t="reengage">💤 복귀 유도</button><button data-t="nudge">🎯 넛지</button></div>
+        <div class="seg" id="orResF" style="flex:none"><button data-r="all" class="on">전체</button><button data-r="converted">전환</button><button data-r="none">무응답</button><button data-r="pending">대기</button></div>
+      </div>
+      <div class="or-list" id="orFullList"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ============ 승급 넛지 메시지 ============ -->
 <div class="overlay" id="nudgeOverlay">
   <div class="modal" style="max-width:480px">
@@ -2085,6 +2146,7 @@ function normalize(){
   if(!DB.schedules) DB.schedules=[];
   if(!DB.recaps) DB.recaps=[];
   if(!DB.msgCredit) DB.msgCredit={balance:300,sent:0,log:[{ts:Date.now(),type:'init',amount:300,balance:300}]};
+  if(!DB.outreach) DB.outreach=seedOutreach();
   (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;});
   // 구버전 마이그레이션: 단일 action → actions 배열
   (DB.autos||[]).forEach(a=>{ if(!a.actions){a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[];delete a.action;delete a.cfg;} });
@@ -2971,7 +3033,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','creditOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','creditOverlay','outreachOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -3163,8 +3225,8 @@ byId('reClose').onclick=byId('reCancel').onclick=()=>byId('reOverlay').classList
 byId('reOverlay').onclick=e=>{if(e.target===byId('reOverlay'))byId('reOverlay').classList.remove('show');};
 byId('reSend').onclick=()=>{
   if(!spendCredit()){toast('잔여 발송 건수가 부족합니다. 충전해주세요');byId('reOverlay').classList.remove('show');openRecharge();return;}
-  const d=DB.donators.find(x=>x.id===reId);if(d){d.reengaged=true;d.reengagedAt=Date.now();save();}
-  byId('reOverlay').classList.remove('show');renderChurn();renderKpis();renderDonators();
+  const d=DB.donators.find(x=>x.id===reId);if(d){d.reengaged=true;d.reengagedAt=Date.now();logOutreach('reengage',d);save();}
+  byId('reOverlay').classList.remove('show');renderChurn();renderKpis();renderDonators();renderOutreach();
   toast(`복귀 유도 알림톡을 발송했습니다 · 잔여 ${won(creditBalance())}건`);
 };
 
@@ -3230,14 +3292,99 @@ byId('nudgeClose').onclick=byId('nudgeCancel').onclick=()=>byId('nudgeOverlay').
 byId('nudgeOverlay').onclick=e=>{if(e.target===byId('nudgeOverlay'))byId('nudgeOverlay').classList.remove('show');};
 byId('nudgeSend').onclick=()=>{
   if(!spendCredit()){toast('잔여 발송 건수가 부족합니다. 충전해주세요');byId('nudgeOverlay').classList.remove('show');openRecharge();return;}
-  const d=DB.donators.find(x=>x.id===nudgeId);if(d){d.nudged=true;save();}
-  byId('nudgeOverlay').classList.remove('show');renderNudge();renderDonators();
+  const d=DB.donators.find(x=>x.id===nudgeId);if(d){d.nudged=true;logOutreach('nudge',d);save();}
+  byId('nudgeOverlay').classList.remove('show');renderNudge();renderDonators();renderOutreach();
   // 프로필이 열려 있고 같은 도네이터면 목표 카드 갱신
   if(d && drId===d.id && byId('donDrawer').classList.contains('show')) renderGoalCard(d);
   toast(`승급 넛지 알림톡을 발송했습니다 🎯 · 잔여 ${won(creditBalance())}건`);
 };
 
-function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderChurn();renderPareto();renderNudge();renderAnniv();if(typeof renderAlerts==='function')renderAlerts();}
+/* =========================================================
+   복귀 유도·넛지 성과 분석 (전환 추적)
+   ========================================================= */
+/* 발송 이력 시드: 결정적으로 과거 30일 발송·전환 데이터 생성 */
+function seedOutreach(){
+  const now=Date.now(), out=[];
+  (DB.donators||[]).filter(d=>!d.blocked).forEach(d=>{
+    const r=seedRand('outreach_'+d.id);
+    if(r()>0.5) return;                       // 약 절반만 발송 이력 보유
+    const cnt=1+Math.floor(r()*2);            // 1~2건
+    for(let k=0;k<cnt;k++){
+      const type=r()>0.5?'reengage':'nudge';
+      const ts=now-(2+Math.floor(r()*29))*864e5;
+      const g=gradeForCash(d.cash);
+      const base=type==='reengage'?0.34:0.44;
+      const bonus=g&&g.id==='g_vvip'?0.16:g&&g.id==='g_vip'?0.08:0;
+      const converted=r()<(base+bonus);
+      const amount=converted?Math.round((3000+r()*70000)/100)*100:0;
+      out.push({id:'or_'+d.id+'_'+k, donatorId:d.id, type, ts, result:converted?'converted':'none',
+        resultAt:converted?ts+Math.floor((0.3+r()*3)*864e5):null, amount});
+    }
+  });
+  return out.sort((a,b)=>b.ts-a.ts);
+}
+/* 실제 발송 기록 (결과는 대기중) */
+function logOutreach(type,d){
+  (DB.outreach=DB.outreach||[]).unshift({id:'or_'+d.id+'_'+Date.now(),donatorId:d.id,type,ts:Date.now(),result:'pending',resultAt:null,amount:0});
+  while(DB.outreach.length>500)DB.outreach.pop();
+}
+function outreachStats(list){
+  list=list||DB.outreach||[];
+  const s={reengage:{sent:0,conv:0,pending:0,cash:0},nudge:{sent:0,conv:0,pending:0,cash:0}};
+  list.forEach(o=>{const t=s[o.type];if(!t)return;t.sent++;if(o.result==='converted'){t.conv++;t.cash+=o.amount||0;}else if(o.result==='pending')t.pending++;});
+  const rate=t=>{const decided=t.sent-t.pending;return decided>0?Math.round(t.conv/decided*100):0;};
+  return {...s,reRate:rate(s.reengage),nuRate:rate(s.nudge),totalCash:s.reengage.cash+s.nudge.cash,total:list.length};
+}
+function orResBadge(o){
+  if(o.result==='converted')return `<span class="or-res ok">${o.type==='reengage'?'복귀함':'후원함'}${o.amount?` +${won(o.amount)}`:''}</span>`;
+  if(o.result==='pending')return '<span class="or-res pend">대기중</span>';
+  return '<span class="or-res no">무응답</span>';
+}
+function orRow(o){
+  const d=DB.donators.find(x=>x.id===o.donatorId);if(!d)return '';
+  const g=gradeForCash(d.cash);
+  const tb=o.type==='reengage'?'<span class="or-type re">💤 복귀 유도</span>':'<span class="or-type nu">🎯 넛지</span>';
+  return `<div class="or-row"><div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+    <div class="or-nm">${d.alias||d.name} ${gradeBadge(g)}</div>${tb}<span class="or-when">${fmtAgo(o.ts)}</span>${orResBadge(o)}</div>`;
+}
+function renderOutreach(){
+  if(!byId('outreachStats'))return;
+  const st=outreachStats();
+  byId('outreachHint').textContent=`총 발송 ${won(st.total)}건 · 유도 후원 ${won(st.totalCash)}캐시`;
+  const card=(icon,label,t,convLbl,rate,color)=>`
+    <div class="or-card">
+      <div class="or-k">${icon} ${label}</div>
+      <div class="or-big">${won(t.conv)}<small>/ ${won(t.sent)}건 ${convLbl}</small></div>
+      <div class="or-bar"><i style="width:${rate}%;background:${color}"></i></div>
+      <div class="or-sub">전환율 <b>${rate}%</b>${t.pending?` · 대기 ${t.pending}`:''} · 유도 후원 <b>${won(t.cash)}</b>캐시</div>
+    </div>`;
+  byId('outreachStats').innerHTML=
+    card('💤','복귀 유도',st.reengage,'복귀',st.reRate,'var(--yeol)')+
+    card('🎯','승급 넛지',st.nudge,'후원',st.nuRate,'var(--accent)');
+  const recent=(DB.outreach||[]).slice(0,5);
+  byId('outreachRecent').innerHTML=recent.length?recent.map(orRow).join(''):'<div class="helper" style="padding:14px;text-align:center">발송 이력이 없습니다</div>';
+}
+/* 성과 모달 */
+let orTypeSel='all', orResSel='all';
+function renderOutreachModal(){
+  const st=outreachStats();
+  const convTotal=st.reengage.conv+st.nudge.conv, decided=(st.reengage.sent-st.reengage.pending)+(st.nudge.sent-st.nudge.pending);
+  const rate=decided>0?Math.round(convTotal/decided*100):0;
+  byId('orSummary').innerHTML=`
+    <div class="os"><div class="k">총 발송</div><div class="v">${won(st.total)}<small>건</small></div></div>
+    <div class="os"><div class="k">전환</div><div class="v" style="color:var(--on)">${won(convTotal)}<small>건 · ${rate}%</small></div></div>
+    <div class="os"><div class="k">유도 후원</div><div class="v" style="color:var(--accent)">${won(st.totalCash)}<small>캐시</small></div></div>`;
+  let list=(DB.outreach||[]).filter(o=>(orTypeSel==='all'||o.type===orTypeSel)&&(orResSel==='all'||o.result===orResSel));
+  byId('orFullList').innerHTML=list.length?list.map(orRow).join(''):'<div class="helper" style="padding:24px;text-align:center">해당하는 발송 이력이 없습니다</div>';
+}
+function openOutreachModal(){orTypeSel='all';orResSel='all';byId('orTypeF').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.t==='all'));byId('orResF').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.r==='all'));renderOutreachModal();byId('outreachOverlay').classList.add('show');}
+byId('outreachMore').onclick=openOutreachModal;
+byId('outreachClose').onclick=()=>byId('outreachOverlay').classList.remove('show');
+byId('outreachOverlay').onclick=e=>{if(e.target===byId('outreachOverlay'))byId('outreachOverlay').classList.remove('show');};
+byId('orTypeF').querySelectorAll('button').forEach(b=>b.onclick=()=>{orTypeSel=b.dataset.t;byId('orTypeF').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderOutreachModal();});
+byId('orResF').querySelectorAll('button').forEach(b=>b.onclick=()=>{orResSel=b.dataset.r;byId('orResF').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderOutreachModal();});
+
+function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderChurn();renderPareto();renderNudge();renderOutreach();renderAnniv();if(typeof renderAlerts==='function')renderAlerts();}
 
 /* =========================================================
    TAB — 칭호 관리 (규칙 엔진)
