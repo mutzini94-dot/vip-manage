@@ -107,8 +107,10 @@ export class ApiClient {
       anniversaries:      (within)=> req('GET', '/insights/anniversaries', { query: { within } }),
     };
     this.settings = {
-      get:    ()      => req('GET', '/settings'),
-      update: (body)  => req('PUT', '/settings', { body }),
+      get:      ()        => req('GET', '/settings'),
+      update:   (body)    => req('PUT', '/settings', { body }),
+      credits:  ()        => req('GET', '/settings/credits'),
+      recharge: (amount)  => req('POST', '/settings/credits/recharge', { body: { amount } }),
     };
     this.schedules = {
       list:   (status) => req('GET', '/schedules', { query: status ? { status } : undefined }),

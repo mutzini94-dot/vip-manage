@@ -55,6 +55,7 @@ GET /donators?page=1&limit=20
 | 404 | `NOT_FOUND` | 리소스 없음 |
 | 409 | `CONFLICT` | 중복(예: 등급명) |
 | 422 | `RULE_ERROR` | 규칙 위반(예: 최소>최대) |
+| 422 | `INSUFFICIENT_CREDIT` | 알림톡 발송 건수 부족(충전 필요) |
 | 429 | `RATE_LIMITED` | 과도한 요청 |
 
 ---
@@ -106,6 +107,15 @@ GET /donators?page=1&limit=20
 ```json
 { "when":"10-31 21:14", "situ":"amount", "name":"톰하디", "grade":"VVIP", "action":"widget", "amt":30000 }
 ```
+
+### MessageCredit (알림톡 발송 건수 · 크레딧)
+```json
+{ "balance": 300, "sent": 12,
+  "log": [ { "ts":"08-14 14:03", "type":"recharge", "amount":300, "balance":598 } ] }
+```
+- **복귀 유도(reengage)·승급 넛지(nudge)** 알림톡이 공용으로 사용하는 발송 건수 풀. 기본 300건
+- 발송 1건당 `balance` 1 차감, `sent` 1 증가. `balance<=0`이면 발송 차단(`422 INSUFFICIENT_CREDIT`)
+- 크리에이터가 충전하면 `balance` 증가 + `log`에 이력 기록
 
 ---
 
@@ -193,7 +203,9 @@ GET /donators?page=1&limit=20
 | POST | `/donators/{id}/reengage` | 이탈 복귀 유도 발송 `{message}` |
 | POST | `/donators/{id}/celebrate` | 기념일 축하 발송 `{message}` |
 
-응답 예: `{ "sent": true, "channel": "kakao_alimtalk", "to": "톰하디", "at": "2026-08-10 14:03:00" }`
+응답 예: `{ "sent": true, "channel": "kakao_alimtalk", "to": "톰하디", "at": "2026-08-10 14:03:00", "creditRemaining": 299 }`
+
+> **발송 건수(크레딧):** `nudge`·`reengage`는 발송 시 **발송 건수 1건을 차감**하고 응답에 `creditRemaining`을 포함합니다. 잔여 건수가 없으면 `422 INSUFFICIENT_CREDIT`. `celebrate`는 차감하지 않습니다. 조회·충전은 §4.11 참고.
 
 ### 4.8 라이브 Live (방송)
 | 메서드 | 경로 | 설명 |
@@ -235,6 +247,8 @@ WebSocket 이벤트 예:
 |--------|------|------|
 | GET | `/settings` | `{ annivAuto: true }` |
 | PUT | `/settings` | 설정 갱신 |
+| GET | `/settings/credits` | 알림톡 발송 건수 조회 → `{ balance, sent }` |
+| POST | `/settings/credits/recharge` | 발송 건수 충전 `{amount}` → `{ balance, added }` |
 
 ---
 

@@ -40,6 +40,7 @@ export function donatorDTO(DB, d, full) {
   if (!full) return base;
   return { ...base, memo:d.memo||'', awards:d.awards||[], blockReason:d.blockReason||null, blockedAt:d.blockedAt||null,
     join:d.join, last:d.last, types:d.types||[], nudged:!!d.nudged, celebrated:!!d.celebrated,
+    reengaged:!!d.reengaged, reengagedAt:d.reengagedAt||null,
     gauge:gaugeData(DB,d), titles:donatorTitles(DB,d).map(t=>({id:t.id,name:t.name,icon:t.icon})),
     history:d.history||[] };
 }

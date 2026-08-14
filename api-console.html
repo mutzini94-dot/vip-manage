@@ -295,6 +295,7 @@ pre.json{margin:0;background:var(--ground);border:1px solid var(--line);border-r
               <tr><td><code>stories</code></td><td>Story[]</td><td>크리에이터 스토리(공지)</td></tr>
               <tr><td><code>recaps</code></td><td>Recap[]</td><td>방송 성과 리캡</td></tr>
               <tr><td><code>annivAuto</code></td><td>boolean</td><td>기념일 자동 축하 on/off</td></tr>
+              <tr><td><code>msgCredit</code> <span class="pill-lite new">최근</span></td><td>{balance,sent,log}</td><td>복귀 유도·넛지 알림톡 발송 건수(크레딧)</td></tr>
             </table></div>
             <h3>Donator 필드</h3>
             <div class="tbl-wrap"><table>
@@ -327,6 +328,7 @@ pre.json{margin:0;background:var(--ground);border:1px solid var(--line);border-r
               <div class="feat"><div class="ft">🔴 라이브</div><div class="fd">실시간 접속 VIP·피드·랭킹·세션 후원·해피아워 부스트</div></div>
             </div>
             <div class="callout"><b>후원 유도 · 이탈 방지 장치:</b> 승급 넛지, <b>복귀 유도(재발송 가능 + 마지막 발송 시점 표기)</b>, 해피아워 부스트, 기념일 자동 축하, 방송 예정 사전 알림.</div>
+            <div class="callout"><b>알림톡 발송 건수(크레딧):</b> 복귀 유도·넛지는 공용 발송 건수 풀(<code>msgCredit.balance</code>, 기본 300건)을 사용합니다. 발송 시 1건 차감, 상단 GNB에 잔여 표시, 소진 시 발송 차단 후 충전 유도. API는 <code>GET /settings/credits</code>·<code>POST /settings/credits/recharge</code>, 발송 응답의 <code>creditRemaining</code>, 부족 시 <code>422 INSUFFICIENT_CREDIT</code>.</div>
           </section>
 
           <section id="d5">
@@ -420,6 +422,8 @@ pre.json{margin:0;background:var(--ground);border:1px solid var(--line);border-r
 
           <section id="d11">
             <h2><span class="no">11</span> 변경 이력</h2>
+            <div class="chg-item"><div class="cd">2026-08-14</div><div class="cbody"><div class="ct">알림톡 발송 건수(크레딧) 제한 <span class="pill-lite new">신규</span></div><div class="cs">복귀 유도·넛지 공용 발송 건수 총량 제한(기본 300건)·GNB 잔여 표시·충전. API: <code>/settings/credits</code>, 발송 응답 <code>creditRemaining</code>, 부족 시 <code>422 INSUFFICIENT_CREDIT</code>.</div></div></div>
+            <div class="chg-item"><div class="cd">2026-08-14</div><div class="cbody"><div class="ct">도네이터 관리 액션 필터 <span class="pill-lite new">신규</span></div><div class="cs">도네이터 관리 탭에 복귀 유도·넛지 대상 필터와 행별 발송 버튼 추가.</div></div></div>
             <div class="chg-item"><div class="cd">2026-08-14</div><div class="cbody"><div class="ct">복귀 유도 재발송 <span class="pill-lite chg">변경</span></div><div class="cs">이탈 위험 VIP에서 복귀 유도를 <b>재발송 가능</b>하도록 변경하고, <b>마지막 발송 시점</b>(상대시간)을 표기. <code>reengagedAt</code> 타임스탬프 저장.</div></div></div>
             <div class="chg-item"><div class="cd">2026-08-14</div><div class="cbody"><div class="ct">투스닥 제거 <span class="pill-lite rm">삭제</span></div><div class="cs">도네이터 주식 마켓(TOOSDAQ) 탭·종목 상세 모달·관련 로직 전체 제거.</div></div></div>
             <div class="chg-item"><div class="cd">2026-08-14</div><div class="cbody"><div class="ct">팬 여정 퍼널 제거 <span class="pill-lite rm">삭제</span></div><div class="cs">인사이트 탭의 팬 여정 퍼널 패널 제거.</div></div></div>
@@ -524,6 +528,7 @@ function seed(){
     {id:'g_vip',name:'VIP',cls:'vip',color:'#a45bff',mode:'range',min:100000,max:299999},
     {id:'g_yeol',name:'열혈',cls:'yeol',color:'#5b8cff',mode:'range',min:30000,max:99999}],
     donators,titles:seedTitles(),autoLogs:seedLogs(donators),annivAuto:true,schedules:seedSchedules(),
+    msgCredit:{balance:300,sent:0,log:[{ts:nowClock(),type:'init',amount:300,balance:300}]},
     autos:[
       {id:uid(),on:true,situ:'login',targetMode:'class',classes:['g_vvip'],actions:[{type:'kakao_send',cfg:{msg:'{크리에이터} 님이 방송을 시작하였습니다'}}]},
       {id:uid(),on:true,situ:'amount',amt:{mode:'range',min:10000,max:100000},actions:[{type:'widget',cfg:{widget:'팡파르'}},{type:'tts',cfg:{voice:'ara'}}]},
@@ -539,6 +544,7 @@ function load(){let DB;try{const r=localStorage.getItem(LS);if(r)DB=JSON.parse(r
   // normalize
   if(!DB.titles)DB.titles=seedTitles(); if(!DB.autoLogs)DB.autoLogs=[]; if(DB.annivAuto===undefined)DB.annivAuto=true;
   if(!DB.schedules)DB.schedules=seedSchedules();
+  if(!DB.msgCredit)DB.msgCredit={balance:300,sent:0,log:[{ts:nowClock(),type:'init',amount:300,balance:300}]};
   (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;});
   (DB.autos||[]).forEach(a=>{if(!a.actions){a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[];delete a.action;delete a.cfg;}});
   return DB;
@@ -736,6 +742,12 @@ const ROUTES=[
   // settings
   ['GET','/settings',(DB)=>({status:200,data:{annivAuto:!!DB.annivAuto}})],
   ['PUT','/settings',(DB,p,q,b)=>{if(b.annivAuto!=null)DB.annivAuto=!!b.annivAuto;return{status:200,data:{annivAuto:!!DB.annivAuto},mut:1};}],
+  // 알림톡 발송 건수(크레딧) — 복귀 유도·넛지 공용
+  ['GET','/settings/credits',(DB)=>({status:200,data:{balance:DB.msgCredit.balance,sent:DB.msgCredit.sent||0}})],
+  ['POST','/settings/credits/recharge',(DB,p,q,b)=>{const amt=Math.floor(+b.amount||0);if(amt<=0)return err(400,'VALIDATION_ERROR','amount must be > 0');
+    DB.msgCredit.balance+=amt;DB.msgCredit.log=DB.msgCredit.log||[];DB.msgCredit.log.unshift({ts:nowClock(),type:'recharge',amount:amt,balance:DB.msgCredit.balance});
+    while(DB.msgCredit.log.length>30)DB.msgCredit.log.pop();
+    return{status:200,data:{balance:DB.msgCredit.balance,added:amt},mut:1};}],
   // webhooks
   ['POST','/webhooks/donation',(DB,p,q,b)=>{
     if(!b.amount)return err(400,'VALIDATION_ERROR','amount required');
@@ -754,9 +766,12 @@ const ROUTES=[
     if(!d)return err(404,'NOT_FOUND','donator');return{status:200,data:{online:true,firedAutomations:fireEvent(DB,'login',d,0)},mut:1};}],
 ];
 function notify(DB,id,b,kind,flag){const d=DB.donators.find(x=>x.id===id);if(!d)return err(404,'NOT_FOUND','donator');
+  const usesCredit=(kind==='nudge'||kind==='reengage');
+  if(usesCredit&&DB.msgCredit.balance<=0)return err(422,'INSUFFICIENT_CREDIT','알림톡 발송 잔여 건수가 없습니다. 충전이 필요합니다.');
   if(flag==='d.nudged')d.nudged=true; if(flag==='d.celebrated')d.celebrated=true;
   if(kind==='reengage'){d.reengaged=true;d.reengagedAt=Date.now();}
-  return{status:200,data:{sent:true,channel:'kakao_alimtalk',type:kind,to:d.alias||d.name,message:renderMsgRaw(DB,b.message||'',d),at:nowClock(),...(kind==='reengage'?{reengagedAt:d.reengagedAt}:{})},mut:1};}
+  if(usesCredit){DB.msgCredit.balance--;DB.msgCredit.sent=(DB.msgCredit.sent||0)+1;}
+  return{status:200,data:{sent:true,channel:'kakao_alimtalk',type:kind,to:d.alias||d.name,message:renderMsgRaw(DB,b.message||'',d),at:nowClock(),...(usesCredit?{creditRemaining:DB.msgCredit.balance}:{}),...(kind==='reengage'?{reengagedAt:d.reengagedAt}:{})},mut:1};}
 function renderMsgRaw(DB,msg,d){const g=gradeForCash(DB,d.cash),gg=gaugeData(DB,d);
   return (msg||'').replace(/{크리에이터}/g,'크리에이터').replace(/{닉네임}/g,d.alias||d.name).replace(/{등급}/g,g?g.name:'VIP').replace(/{주년}/g,String(annivInfo(DB,d).years)).replace(/{남은금액}/g,gg.top?'0':String(gg.remaining)).replace(/{다음등급}/g,gg.top?'최고등급':gg.next.name);}
 function renderMsg(DB,ac,d){if(ac.type==='kakao_send')return renderMsgRaw(DB,ac.cfg&&ac.cfg.msg||'',d);
@@ -866,6 +881,8 @@ const CATALOG=[
   {grp:'설정 Settings',items:[
     ['GET','/settings','설정 조회'],
     ['PUT','/settings','설정 변경',{annivAuto:false}],
+    ['GET','/settings/credits','알림톡 잔여 건수 조회'],
+    ['POST','/settings/credits/recharge','발송 건수 충전',{amount:300}],
   ]},
   {grp:'웹훅 Webhooks (수신)',items:[
     ['POST','/webhooks/donation','후원 이벤트 주입',{name:'톰하디',amount:30000,type:'text',message:'후원합니다!'}],

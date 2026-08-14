@@ -9,8 +9,13 @@ function paginate(arr, query) {
 }
 function notify(DB, id, b, kind, flag) {
   const d = DB.donators.find(x=>x.id===id); if(!d) return err(404,'NOT_FOUND','donator');
+  const usesCredit = (kind==='nudge' || kind==='reengage');
+  if (usesCredit && DB.msgCredit.balance<=0) return err(422,'INSUFFICIENT_CREDIT','알림톡 발송 잔여 건수가 없습니다. 충전이 필요합니다.');
   if (flag==='nudged') d.nudged=true; if (flag==='celebrated') d.celebrated=true;
-  return { status:200, mut:1, data:{ sent:true, channel:'kakao_alimtalk', type:kind, to:d.alias||d.name, message:D.renderMsgRaw(DB,b.message||'',d), at:D.nowClock() } };
+  if (kind==='reengage') { d.reengaged=true; d.reengagedAt=Date.now(); }
+  if (usesCredit) { DB.msgCredit.balance--; DB.msgCredit.sent=(DB.msgCredit.sent||0)+1; }
+  return { status:200, mut:1, data:{ sent:true, channel:'kakao_alimtalk', type:kind, to:d.alias||d.name, message:D.renderMsgRaw(DB,b.message||'',d), at:D.nowClock(),
+    ...(usesCredit?{creditRemaining:DB.msgCredit.balance}:{}), ...(kind==='reengage'?{reengagedAt:d.reengagedAt}:{}) } };
 }
 
 const ROUTES = [
@@ -73,6 +78,11 @@ const ROUTES = [
   // settings
   ['GET','/settings',(DB)=>({status:200,data:{annivAuto:!!DB.annivAuto}})],
   ['PUT','/settings',(DB,p,q,b)=>{ if(b.annivAuto!=null)DB.annivAuto=!!b.annivAuto; return {status:200,data:{annivAuto:!!DB.annivAuto},mut:1}; }],
+  // 알림톡 발송 건수(크레딧) — 복귀 유도·넛지 공용
+  ['GET','/settings/credits',(DB)=>({status:200,data:{balance:DB.msgCredit.balance,sent:DB.msgCredit.sent||0}})],
+  ['POST','/settings/credits/recharge',(DB,p,q,b)=>{ const amt=Math.floor(+b.amount||0); if(amt<=0)return err(400,'VALIDATION_ERROR','amount must be > 0');
+    DB.msgCredit.balance+=amt; DB.msgCredit.log=DB.msgCredit.log||[]; DB.msgCredit.log.unshift({ts:D.nowClock(),type:'recharge',amount:amt,balance:DB.msgCredit.balance}); while(DB.msgCredit.log.length>30)DB.msgCredit.log.pop();
+    return {status:200,data:{balance:DB.msgCredit.balance,added:amt},mut:1}; }],
   // schedules
   ['GET','/schedules',(DB,p,q)=>{ let rows=DB.schedules.map(D.schedDTO); if(q.status)rows=rows.filter(s=>s.status===q.status); rows.sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start)); return {status:200,data:{data:rows,next:D.nextSched(DB)?D.schedDTO(D.nextSched(DB)):null}}; }],
   ['POST','/schedules',(DB,p,q,b)=>{ if(!b.title||!b.date)return err(400,'VALIDATION_ERROR','title, date required');

@@ -32,6 +32,7 @@ export const SCHED_CATS = {
   '게임':{icon:'🎮',color:'#5b8cff'}, '토크':{icon:'💬',color:'#33d69f'}, '먹방':{icon:'🍜',color:'#ff8a5c'},
   '음악':{icon:'🎵',color:'#a45bff'}, '콘텐츠':{icon:'🎬',color:'#ff5c7a'}, '기타':{icon:'✨',color:'#ffcb45'},
 };
+function nowClock() { const d=new Date(), z=n=>String(n).padStart(2,'0'); return `${z(d.getMonth()+1)}-${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}:${z(d.getSeconds())}`; }
 export function seedSchedules() {
   const now=new Date(), z=n=>String(n).padStart(2,'0');
   const iso=dd=>`${dd.getFullYear()}-${z(dd.getMonth()+1)}-${z(dd.getDate())}`;
@@ -77,6 +78,7 @@ export function seed() {
       { id:'g_yeol', name:'열혈', cls:'yeol', color:'#5b8cff', mode:'range', min:30000,  max:99999 },
     ],
     donators, titles: seedTitles(), autoLogs: seedLogs(donators), annivAuto: true, schedules: seedSchedules(),
+    msgCredit: { balance:300, sent:0, log:[{ ts:nowClock(), type:'init', amount:300, balance:300 }] },
     autos: [
       { id:uid(), on:true, situ:'login', targetMode:'class', classes:['g_vvip'], actions:[{type:'kakao_send',cfg:{msg:'{크리에이터} 님이 방송을 시작하였습니다'}}] },
       { id:uid(), on:true, situ:'amount', amt:{mode:'range',min:10000,max:100000}, actions:[{type:'widget',cfg:{widget:'팡파르'}},{type:'tts',cfg:{voice:'ara'}}] },
@@ -91,6 +93,7 @@ function normalize(DB) {
   (DB.donators||[]).forEach(d=>{ d.tags=d.tags||[]; d.awards=d.awards||[]; d.blocked=d.blocked||false; });
   (DB.autos||[]).forEach(a=>{ if(!a.actions){ a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[]; delete a.action; delete a.cfg; } });
   if (!DB.schedules) DB.schedules = seedSchedules();
+  if (!DB.msgCredit) DB.msgCredit = { balance:300, sent:0, log:[{ ts:nowClock(), type:'init', amount:300, balance:300 }] };
   return DB;
 }
 export function load() {
