@@ -49,7 +49,8 @@ try{if(localStorage.getItem('toon_auth')==='1')document.documentElement.setAttri
 :root[data-auth="1"] .login-gate{display:none}
 .login-card{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--line-strong);border-radius:18px;padding:30px 28px;box-shadow:0 24px 70px rgba(0,0,0,.5);display:flex;flex-direction:column}
 .login-logo{display:flex;align-items:center;gap:11px;font-weight:800;font-size:17px;letter-spacing:-.02em;margin-bottom:22px}
-.login-logo .mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#ff8a5c);display:grid;place-items:center;font-size:17px;color:#fff;box-shadow:0 2px 12px rgba(255,61,104,.4)}
+.login-logo .mark{display:flex;align-items:center}
+.login-logo .mark svg{height:26px;width:auto;display:block}
 .login-logo .sub{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
 .login-title{font-size:22px;font-weight:800;letter-spacing:-.02em}
 .login-desc{font-size:13px;color:var(--muted);margin:5px 0 20px}
@@ -79,8 +80,8 @@ input,textarea,select{font-family:inherit}
 .gnb{display:flex;align-items:center;gap:22px;height:56px;padding:0 20px;flex:none;position:sticky;top:0;
   background:var(--surface);border-bottom:1px solid var(--line);z-index:40}
 .logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em;font-size:16px;cursor:pointer}
-.logo .mark{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--accent),#ff8a5c);
-  display:grid;place-items:center;font-size:15px;color:#fff;box-shadow:0 2px 10px rgba(255,61,104,.35)}
+.logo .mark{display:flex;align-items:center}
+.logo .mark svg{height:19px;width:auto;display:block}
 .logo .sub{font-size:11px;color:var(--muted);font-weight:600;margin-top:1px}
 .gnb .spacer{flex:1}
 .gnb-chip{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--muted);
@@ -1089,7 +1090,7 @@ tbody tr.blocked:hover{opacity:.72}
   <!-- GNB -->
   <div class="gnb">
     <div class="logo">
-      <div class="mark">♥</div>
+      <div class="mark"><svg viewBox="0 0 210 78" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="투네이션"><rect x="22" y="6" width="22" height="66" rx="11" fill="#4d8bff"/><rect x="0" y="28" width="66" height="22" rx="11" fill="#4d8bff"/><circle cx="101" cy="39" r="26" fill="none" stroke="#c1d9fd" stroke-width="20"/><circle cx="169" cy="39" r="26" fill="none" stroke="#4d8bff" stroke-width="20"/></svg></div>
       <div>열혈네이션<div class="sub">투네이션 VIP 도네이터 관리</div></div>
     </div>
     <div class="spacer"></div>
@@ -2249,7 +2250,7 @@ tbody tr.blocked:hover{opacity:.72}
 <!-- ============ 로그인 게이트 ============ -->
 <div class="login-gate" id="loginGate">
   <form class="login-card" id="loginForm">
-    <div class="login-logo"><div class="mark">♥</div><div>열혈네이션<div class="sub">투네이션 VIP 도네이터 관리</div></div></div>
+    <div class="login-logo"><div class="mark"><svg viewBox="0 0 210 78" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="투네이션"><rect x="22" y="6" width="22" height="66" rx="11" fill="#4d8bff"/><rect x="0" y="28" width="66" height="22" rx="11" fill="#4d8bff"/><circle cx="101" cy="39" r="26" fill="none" stroke="#c1d9fd" stroke-width="20"/><circle cx="169" cy="39" r="26" fill="none" stroke="#4d8bff" stroke-width="20"/></svg></div><div>열혈네이션<div class="sub">투네이션 VIP 도네이터 관리</div></div></div>
     <div class="login-title">로그인</div>
     <div class="login-desc">시스템에 접근하려면 로그인이 필요합니다.</div>
     <div class="login-field"><label>아이디</label><input class="inp" id="loginId" autocomplete="username" placeholder="아이디" spellcheck="false"></div>
