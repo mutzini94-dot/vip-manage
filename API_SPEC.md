@@ -81,14 +81,14 @@ GET /donators?page=1&limit=20
   "types": ["text","voice"], "nudged": false, "celebrated": false,
   "reengaged": false, "reengagedAt": null, "alimConsent": true,
   "gauge": { "top": false, "next": {"id":"g_vvip","name":"VVIP"}, "remaining": 12000, "pct": 92 },
-  "fanTemperature": { "temp": 78, "level": "warm", "cooling": false, "r": 90, "f": 74, "m": 82, "e": 55 },
+  "fanTemperature": { "temp": 78, "level": "warm", "cooling": false, "r": 90, "f": 74, "m": 82 },
   "perks": [ { "id":"pk1", "name":"전용 이모티콘", "icon":"😎" } ],
   "history": [ { "time":"2024-10-10 10:00:00", "kind":"텍스트", "amt":1000, "msg":"후원합니다!" } ] }
 ```
 - `grade`·`gauge`·`fanTemperature`·`perks`는 서버 계산 필드(읽기 전용). `types`: `text|signature|voice|quest`
 - **`alimConsent`**: 알림톡 수신 동의. `false`면 발송 계열 API(`nudge`·`reengage`·`celebrate`·`thanks`·자동화 `kakao_send`)에서 **발송 제외/차단**
 - **`reengagedAt`**: 마지막 복귀 유도 발송 시각(ms). 복귀 유도는 재발송 가능
-- **`fanTemperature`**(관계 온도): RFM+ 점수(0~100°)와 레벨(`hot|warm|mild|cool|cold`), `cooling`(평소 주기보다 뜸함). `r/f/m/e`=최근성·빈도·금액·소통 백분위
+- **`fanTemperature`**(관계 온도): RFM 점수(0~100°)와 레벨(`hot|warm|mild|cool|cold`), `cooling`(평소 주기보다 뜸함). `r/f/m`=최근성·빈도·금액 백분위(가중치 40·30·30)
 
 ### Title (칭호)
 ```json

@@ -311,7 +311,7 @@ pre.json{margin:0;background:var(--ground);border:1px solid var(--line);border-r
               <tr><td><code>nudged</code> / <code>celebrated</code></td><td>bool</td><td>승급 넛지 / 기념일 축하 발송 여부</td></tr>
               <tr><td><code>reengaged</code> / <code>reengagedAt</code></td><td>bool / ts</td><td>복귀 유도 이력·마지막 발송 시각(재발송 가능)</td></tr>
               <tr><td><code>alimConsent</code> <span class="pill-lite new">최근</span></td><td>bool</td><td>알림톡 수신 동의. <b>false면 발송 차단/제외</b></td></tr>
-              <tr><td><code>fanTemperature</code> <span class="pill-lite new">최근</span></td><td>계산</td><td>관계 온도(RFM+ 0~100°·레벨·cooling). 읽기 전용</td></tr>
+              <tr><td><code>fanTemperature</code> <span class="pill-lite new">최근</span></td><td>계산</td><td>관계 온도(RFM 0~100°·레벨·cooling). 읽기 전용</td></tr>
               <tr><td><code>perks</code> <span class="pill-lite new">최근</span></td><td>계산</td><td>등급으로 받는 전용 혜택. 읽기 전용</td></tr>
               <tr><td><code>history</code></td><td>Donation[]</td><td>후원 내역 <code>{time,kind,amt,msg}</code></td></tr>
             </table></div>
@@ -322,7 +322,7 @@ pre.json{margin:0;background:var(--ground);border:1px solid var(--line);border-r
             <p>현재 관리 화면은 <b>10개 탭</b>으로 구성됩니다.</p>
             <div class="feat-grid">
               <div class="feat"><div class="ft">📊 인사이트</div><div class="fd">KPI·추이·등급 분포·파레토·이탈 위험·승급 임박·기념일·<b>관계 온도</b>·<b>복귀/넛지 성과</b>·알림 센터·새로고침</div></div>
-              <div class="feat"><div class="ft">🌡 관계 온도 <span class="pill-lite new">신규</span></div><div class="fd">RFM+ 팬 건강 스코어(0~100°)·레벨 분포·식어가는 단골 감지, 프로필·정렬 연동</div></div>
+              <div class="feat"><div class="ft">🌡 관계 온도 <span class="pill-lite new">신규</span></div><div class="fd">RFM 팬 건강 스코어(최근성·빈도·금액, 0~100°)·레벨 분포·식어가는 단골 감지, 프로필·정렬 연동</div></div>
               <div class="feat"><div class="ft">🏆 명예의 전당</div><div class="fd">역대/이번 달 랭킹·시상대·전용 등급 뱃지</div></div>
               <div class="feat"><div class="ft">🎖 등급 · 🎁 전용 혜택 <span class="pill-lite new">신규</span></div><div class="fd">등급 CRUD + 등급별 자동 부여 보상(혜택) 정의·보유 인원 추적</div></div>
               <div class="feat"><div class="ft">💜 칭호</div><div class="fd">규칙 기반 자동 지급 + 수동 수여</div></div>
@@ -428,7 +428,7 @@ pre.json{margin:0;background:var(--ground);border:1px solid var(--line);border-r
           <section id="d11">
             <h2><span class="no">11</span> 변경 이력</h2>
             <div class="chg-item"><div class="cd">2026-08-18</div><div class="cbody"><div class="ct">보상·소통 확장 <span class="pill-lite new">신규</span></div><div class="cs">등급별 전용 혜택(<code>/perks</code>)·감사 메시지 일괄 발송(<code>/donators/thanks</code>) 추가.</div></div></div>
-            <div class="chg-item"><div class="cd">2026-08-18</div><div class="cbody"><div class="ct">관계 온도(팬 건강 스코어) <span class="pill-lite new">신규</span></div><div class="cs">RFM+ 0~100° 스코어·레벨·식어가는 단골 감지. <code>GET /insights/fan-temperature</code>, 도네이터 DTO <code>fanTemperature</code>.</div></div></div>
+            <div class="chg-item"><div class="cd">2026-08-18</div><div class="cbody"><div class="ct">관계 온도(팬 건강 스코어) <span class="pill-lite new">신규</span></div><div class="cs">RFM(최근성·빈도·금액) 0~100° 스코어·레벨·식어가는 단골 감지. <code>GET /insights/fan-temperature</code>, 도네이터 DTO <code>fanTemperature</code>.</div></div></div>
             <div class="chg-item"><div class="cd">2026-08-18</div><div class="cbody"><div class="ct">알림톡 수신 동의 <span class="pill-lite new">신규</span></div><div class="cs">도네이터 <code>alimConsent</code> 추가, 동의자에게만 발송. 미동의 시 <code>422 CONSENT_REQUIRED</code>, 자동화 <code>kakao_send</code>도 제외.</div></div></div>
             <div class="chg-item"><div class="cd">2026-08-14</div><div class="cbody"><div class="ct">성과 분석 · 설정 허브 <span class="pill-lite new">신규</span></div><div class="cs">복귀/넛지 성과(<code>/insights/outreach</code>)·자동화 발동/전환(<code>/automations/{id}/runs</code>)·크리에이터 프로필/테마/백업 설정.</div></div></div>
             <div class="chg-item"><div class="cd">2026-08-14</div><div class="cbody"><div class="ct">알림톡 발송 건수(크레딧) 제한 <span class="pill-lite new">신규</span></div><div class="cs">복귀 유도·넛지 공용 발송 건수 총량 제한(기본 300건)·GNB 잔여 표시·충전. API: <code>/settings/credits</code>, 발송 응답 <code>creditRemaining</code>, 부족 시 <code>422 INSUFFICIENT_CREDIT</code>.</div></div></div>
@@ -603,13 +603,12 @@ function fanLevel(t){if(t>=85)return'hot';if(t>=68)return'warm';if(t>=45)return'
 function pctRank(v,arr){if(!arr.length)return 50;let below=0,eq=0;for(const x of arr){if(x<v)below++;else if(x===v)eq++;}return Math.round((below+eq/2)/arr.length*100);}
 function fanScore(DB,d){
   const pool=DB.donators.filter(x=>!x.blocked);
-  const engOf=x=>((x.tags||[]).length*2)+(x.memo?3:0)+((x.awards||[]).length*2);
   const dAgo=daysAgo(DB,d);
   const r=100-pctRank(dAgo,pool.map(x=>daysAgo(DB,x)));
-  const f=pctRank(d.count,pool.map(x=>x.count)),m=pctRank(d.cash,pool.map(x=>x.cash)),e=pctRank(engOf(d),pool.map(engOf));
-  const temp=Math.round(0.35*r+0.25*f+0.25*m+0.15*e);
+  const f=pctRank(d.count,pool.map(x=>x.count)),m=pctRank(d.cash,pool.map(x=>x.cash));
+  const temp=Math.round(0.40*r+0.30*f+0.30*m);   // 최근성 40 · 빈도 30 · 금액 30
   const span=Math.max(1,Math.round((refNow(DB)-parseD(d.join))/864e5)),interval=span/Math.max(1,d.count);
-  return {temp,level:fanLevel(temp),cooling:dAgo>interval*1.6&&temp<72,r,f,m,e};
+  return {temp,level:fanLevel(temp),cooling:dAgo>interval*1.6&&temp<72,r,f,m};
 }
 /* insights */
 function parseD(s){const p=(s||'2024-01-01').split('-').map(Number);return new Date(p[0],(p[1]||1)-1,p[2]||1).getTime();}

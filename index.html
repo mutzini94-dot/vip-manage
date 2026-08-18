@@ -546,7 +546,7 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .dr-temp .dt-top{display:flex;align-items:center;gap:9px;margin-bottom:11px}
 .dr-temp .dt-t{font-weight:800;font-size:13.5px}
 .dr-temp .dt-big{margin-left:auto;font-size:22px;font-weight:800;letter-spacing:-.02em}
-.dr-temp .dt-rfm{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.dr-temp .dt-rfm{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
 .dr-temp .rfm .rk{font-size:10.5px;color:var(--muted-2);font-weight:700;display:flex;justify-content:space-between}
 .dr-temp .rfm .rbar{height:5px;border-radius:4px;background:var(--surface-3);overflow:hidden;margin-top:4px}
 .dr-temp .rfm .rbar i{display:block;height:100%;border-radius:4px;background:var(--accent)}
@@ -3816,16 +3816,15 @@ function fanLevel(t){
 function pctRank(v,arr){if(!arr.length)return 50;let below=0,eq=0;for(const x of arr){if(x<v)below++;else if(x===v)eq++;}return Math.round((below+eq/2)/arr.length*100);}
 function fanScore(d){
   const pool=DB.donators.filter(x=>!x.blocked);
-  const engOf=x=>((x.tags||[]).length*2)+(x.memo?3:0)+((x.awards||[]).length*2);
-  const cashArr=pool.map(x=>x.cash),cntArr=pool.map(x=>x.count),engArr=pool.map(engOf),dAgoArr=pool.map(x=>daysAgo(x));
+  const cashArr=pool.map(x=>x.cash),cntArr=pool.map(x=>x.count),dAgoArr=pool.map(x=>daysAgo(x));
   const dAgo=daysAgo(d);
   const r=100-pctRank(dAgo,dAgoArr);   // 최근일수록 높음 (동료 대비 백분위)
-  const f=pctRank(d.count,cntArr), m=pctRank(d.cash,cashArr), e=pctRank(engOf(d),engArr);
-  const temp=Math.round(0.35*r+0.25*f+0.25*m+0.15*e);
+  const f=pctRank(d.count,cntArr), m=pctRank(d.cash,cashArr);
+  const temp=Math.round(0.40*r+0.30*f+0.30*m);   // 최근성 40 · 빈도 30 · 금액 30
   const spanDays=Math.max(1,Math.round((refNow()-parseD(d.join))/864e5));
   const interval=spanDays/Math.max(1,d.count);
   const cooling=dAgo>interval*1.6 && temp<72;
-  return {temp,level:fanLevel(temp),r,f,m,e,cooling,dAgo};
+  return {temp,level:fanLevel(temp),r,f,m,cooling,dAgo};
 }
 let fanTempMode='cooling';
 function renderFanTemp(){
@@ -3854,7 +3853,7 @@ function renderDrTemp(d){
   const s=fanScore(d);
   byId('drTemp').innerHTML=`<div class="dr-temp">
     <div class="dt-top"><span style="font-size:16px">${s.level.icon}</span><span class="dt-t">관계 온도 · ${s.level.label}</span><span class="dt-big" style="color:${s.level.color}">${s.temp}°</span></div>
-    <div class="dt-rfm">${[['최근성',s.r],['빈도',s.f],['금액',s.m],['소통',s.e]].map(([k,v])=>`<div class="rfm"><div class="rk"><span>${k}</span><b>${v}</b></div><div class="rbar"><i style="width:${v}%;background:${s.level.color}"></i></div></div>`).join('')}</div>
+    <div class="dt-rfm">${[['최근성',s.r],['빈도',s.f],['금액',s.m]].map(([k,v])=>`<div class="rfm"><div class="rk"><span>${k}</span><b>${v}</b></div><div class="rbar"><i style="width:${v}%;background:${s.level.color}"></i></div></div>`).join('')}</div>
     ${s.cooling?'<div style="font-size:11.5px;color:#ff8a5c;font-weight:700;margin-top:10px">🌥 평소 주기보다 뜸해요 — 안부를 전해보세요</div>':''}
   </div>`;
 }
