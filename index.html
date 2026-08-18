@@ -550,6 +550,35 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .dr-temp .rfm .rk{font-size:10.5px;color:var(--muted-2);font-weight:700;display:flex;justify-content:space-between}
 .dr-temp .rfm .rbar{height:5px;border-radius:4px;background:var(--surface-3);overflow:hidden;margin-top:4px}
 .dr-temp .rfm .rbar i{display:block;height:100%;border-radius:4px;background:var(--accent)}
+/* 전용 혜택 */
+.perk-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:700px){.perk-list{grid-template-columns:1fr}}
+.perk-card{display:flex;align-items:center;gap:12px;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);cursor:pointer;transition:.14s}
+.perk-card:hover{border-color:var(--line-strong)}
+.perk-card .pk-ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:20px;flex:none;background:var(--surface-3)}
+.perk-card .pk-body{flex:1;min-width:0}
+.perk-card .pk-nm{font-weight:800;font-size:13.5px}
+.perk-card .pk-desc{font-size:12px;color:var(--muted);margin-top:2px}
+.perk-card .pk-grades{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.perk-card .pk-holders{text-align:right;font-weight:800;font-size:14px;flex:none;color:var(--accent)}
+.perk-card .pk-holders small{font-size:11px;color:var(--muted);font-weight:600}
+.perk-grades{display:flex;gap:8px;flex-wrap:wrap}
+.pg-chip{font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:9px;border:1.5px solid var(--line);background:var(--surface-2);cursor:pointer;transition:.12s}
+.pg-chip:hover{border-color:var(--line-strong)}
+.pg-chip.on{background:var(--surface-3)}
+.em-row{display:flex;gap:7px;flex-wrap:wrap}
+.em-row .em{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:19px;background:var(--surface-2);border:1.5px solid var(--line);cursor:pointer;transition:.12s}
+.em-row .em:hover{border-color:var(--line-strong)}
+.em-row .em.on{border-color:var(--accent);background:var(--accent-soft)}
+.dr-perks{display:flex;flex-direction:column;gap:8px}
+.dr-perk{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+.dr-perk .dp-ic{font-size:18px;flex:none}
+.dr-perk .dp-nm{font-weight:700;font-size:13px}
+.dr-perk .dp-desc{font-size:11.5px;color:var(--muted);margin-top:1px}
+/* 감사 메시지 */
+.thanks-summary{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:13px 15px;margin-bottom:14px;font-size:13px}
+.thanks-summary .ts-cost{font-size:12px;color:var(--muted);margin-top:6px}
+.thanks-summary b{font-weight:800}
 /* pareto */
 .pareto-hero{text-align:center;padding:6px 0 20px;border-bottom:1px solid var(--line);margin-bottom:16px}
 .pareto-hero .big{font-size:34px;font-weight:800;letter-spacing:-.02em}
@@ -1296,6 +1325,13 @@ tbody tr.blocked:hover{opacity:.72}
           </div>
         </div>
       </div>
+
+      <div class="panel" style="margin-top:16px">
+        <div class="panel-head"><h3>🎁 등급별 전용 혜택</h3><span class="hint">등급에 따라 자동 부여되는 보상</span><div class="spacer"></div>
+          <button class="btn primary sm" id="addPerkBtn">＋ 혜택 추가</button>
+        </div>
+        <div class="panel-body"><div id="perkList" class="perk-list"></div></div>
+      </div>
     </section>
 
     <!-- ============ TAB: 칭호 관리 ============ -->
@@ -1407,6 +1443,7 @@ tbody tr.blocked:hover{opacity:.72}
         <button class="btn ghost sm" id="bulkTagAdd">태그 추가</button>
         <button class="btn ghost sm danger" id="bulkBlock">차단</button>
         <button class="btn ghost sm" id="bulkUnblock">차단 해제</button>
+        <button class="btn ghost sm" id="bulkThanks">💌 감사 메시지</button>
         <button class="btn ghost sm" id="bulkCsv">선택 CSV</button>
         <div class="spacer"></div>
         <button class="btn ghost sm" id="bulkClear">선택 해제</button>
@@ -1826,6 +1863,10 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="dtypes" id="drTypes"></div>
     </div>
     <div class="dr-sec">
+      <div class="h">🎁 전용 혜택</div>
+      <div id="drPerks"></div>
+    </div>
+    <div class="dr-sec">
       <div class="h">🏆 획득한 칭호</div>
       <div class="titles" id="drTitles"></div>
       <div class="grant-row" id="drGrant"></div>
@@ -1989,6 +2030,34 @@ tbody tr.blocked:hover{opacity:.72}
       </div>
     </div>
     <div class="modal-foot"><div class="spacer"></div><button class="btn primary" id="setDone">완료</button></div>
+  </div>
+</div>
+
+<!-- ============ 전용 혜택 편집 ============ -->
+<div class="overlay" id="perkOverlay">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head"><h2 id="perkTitle">전용 혜택</h2><div class="spacer"></div><button class="xbtn" id="perkClose">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>아이콘</label><div class="em-row" id="perkIcons"></div></div>
+      <div class="field"><label>혜택 명 <span class="req">*</span></label><input class="inp" id="perkName" maxlength="20" placeholder="예: 전용 이모티콘"></div>
+      <div class="field"><label>설명</label><input class="inp" id="perkDesc" maxlength="40" placeholder="예: 채팅 전용 이모티콘 사용"></div>
+      <div class="field"><label>적용 등급 <span class="req">*</span> <span class="helper" style="font-weight:500">이 등급의 도네이터에게 자동 부여</span></label><div class="perk-grades" id="perkGrades"></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn ghost danger" id="perkDelete" style="margin-right:auto">삭제</button><button class="btn ghost" id="perkCancel">취소</button><button class="btn primary" id="perkSave">저장</button></div>
+  </div>
+</div>
+
+<!-- ============ 감사 메시지 일괄 발송 ============ -->
+<div class="overlay" id="thanksOverlay">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head"><h2>💌 감사 메시지 일괄 발송</h2><div class="spacer"></div><button class="xbtn" id="thanksClose">✕</button></div>
+    <div class="modal-body">
+      <div class="thanks-summary" id="thanksSummary"></div>
+      <div class="field"><label>카카오 알림톡 메시지</label><textarea class="inp" id="thanksMsg" rows="4"></textarea>
+        <div class="helper">{닉네임}·{등급}·{크리에이터} 자동 치환 · <b>수신 동의자에게만</b> 발송, 1건당 1크레딧 차감</div></div>
+      <div class="preview-box"><div class="preview-lbl">👁 미리보기</div><div id="thanksPreview"></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn ghost" id="thanksCancel">취소</button><div class="spacer"></div><button class="btn primary" id="thanksSend">발송</button></div>
   </div>
 </div>
 
@@ -2359,6 +2428,12 @@ function normalize(){
   if(S.authId===undefined) S.authId='toonation';
   if(S.authPw===undefined) S.authPw='1234';
   if(!DB.autoRuns) DB.autoRuns=seedAutoRuns();
+  if(!DB.perks) DB.perks=[
+    {id:uid(),icon:'😎',name:'전용 이모티콘',desc:'채팅 전용 이모티콘 사용',grades:['g_vvip','g_vip','g_yeol']},
+    {id:uid(),icon:'👋',name:'우선 인사',desc:'방송 시작 시 우선 인사·호명',grades:['g_vvip','g_vip']},
+    {id:uid(),icon:'💬',name:'디스코드 VIP 롤',desc:'디스코드 전용 채널·롤 지급',grades:['g_vvip']},
+    {id:uid(),icon:'📞',name:'월말 감사 콜',desc:'월말 개인 감사 메시지 발송',grades:['g_vvip']},
+  ];
   (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;
     if(d.alimConsent===undefined) d.alimConsent=seedRand('consent_'+d.id)()>0.26;});
   // 구버전 마이그레이션: 단일 action → actions 배열
@@ -2589,7 +2664,87 @@ function renderGrades(){
   byId('stYeol').innerHTML=`${by('yeol')}<small>명</small>`;
   byId('tabCntGrade').textContent=DB.grades.length;
   byId('tabCntDon').textContent=won(total);
+  renderPerks();
 }
+
+/* =========================================================
+   전용 혜택 (등급별 보상)
+   ========================================================= */
+function donatorPerks(d){const g=gradeForCash(d.cash);if(!g)return [];return (DB.perks||[]).filter(p=>(p.grades||[]).includes(g.id));}
+function renderPerks(){
+  const box=byId('perkList'); if(!box)return;
+  const perks=DB.perks||[];
+  box.innerHTML=perks.length?perks.map(p=>{
+    const gnames=(p.grades||[]).map(id=>{const g=DB.grades.find(x=>x.id===id);return g?`<span class="gb ${clsOf(g)}" style="font-size:10px"><span class="d"></span>${g.name}</span>`:'';}).join(' ');
+    const holders=DB.donators.filter(d=>!d.blocked&&donatorPerks(d).some(x=>x.id===p.id)).length;
+    return `<div class="perk-card" data-perk="${p.id}"><div class="pk-ic">${p.icon}</div>
+      <div class="pk-body"><div class="pk-nm">${p.name}</div><div class="pk-desc">${p.desc||''}</div><div class="pk-grades">${gnames||'<span class="helper">적용 등급 없음</span>'}</div></div>
+      <div class="pk-holders">${won(holders)}<small>명</small></div></div>`;
+  }).join(''):'<div class="helper" style="padding:22px;text-align:center;grid-column:1/-1">등록된 혜택이 없습니다. 혜택을 추가해보세요.</div>';
+  box.querySelectorAll('[data-perk]').forEach(el=>el.onclick=()=>openPerk(el.dataset.perk));
+}
+const PERK_ICONS=['🎁','😎','👋','💬','📞','⭐','🏅','🎟','💎','🎀','🍰','🎮','📮','🔓'];
+let perkEdit={id:null,icon:'🎁',grades:[]};
+function renderPerkIcons(){const box=byId('perkIcons');box.innerHTML=PERK_ICONS.map(e=>`<div class="em ${e===perkEdit.icon?'on':''}" data-ic="${e}">${e}</div>`).join('');
+  box.querySelectorAll('[data-ic]').forEach(el=>el.onclick=()=>{perkEdit.icon=el.dataset.ic;renderPerkIcons();});}
+function renderPerkGrades(){const box=byId('perkGrades');box.innerHTML=[...DB.grades].sort((a,b)=>b.min-a.min).map(g=>`<div class="pg-chip ${perkEdit.grades.includes(g.id)?'on':''}" data-g="${g.id}" style="${perkEdit.grades.includes(g.id)?`border-color:${g.color};color:${g.color}`:''}">${g.name}</div>`).join('');
+  box.querySelectorAll('[data-g]').forEach(el=>el.onclick=()=>{const id=el.dataset.g;perkEdit.grades=perkEdit.grades.includes(id)?perkEdit.grades.filter(x=>x!==id):[...perkEdit.grades,id];renderPerkGrades();});}
+function openPerk(id){
+  const p=id?DB.perks.find(x=>x.id===id):null;
+  perkEdit={id:id||null,icon:p?p.icon:'🎁',grades:p?[...(p.grades||[])]:[]};
+  byId('perkTitle').textContent=p?'혜택 수정':'새 혜택';
+  byId('perkName').value=p?p.name:''; byId('perkDesc').value=p?p.desc||'':'';
+  byId('perkDelete').style.display=p?'':'none';
+  renderPerkIcons(); renderPerkGrades();
+  byId('perkOverlay').classList.add('show');
+}
+byId('addPerkBtn').onclick=()=>openPerk(null);
+byId('perkClose').onclick=byId('perkCancel').onclick=()=>byId('perkOverlay').classList.remove('show');
+byId('perkOverlay').onclick=e=>{if(e.target===byId('perkOverlay'))byId('perkOverlay').classList.remove('show');};
+byId('perkSave').onclick=()=>{
+  const name=byId('perkName').value.trim(); if(!name)return toast('혜택 명을 입력하세요');
+  if(!perkEdit.grades.length)return toast('적용 등급을 선택하세요');
+  const data={name,icon:perkEdit.icon,desc:byId('perkDesc').value.trim(),grades:[...perkEdit.grades]};
+  if(perkEdit.id){const p=DB.perks.find(x=>x.id===perkEdit.id);if(p)Object.assign(p,data);}
+  else DB.perks.push({id:uid(),...data});
+  save();renderPerks();if(byId('donDrawer').classList.contains('show')&&drId)renderDrPerks(DB.donators.find(x=>x.id===drId));
+  byId('perkOverlay').classList.remove('show');toast('혜택을 저장했습니다 🎁');
+};
+byId('perkDelete').onclick=()=>{if(!perkEdit.id)return;DB.perks=DB.perks.filter(x=>x.id!==perkEdit.id);save();renderPerks();byId('perkOverlay').classList.remove('show');toast('혜택을 삭제했습니다');};
+function renderDrPerks(d){
+  const perks=donatorPerks(d);
+  byId('drPerks').innerHTML=perks.length?`<div class="dr-perks">${perks.map(p=>`<div class="dr-perk"><span class="dp-ic">${p.icon}</span><div><div class="dp-nm">${p.name}</div><div class="dp-desc">${p.desc||''}</div></div></div>`).join('')}</div>`:'<div class="helper">현재 등급에 부여된 혜택이 없습니다</div>';
+}
+
+/* =========================================================
+   감사 메시지 일괄 발송
+   ========================================================= */
+let thanksRecipients=[];
+function renderThanksSummary(){
+  const consented=thanksRecipients.filter(d=>d.alimConsent).length, excl=thanksRecipients.length-consented;
+  byId('thanksSummary').innerHTML=`<div><b>${won(thanksRecipients.length)}명</b> 선택 · <span style="color:var(--on)">수신 동의 ${won(consented)}명</span>${excl?` · <span style="color:#ff8a5c">미동의 ${won(excl)}명 제외</span>`:''}</div>
+    <div class="ts-cost">필요 크레딧 <b>${won(consented)}</b> · 잔여 <b>${won(creditBalance())}</b>건</div>`;
+}
+function thanksPrev(){const d=thanksRecipients[0];byId('thanksPreview').innerHTML=`<div class="kakao"><div class="kt">💌 감사 알림톡</div><div class="kb">${subMsg(byId('thanksMsg').value,d)}</div><div class="kbtn">방송 보러가기</div></div>`;}
+function openThanks(){
+  const sel=selectedList().filter(d=>!d.blocked);
+  if(!sel.length)return toast('도네이터를 선택하세요');
+  thanksRecipients=sel; renderThanksSummary();
+  byId('thanksMsg').value='{닉네임}님, 항상 따뜻한 응원과 후원 정말 감사해요! {크리에이터} 방송의 큰 힘이에요 💜';
+  thanksPrev(); byId('thanksOverlay').classList.add('show');
+}
+byId('bulkThanks').onclick=openThanks;
+byId('thanksMsg').addEventListener('input',thanksPrev);
+byId('thanksClose').onclick=byId('thanksCancel').onclick=()=>byId('thanksOverlay').classList.remove('show');
+byId('thanksOverlay').onclick=e=>{if(e.target===byId('thanksOverlay'))byId('thanksOverlay').classList.remove('show');};
+byId('thanksSend').onclick=()=>{
+  const recips=thanksRecipients.filter(d=>d.alimConsent);
+  if(!recips.length){toast('수신 동의한 도네이터가 없습니다');return;}
+  if(creditBalance()<recips.length){toast(`잔여 발송 건수 부족 (필요 ${won(recips.length)}, 잔여 ${won(creditBalance())})`);byId('thanksOverlay').classList.remove('show');openRecharge();return;}
+  DB.msgCredit.balance-=recips.length; DB.msgCredit.sent=(DB.msgCredit.sent||0)+recips.length; save(); renderCredit();
+  byId('thanksOverlay').classList.remove('show');
+  toast(`${won(recips.length)}명에게 감사 메시지를 발송했습니다 💌`);
+};
 
 /* =========================================================
    TAB 2 — 도네이터 관리
@@ -3246,6 +3401,8 @@ function openDrawer(id){
   renderGoalCard(d);
   // 관계 온도
   renderDrTemp(d);
+  // 전용 혜택
+  renderDrPerks(d);
   // 알림톡 수신 동의
   renderDrConsent(d);
   // 차단 상태
@@ -3288,7 +3445,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','creditOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','creditOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay','perkOverlay','thanksOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
