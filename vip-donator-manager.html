@@ -1440,6 +1440,10 @@ tbody tr.blocked:hover{opacity:.72}
           <button data-cs="yes">✅ 수신 동의 <span class="seg-cnt" id="csYesCnt">0</span></button>
           <button data-cs="no">🚫 미동의 <span class="seg-cnt" id="csNoCnt">0</span></button>
         </div>
+        <div class="seg" id="donMember" style="flex:none" title="무료 멤버십 가입 팬만 시스템에서 관리됩니다">
+          <button data-mb="member" class="on">🎫 멤버십 <span class="seg-cnt" id="mbCnt">0</span></button>
+          <button data-mb="non">미가입 <span class="seg-cnt" id="mbNonCnt">0</span></button>
+        </div>
         <div class="seg" id="donSort" style="flex:none">
           <button data-sort="rank" class="on">후원 순위별</button>
           <button data-sort="grade">등급별</button>
@@ -1868,6 +1872,7 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
   <div class="dr-body">
     <div class="gauge-box" id="drGauge"></div>
+    <div id="drMember"></div>
     <div id="drTemp"></div>
     <div id="drConsent"></div>
     <div id="drBlock"></div>
@@ -2461,7 +2466,8 @@ function normalize(){
     {id:uid(),icon:'📞',name:'월말 감사 콜',desc:'월말 개인 감사 메시지 발송',grades:['g_vvip']},
   ];
   (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;
-    if(d.alimConsent===undefined) d.alimConsent=seedRand('consent_'+d.id)()>0.26;});
+    if(d.alimConsent===undefined) d.alimConsent=seedRand('consent_'+d.id)()>0.26;
+    if(d.member===undefined){d.member=true; d.memberSince=d.join||d.last||'';}});
   // 구버전 마이그레이션: 단일 action → actions 배열
   (DB.autos||[]).forEach(a=>{ if(!a.actions){a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[];delete a.action;delete a.cfg;} });
   (DB.autoLogs||[]).forEach(l=>{ if(!l.situ&&l.type) l.situ=l.type; });
@@ -2747,7 +2753,7 @@ function renderDrPerks(d){
    ========================================================= */
 let thanksRecipients=[];
 function renderThanksSummary(){
-  const consented=thanksRecipients.filter(d=>d.alimConsent).length, excl=thanksRecipients.length-consented;
+  const consented=thanksRecipients.filter(d=>isMember(d)&&d.alimConsent).length, excl=thanksRecipients.length-consented;
   byId('thanksSummary').innerHTML=`<div><b>${won(thanksRecipients.length)}명</b> 선택 · <span style="color:var(--on)">수신 동의 ${won(consented)}명</span>${excl?` · <span style="color:#ff8a5c">미동의 ${won(excl)}명 제외</span>`:''}</div>
     <div class="ts-cost">필요 크레딧 <b>${won(consented)}</b> · 잔여 <b>${won(creditBalance())}</b>건</div>`;
 }
@@ -2764,7 +2770,7 @@ byId('thanksMsg').addEventListener('input',thanksPrev);
 byId('thanksClose').onclick=byId('thanksCancel').onclick=()=>byId('thanksOverlay').classList.remove('show');
 byId('thanksOverlay').onclick=e=>{if(e.target===byId('thanksOverlay'))byId('thanksOverlay').classList.remove('show');};
 byId('thanksSend').onclick=()=>{
-  const recips=thanksRecipients.filter(d=>d.alimConsent);
+  const recips=thanksRecipients.filter(d=>isMember(d)&&d.alimConsent);
   if(!recips.length){toast('수신 동의한 도네이터가 없습니다');return;}
   if(creditBalance()<recips.length){toast(`잔여 발송 건수 부족 (필요 ${won(recips.length)}, 잔여 ${won(creditBalance())})`);byId('thanksOverlay').classList.remove('show');openRecharge();return;}
   DB.msgCredit.balance-=recips.length; DB.msgCredit.sent=(DB.msgCredit.sent||0)+recips.length; save(); renderCredit();
@@ -2775,7 +2781,7 @@ byId('thanksSend').onclick=()=>{
 /* =========================================================
    TAB 2 — 도네이터 관리
    ========================================================= */
-let donSort='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active', donTarget='all', donConsent='all';
+let donSort='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active', donTarget='all', donConsent='all', donMember='member';
 byId('donSearch').addEventListener('input',e=>{donQuery=e.target.value.trim().toLowerCase();renderDonators();});
 byId('donTarget').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   donTarget=b.dataset.tg;
@@ -2787,9 +2793,16 @@ byId('donConsent').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   byId('donConsent').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
   renderDonators();
 });
+byId('donMember').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  donMember=b.dataset.mb;
+  byId('donMember').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  renderDonators();
+});
 /* 도네이터 관리에서 바로 쓰는 액션 대상 판별 (인사이트 탭 기준과 동일) */
-function isChurnTarget(d){return !d.blocked && !!gradeForCash(d.cash) && daysAgo(d)>=churnThreshold;}
-function isNudgeTarget(d){if(d.blocked)return false;const g=gaugeData(d);return !g.top && g.remaining<=nudgeThreshold;}
+/* 무료 멤버십 가입 여부 — 가입 팬만 시스템에서 관리·적용 */
+function isMember(d){return d.member!==false;}
+function isChurnTarget(d){return isMember(d) && !d.blocked && !!gradeForCash(d.cash) && daysAgo(d)>=churnThreshold;}
+function isNudgeTarget(d){if(!isMember(d)||d.blocked)return false;const g=gaugeData(d);return !g.top && g.remaining<=nudgeThreshold;}
 byId('donSort').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   donSort=b.dataset.sort;
   byId('donSort').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
@@ -2813,7 +2826,11 @@ function renderDonators(){
   byId('tgNudgeCnt').textContent=DB.donators.filter(isNudgeTarget).length;
   byId('csYesCnt').textContent=DB.donators.filter(d=>d.alimConsent).length;
   byId('csNoCnt').textContent=DB.donators.filter(d=>!d.alimConsent).length;
+  byId('mbCnt').textContent=DB.donators.filter(isMember).length;
+  byId('mbNonCnt').textContent=DB.donators.filter(d=>!isMember(d)).length;
   let rows=DB.donators.filter(d=>{
+    if(donMember==='member' && !isMember(d)) return false;
+    if(donMember==='non' && isMember(d)) return false;
     if(donStatus==='active' && d.blocked) return false;
     if(donStatus==='blocked' && !d.blocked) return false;
     if(donTarget==='churn' && !isChurnTarget(d)) return false;
@@ -3425,6 +3442,8 @@ function openDrawer(id){
   byId('drCash').innerHTML=`${won(d.cash)}<small>캐시</small>`;
   // 개인 목표 카드
   renderGoalCard(d);
+  // 무료 멤버십
+  renderDrMember(d);
   // 관계 온도
   renderDrTemp(d);
   // 전용 혜택
@@ -3531,7 +3550,7 @@ function donutChart(rows,total){
 
 function renderKpis(){
   const total=totalCash();
-  const activeVip=DB.donators.filter(d=>gradeForCash(d.cash)).length;
+  const activeVip=DB.donators.filter(d=>isMember(d)&&gradeForCash(d.cash)).length;
   const trend=monthlyTrend();const thisM=trend[trend.length-1],lastM=trend[trend.length-2]||thisM;
   const delta=lastM?Math.round((thisM-lastM)/lastM*100):0;
   const churnN=churnData(churnThreshold).length;
@@ -3563,7 +3582,7 @@ function renderPareto(){
 let churnThreshold=(DB.settings&&DB.settings.churnDays)||30;
 function churnData(th){
   return DB.donators.map(d=>({d,dorm:daysAgo(d),g:gradeForCash(d.cash)}))
-    .filter(x=>x.g&&!x.d.blocked&&x.dorm>=th)
+    .filter(x=>x.g&&isMember(x.d)&&!x.d.blocked&&x.dorm>=th)
     .sort((a,b)=>(b.d.cash-a.d.cash)||(b.dorm-a.dorm));
 }
 function riskOf(dorm){if(dorm>=60)return['high','위험'];if(dorm>=30)return['mid','주의'];return['low','관찰'];}
@@ -3675,7 +3694,7 @@ byId('reSend').onclick=()=>{
 /* --- 승급 임박 VIP (넛지) --- */
 let nudgeThreshold=(DB.settings&&DB.settings.nudgeAmount)||50000;
 function nudgeData(maxRem){
-  return DB.donators.filter(d=>!d.blocked).map(d=>({d,g:gaugeData(d)}))
+  return DB.donators.filter(d=>isMember(d)&&!d.blocked).map(d=>({d,g:gaugeData(d)}))
     .filter(x=>!x.g.top && x.g.remaining<=maxRem)
     .sort((a,b)=>a.g.remaining-b.g.remaining);
 }
@@ -3841,7 +3860,7 @@ function fanLevel(t){
 }
 function pctRank(v,arr){if(!arr.length)return 50;let below=0,eq=0;for(const x of arr){if(x<v)below++;else if(x===v)eq++;}return Math.round((below+eq/2)/arr.length*100);}
 function fanScore(d){
-  const pool=DB.donators.filter(x=>!x.blocked);
+  const pool=DB.donators.filter(x=>isMember(x)&&!x.blocked);
   const cashArr=pool.map(x=>x.cash),cntArr=pool.map(x=>x.count),dAgoArr=pool.map(x=>daysAgo(x));
   const dAgo=daysAgo(d);
   const r=100-pctRank(dAgo,dAgoArr);   // 최근일수록 높음 (동료 대비 백분위)
@@ -3855,7 +3874,7 @@ function fanScore(d){
 let fanTempMode='cooling';
 function renderFanTemp(){
   if(!byId('fanTempDist'))return;
-  const pool=DB.donators.filter(d=>!d.blocked).map(d=>({d,s:fanScore(d)}));
+  const pool=DB.donators.filter(d=>isMember(d)&&!d.blocked).map(d=>({d,s:fanScore(d)}));
   const levels=[['hot','🔥','뜨거움',90],['warm','☀️','따뜻함',70],['mild','🌤','미지근',50],['cool','🌥','식는 중',30],['cold','❄️','차가움',10]];
   const cnt={};pool.forEach(x=>cnt[x.s.level.key]=(cnt[x.s.level.key]||0)+1);
   byId('fanTempDist').innerHTML=levels.map(([k,ic,lb,rep])=>{const c=fanLevel(rep).color;
@@ -4023,6 +4042,18 @@ function renderDrConsent(d){
     <div class="tgl ${d.alimConsent?'on':''}" id="drConsentTgl"></div></div>`;
   byId('drConsentTgl').onclick=()=>{d.alimConsent=!d.alimConsent;save();renderDrConsent(d);renderDonators();renderInsights();
     toast(d.alimConsent?'알림톡 수신 동의로 변경했습니다':'알림톡 수신 거부로 변경했습니다');};
+}
+function renderDrMember(d){
+  const m=isMember(d);
+  byId('drMember').innerHTML=`<div class="dr-consent ${m?'on':'off'}">
+    <div class="dc-tx"><div class="dc-t">${m?'🎫 무료 멤버십 회원':'⚪ 멤버십 미가입'}</div>
+      <div class="dc-s">${m?`가입일 ${d.memberSince||d.join||'-'} · 시스템 관리 대상`:'멤버십 가입 팬만 시스템에서 관리·적용됩니다'}</div></div>
+    <div class="tgl ${m?'on':''}" id="drMemberTgl"></div></div>`;
+  byId('drMemberTgl').onclick=()=>{
+    d.member=!isMember(d);
+    if(d.member && !d.memberSince){const t=new Date();d.memberSince=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;}
+    save();renderDrMember(d);renderDrConsent(d);renderDonators();renderInsights();
+    toast(d.member?'무료 멤버십 회원으로 설정했습니다 🎫':'멤버십 미가입으로 변경했습니다 (시스템 관리 제외)');};
 }
 let blockId=null;
 function renderDrBlock(d){
@@ -5176,7 +5207,7 @@ function hallTier(rank){
 }
 function hallTierBadge(rank){if(!rank)return '';const t=hallTier(rank);return t?`<span class="hall-tier ${t.key}">${t.icon} ${t.label}</span>`:'';}
 function hallRanking(mode){
-  const ds=DB.donators.filter(d=>!d.blocked);
+  const ds=DB.donators.filter(d=>isMember(d)&&!d.blocked);
   if(mode==='month'){
     const now=new Date(), map={};
     for(let day=1;day<=now.getDate();day++){const iso=`${now.getFullYear()}-${z2(now.getMonth()+1)}-${z2(day)}`;const dd=dayDonations(iso);if(dd.future||!dd.list)continue;dd.list.forEach(x=>{map[x.d.id]=(map[x.d.id]||0)+x.amt;});}
