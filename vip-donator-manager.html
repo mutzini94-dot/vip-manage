@@ -70,6 +70,9 @@ input,textarea,select{font-family:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 .tnum{font-variant-numeric:tabular-nums}
 .hidden{display:none!important}
+/* 프로필 이미지 오버레이 */
+.ava,.dr-avatar,.pod-ava{position:relative;overflow:hidden}
+.ava-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:6px;border:2px solid transparent;background-clip:padding-box}
 ::-webkit-scrollbar-thumb:hover{background:#3a3f52;background-clip:padding-box}
@@ -2272,6 +2275,10 @@ const LS = 'toon_vip_v1';
 const won = n => (n||0).toLocaleString('ko-KR');
 const uid = () => 'id'+Math.random().toString(36).slice(2,9);
 const avaColor = s => { let h=0; for(const c of s) h=(h*31+c.charCodeAt(0))%360; return `linear-gradient(135deg,hsl(${h},62%,55%),hsl(${(h+40)%360},62%,48%))`; };
+/* 프로필 이미지 — 도네이터별로 결정적 랜덤 배정(파일 없으면 이니셜 폴백) */
+const AVATARS = Array.from({length:11},(_,i)=>`avatars/av${String(i+1).padStart(2,'0')}.png`);
+const avaHash = s => { let h=0; for(const c of (s||'')) h=(h*31+c.charCodeAt(0))>>>0; return h; };
+function avaImg(name){ return `<img class="ava-img" src="${AVATARS[avaHash(name)%AVATARS.length]}" alt="" loading="lazy" onerror="this.remove()">`; }
 
 /* ---------- seed data ---------- */
 const KO_NAMES=['톰하디','모아이','순정남','달빛여우','치킨마요','코딩하는곰','별헤는밤','라면요정','무지개송어','밤샘전사','고구마맛탕','파스텔','겨울나그네','핑크덤보','왕눈이','초코나무숲','빙수','한여름밤','노을','청포도','까망','하양이','불꽃남자','물빛','산들바람','도토리','은하수','민들레','참치캔','솜사탕'];
@@ -2844,7 +2851,7 @@ function renderDonators(){
       <td><div class="rank ${rank<=3?'top':''}">${rank}</div></td>
       <td>
         <div class="dn-cell">
-          <div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+          <div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
           <div><div class="nm">${d.name}${d.blocked?' <span class="block-badge">⛔ 차단</span>':''}${d.alimConsent?'':' <span class="consent-no">🚫 수신거부</span>'}</div><div class="al">${d.alias?'@'+d.alias:'별칭 없음'}</div>${tagHtml}</div>
         </div>
       </td>
@@ -3084,7 +3091,7 @@ function renderPickList(q=''){
     const on=W.picks.includes(d.id);
     const r=document.createElement('div'); r.className='pick-row'+(on?' on':'');
     const g=gradeForCash(d.cash);
-    r.innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+    r.innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
       <div><div class="nm">${d.name} ${g?`<span class="gb ${clsOf(g)}" style="font-size:10px"><span class="d"></span>${g.name}</span>`:''}</div><div class="al">${d.alias?'@'+d.alias:won(d.cash)+' 캐시'}</div></div>
       <div class="cb"></div>`;
     r.onclick=()=>{W.picks=on?W.picks.filter(x=>x!==d.id):[...W.picks,d.id];renderPickList(byId('pickSearch').value.trim().toLowerCase());updateWizNext();};
@@ -3393,7 +3400,7 @@ function openDrawer(id){
     dr.style.setProperty('--dr-grade-text',c);
     dr.style.borderLeftColor=c;
   }else{['--dr-grade','--dr-grade-soft','--dr-grade-wash','--dr-grade-text'].forEach(p=>dr.style.removeProperty(p));dr.style.borderLeftColor='';}
-  byId('drAva').textContent=d.name.slice(0,2); byId('drAva').style.background=avaColor(d.name);
+  byId('drAva').innerHTML=d.name.slice(0,2)+avaImg(d.name); byId('drAva').style.background=avaColor(d.name);
   byId('drName').innerHTML=`${d.name} ${gradeBadge(g)} ${hallTierBadge(donatorRank(d.id))}`;
   byId('drAlias').textContent=d.alias?'@'+d.alias:'별칭 없음';
   byId('drLast').textContent=d.last; byId('drJoin').textContent=d.join; byId('drCount').textContent=won(d.count)+'건';
@@ -3552,7 +3559,7 @@ function renderChurn(){
     const[rc,rl]=riskOf(dorm);
     const reLast=d.reengagedAt?`마지막 복귀 유도 ${fmtAgo(d.reengagedAt)}`:(d.reengaged?'복귀 유도 발송됨':'');
     const row=document.createElement('div');row.className='churn-row';
-    row.innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+    row.innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
       <div class="meta"><div class="nm">${d.alias||d.name} ${gradeBadge(g)} <span class="risk ${rc}">${rl}</span></div>
         <div class="info">마지막 후원 <b style="color:var(--text)">${dorm}일 전</b> · 누적 ${won(d.cash)}캐시 · ${won(d.count)}건</div></div>
       ${!d.alimConsent
@@ -3628,7 +3635,7 @@ function openReengage(id){
   const d=DB.donators.find(x=>x.id===id);if(!d)return;reId=id;
   const g=gradeForCash(d.cash);
   const reNote=d.reengagedAt?` · <span style="color:var(--on);font-weight:700">복귀 유도 ${fmtAgo(d.reengagedAt)}</span>`:'';
-  byId('reTarget').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+  byId('reTarget').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
     <div><div class="nm">${d.alias||d.name} ${gradeBadge(g)}</div><div class="info">마지막 후원 ${daysAgo(d)}일 전 · 누적 ${won(d.cash)}캐시${reNote}</div></div>`;
   byId('reMsg').value=`${d.alias||d.name}님, 오랜만이에요! 요즘 잘 지내시죠? 다음 방송에서 다시 뵈면 정말 반가울 것 같아요 💜`;
   reRenderPrev();
@@ -3670,7 +3677,7 @@ function renderNudge(){
       : auto ? '<div class="done-badge" style="color:var(--muted)">🤖 자동 예약됨</div>'
       : '<button class="btn primary sm nudge-btn">넛지 보내기</button>';
     const row=document.createElement('div');row.className='churn-row';
-    row.innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+    row.innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
       <div class="meta"><div class="nm">${d.alias||d.name} ${gradeBadge(cur)} ${ms.lv?`<span class="ms-badge ${ms.cls}">${ms.icon} ${ms.lv}%</span>`:''}</div>
         <div class="info">다음 등급 <b style="color:var(--text)">${g.nx.name}</b>까지 <b style="color:var(--accent)">${won(g.remaining)}원</b> · 달성 ${Math.round(g.pct)}%</div>
         <div class="gauge mini" style="max-width:230px;margin-top:7px"><i style="width:${g.pct}%;background:${g.nx.color}"></i></div></div>
@@ -3690,7 +3697,7 @@ let nudgeId=null;
 function openNudge(id){
   const d=DB.donators.find(x=>x.id===id);if(!d)return;nudgeId=id;
   const cur=gradeForCash(d.cash), g=gaugeData(d);
-  byId('nudgeTarget').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+  byId('nudgeTarget').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
     <div><div class="nm">${d.alias||d.name} ${gradeBadge(cur)}</div><div class="info">누적 ${won(d.cash)}캐시</div></div>`;
   byId('nudgeGauge').innerHTML=`<div class="gauge-head"><span>다음 등급 <b class="gb ${clsOf(g.nx)}" style="padding:2px 7px">${g.nx.name}</b> 까지</span><span class="gauge-amt">${won(g.remaining)}원</span></div>
     <div class="gauge"><i style="width:${g.pct}%;background:${g.nx.color}"></i></div>`;
@@ -3764,7 +3771,7 @@ function orRow(o){
   const d=DB.donators.find(x=>x.id===o.donatorId);if(!d)return '';
   const g=gradeForCash(d.cash);
   const tb=o.type==='reengage'?'<span class="or-type re">💤 복귀 유도</span>':'<span class="or-type nu">🎯 넛지</span>';
-  return `<div class="or-row"><div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+  return `<div class="or-row"><div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
     <div class="or-nm">${d.alias||d.name} ${gradeBadge(g)}</div>${tb}<span class="or-when">${fmtAgo(o.ts)}</span>${orResBadge(o)}</div>`;
 }
 function renderOutreach(){
@@ -3842,7 +3849,7 @@ function renderFanTemp(){
   else list=pool.slice().sort((a,b)=>b.s.temp-a.s.temp);
   list=list.slice(0,8);
   byId('fanTempList').innerHTML=list.length?list.map(({d,s})=>{const g=gradeForCash(d.cash);
-    return `<div class="temp-row" data-don="${d.id}"><div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+    return `<div class="temp-row" data-don="${d.id}"><div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
       <div class="tr-meta"><div class="tr-nm">${d.alias||d.name} ${g?gradeBadge(g):''} <span class="temp-badge" style="background:${hexA(s.level.color,.16)};color:${s.level.color}">${s.level.icon} ${s.level.label}</span>${s.cooling?'<span class="temp-cooling">🌥 식는 중</span>':''}</div>
         <div class="tr-sub">최근 후원 ${s.dAgo}일 전 · 누적 ${won(d.cash)}캐시 · ${won(d.count)}건</div></div>
       <div class="temp-gauge"><div class="tg-v" style="color:${s.level.color}">${s.temp}°</div><div class="tg-bar"><i style="width:${s.temp}%;background:${s.level.color}"></i></div></div></div>`;
@@ -4017,7 +4024,7 @@ function renderDrBlock(d){
 function openBlock(id){
   const d=DB.donators.find(x=>x.id===id);if(!d)return;blockId=id;
   const g=gradeForCash(d.cash);
-  byId('blockTarget').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+  byId('blockTarget').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
     <div><div class="nm">${d.alias||d.name} ${gradeBadge(g)}</div><div class="info">누적 ${won(d.cash)}캐시 · ${won(d.count)}건</div></div>`;
   byId('blockReason').value='';
   byId('blockOverlay').classList.add('show');
@@ -4172,7 +4179,7 @@ function renderLive(){
   byId('liveRank').innerHTML = ranked.length ? ranked.slice(0,5).map((r,i)=>{
     const g=gradeForCash(r.d.cash), medal=['👑','🥈','🥉'][i]||`<span style="font-size:13px">${i+1}</span>`;
     return `<div class="rank-row"><div class="rk-medal">${medal}</div>
-      <div class="ava" style="background:${avaColor(r.d.name)}">${r.d.name.slice(0,2)}</div>
+      <div class="ava" style="background:${avaColor(r.d.name)}">${r.d.name.slice(0,2)}${avaImg(r.d.name)}</div>
       <div class="rk-meta"><div class="rk-nm">${r.d.alias||r.d.name} ${gradeBadge(g)}</div>
         <div class="rk-bar"><i style="width:${(r.amt/maxAmt*100).toFixed(0)}%"></i></div></div>
       <div class="rk-amt">${won(r.amt)}</div></div>`;
@@ -4185,7 +4192,7 @@ function renderLive(){
     const g=gradeForCash(d.cash);
     const card=document.createElement('div');card.className='live-card';
     card.innerHTML=`<div class="lc-top">
-        <div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+        <div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
         <div style="min-width:0"><div class="nm">${d.alias||d.name} ${gradeBadge(g)}</div><div class="mins">🟢 접속 ${v.mins}분</div></div>
       </div>
       <div class="lc-acts">
@@ -4384,7 +4391,7 @@ function autoRunRow(o){
   const g=gradeForCash(d.cash);
   const res=o.result==='converted'?`<span class="or-res ok">후원함${o.convAmount?` +${won(o.convAmount)}`:''}</span>`
     :o.result==='pending'?'<span class="or-res pend">대기중</span>':'<span class="or-res no">무응답</span>';
-  return `<div class="or-row"><div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+  return `<div class="or-row"><div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
     <div class="or-nm">${d.alias||d.name} ${gradeBadge(g)}</div><span class="or-when">${fmtAgo(o.ts)}</span>${res}</div>`;
 }
 let asAutoId=null, asResSel='all';
@@ -4486,7 +4493,7 @@ function renderAnniv(){
     const g=gradeForCash(d.cash);
     const today=days===0;
     const card=document.createElement('div');card.className='anniv-card'+(today?' today':'');
-    card.innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+    card.innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
       <div class="meta"><div class="nm">${d.alias||d.name} ${gradeBadge(g)}</div><div class="dd">🎉 가입 ${years}주년 · ${date}</div></div>
       ${d.celebrated?'<div class="celeb-done">✓ 축하함</div>':`<div class="dday ${days<=7?'soon':''}">${today?'오늘!':'D-'+days}</div>`}`;
     if(!d.celebrated){card.style.cursor='pointer';card.onclick=()=>openCeleb(d.id,years);}
@@ -4498,7 +4505,7 @@ let celebId=null;
 function openCeleb(id,years){
   const d=DB.donators.find(x=>x.id===id);if(!d)return;celebId=id;
   const g=gradeForCash(d.cash);
-  byId('celebTarget').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+  byId('celebTarget').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
     <div><div class="nm">${d.alias||d.name} ${gradeBadge(g)}</div><div class="info">가입 ${years}주년 · 누적 ${won(d.cash)}캐시</div></div>`;
   byId('celebMsg').value=`${d.alias||d.name}님, 저와 함께한 지 벌써 ${years}주년이에요! 늘 곁에서 응원해 주셔서 진심으로 감사합니다 🎉🎂`;
   celebPrev();
@@ -4571,7 +4578,7 @@ function renderToonList(){
     const item=document.createElement('div'); item.className='toon-item st-'+eff;
     item.innerHTML=`
       <div class="ti-top">
-        <div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+        <div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
         <div class="who"><div class="nm">${d.alias||d.name} ${g?gradeBadge(g):''} <span class="toon-badge ${cls}">${lbl}</span></div>
           <div class="sub">TO. ${creatorName()} · ${fmtAgo(t.createdTs)}</div></div>
         <div class="ti-amt">${won(t.amount)} C</div>
@@ -5111,7 +5118,7 @@ function renderDonationList(){
   tb.innerHTML=slice.length?slice.map(r=>{const g=gradeForCash(r.d.cash),ty=DON_TYPES[r.kind]||DON_TYPES['텍스트'];
     return `<tr data-don="${r.d.id}" title="프로필 보기">
       <td class="tnum" style="color:var(--muted);font-size:12.5px">${fmtDT(r.ts)}</td>
-      <td><div class="dn-cell"><div class="ava" style="width:30px;height:30px;font-size:11px;background:${avaColor(r.d.name)}">${r.d.name.slice(0,2)}</div><div><div class="nm" style="font-size:13px">${r.d.alias||r.d.name}</div><div class="al">${g?g.name:'미분류'}</div></div></div></td>
+      <td><div class="dn-cell"><div class="ava" style="width:30px;height:30px;font-size:11px;background:${avaColor(r.d.name)}">${r.d.name.slice(0,2)}${avaImg(r.d.name)}</div><div><div class="nm" style="font-size:13px">${r.d.alias||r.d.name}</div><div class="al">${g?g.name:'미분류'}</div></div></div></td>
       <td><span class="dtype-badge" style="background:${ty.color}22;color:${ty.color}">${ty.icon} ${r.kind}</span></td>
       <td><div class="cash">${won(r.amount)}<small> 캐시</small></div></td>
       <td><div class="dl-msg" title="${(r.msg||'').replace(/"/g,'&quot;')}">${(r.msg||'').replace(/</g,'&lt;')||'-'}</div></td>
@@ -5170,7 +5177,7 @@ function renderHall(){
   pod.innerHTML=order.map(idx=>{const e=rank[idx];if(!e)return '<div></div>';const g=gradeForCash(e.d.cash);const cls=idx===0?'p1':idx===1?'p2':'p3';
     return `<div class="pod ${cls}" data-don="${e.d.id}" style="cursor:pointer">${idx===0?'<div class="crown">👑</div>':''}
       <div class="medal">${medals[idx]}</div>
-      <div class="pod-ava" style="background:${avaColor(e.d.name)}">${e.d.name.slice(0,2)}</div>
+      <div class="pod-ava" style="background:${avaColor(e.d.name)}">${e.d.name.slice(0,2)}${avaImg(e.d.name)}</div>
       <div class="pod-nm">${e.d.alias||e.d.name} ${hallTierBadge(idx+1)}</div>
       <div class="pod-amt">${won(e.amount)}<small style="font-size:12px;color:var(--muted)"> 캐시</small></div>
       <div class="pod-sub">${g?g.name:'미분류'} · ${idx+1}위</div></div>`;}).join('');
@@ -5179,7 +5186,7 @@ function renderHall(){
   box.innerHTML=rank.slice(0,15).map((e,i)=>{const g=gradeForCash(e.d.cash);const rk=i+1;
     return `<div class="hall-row" data-don="${e.d.id}">
       <div class="hr-rank" ${rk<=3?`style="color:var(--vvip)"`:''}>${rk}</div>
-      <div class="ava" style="background:${avaColor(e.d.name)}">${e.d.name.slice(0,2)}</div>
+      <div class="ava" style="background:${avaColor(e.d.name)}">${e.d.name.slice(0,2)}${avaImg(e.d.name)}</div>
       <div class="hr-nm">${e.d.alias||e.d.name} ${g?gradeBadge(g):''} ${hallTierBadge(rk)}</div>
       <div class="hr-amt">${won(e.amount)}<small>캐시</small></div></div>`;}).join('')||'<div class="empty" style="padding:40px"><div class="t">아직 후원 기록이 없습니다</div></div>';
   pod.querySelectorAll('[data-don]').forEach(el=>el.onclick=()=>openDrawer(el.dataset.don));
