@@ -430,7 +430,7 @@ input.tnum.sm-inp{width:80px;text-align:right}
   border-left:3px solid var(--dr-grade);z-index:85;transform:translateX(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);
   display:flex;flex-direction:column;box-shadow:-16px 0 50px rgba(0,0,0,.4)}
 .drawer.show{transform:none}
-.dr-hero{padding:24px 22px 20px;position:relative;background:linear-gradient(160deg,var(--dr-grade-soft),var(--surface));border-bottom:1px solid var(--dr-grade-soft)}
+.dr-hero{flex:none;padding:24px 22px 20px;position:relative;background:linear-gradient(160deg,var(--dr-grade-soft),var(--surface));border-bottom:1px solid var(--dr-grade-soft)}
 .dr-hero .close{position:absolute;top:16px;right:16px}
 .dr-remote{position:absolute;top:16px;right:60px;font-size:11px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:5px;background:var(--surface-3);padding:5px 9px;border-radius:7px}
 .dr-avatar{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:26px;margin-bottom:14px;box-shadow:0 0 0 3px var(--dr-grade-soft),0 4px 16px rgba(0,0,0,.3)}
@@ -443,7 +443,7 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .dr-cash .lbl{font-size:12px;color:var(--muted);font-weight:600}
 .dr-cash .val{font-size:22px;font-weight:800;letter-spacing:-.02em;color:var(--dr-grade-text,var(--text))}
 .dr-cash .val small{font-size:13px;color:var(--muted);margin-left:2px}
-.dr-body{flex:1;overflow-y:auto;padding:20px 22px}
+.dr-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:20px 22px}
 .dr-sec{margin-bottom:24px}
 .dr-sec .h{font-size:12.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;display:flex;align-items:center;gap:7px}
 .dtypes{display:flex;gap:8px;flex-wrap:wrap}
@@ -1847,12 +1847,12 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="val tnum" id="drCash">0<small>캐시</small></div>
       </div>
     </div>
+  </div>
+  <div class="dr-body">
     <div class="gauge-box" id="drGauge"></div>
     <div id="drTemp"></div>
     <div id="drConsent"></div>
     <div id="drBlock"></div>
-  </div>
-  <div class="dr-body">
     <div class="dr-sec">
       <div class="h">🏷 태그</div>
       <div class="tag-edit" id="drTags"></div>
