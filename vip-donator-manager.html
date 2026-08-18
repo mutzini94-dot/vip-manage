@@ -99,6 +99,22 @@ input,textarea,select{font-family:inherit}
 .credit-chip.low .cr-tx b{color:var(--warn)}
 .credit-chip.empty{border-color:rgba(255,107,129,.5)}
 .credit-chip.empty .cr-tx b{color:#ff6b81}
+/* 모바일 GNB */
+@media(max-width:640px){
+  .gnb{gap:8px;padding:0 12px}
+  .gnb .logo .sub{display:none}
+  .gnb .logo{font-size:15px}
+  .gnb .gnb-chip:not(.credit-chip){display:none}   /* 리모컨 연동됨 숨김 */
+  .gnb .avatar{display:none}                         /* 설정 톱니와 중복 → 숨김 */
+  .credit-chip{padding:6px 9px;gap:5px}
+  .credit-chip .cr-lbl,.credit-chip .cr-plus{display:none}   /* '알림톡 잔여/건/＋충전' 숨기고 숫자만 */
+  .credit-chip .cr-tx{font-size:12px}
+  .theme-toggle,.bell{width:34px;height:34px}
+  .theme-toggle svg{height:17px}
+}
+@media(max-width:340px){
+  .gnb .logo>div:not(.mark){display:none}            /* 초소형 화면: 로고 텍스트 숨기고 심볼만 */
+}
 /* 충전 모달 */
 .credit-hero{background:linear-gradient(135deg,var(--accent-soft),var(--surface-2));border:1px solid var(--line);border-radius:14px;padding:16px 18px;text-align:center;margin-bottom:16px}
 .credit-hero .ch-k{font-size:12px;color:var(--muted);font-weight:700}
@@ -1099,7 +1115,7 @@ tbody tr.blocked:hover{opacity:.72}
     <div class="spacer"></div>
     <button class="gnb-chip credit-chip" id="creditChip" title="복귀 유도·넛지 알림톡 잔여 발송 건수 · 클릭하여 충전">
       <span class="cr-ic">✉️</span>
-      <span class="cr-tx">알림톡 잔여 <b id="creditBal">300</b>건</span>
+      <span class="cr-tx"><span class="cr-lbl">알림톡 잔여 </span><b id="creditBal">300</b><span class="cr-lbl">건</span></span>
       <span class="cr-plus">＋충전</span>
     </button>
     <div class="gnb-chip"><span class="dot"></span>리모컨 연동됨</div>
