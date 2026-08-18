@@ -522,6 +522,34 @@ input.tnum.sm-inp{width:80px;text-align:right}
 #insightRefresh svg{transition:transform .2s}
 #insightRefresh.spinning svg{animation:spin .6s ease}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+/* 관계 온도 */
+.temp-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.temp-dist{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.temp-dist .td-cell{flex:1;min-width:60px;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:10px 6px;text-align:center}
+.temp-dist .td-cell .n{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
+.temp-dist .td-cell .l{font-size:11px;font-weight:700;margin-top:2px}
+.temp-list{display:flex;flex-direction:column}
+.temp-row{display:flex;align-items:center;gap:11px;padding:9px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+.temp-row:last-child{border-bottom:none}
+.temp-row:hover{background:var(--surface-2)}
+.temp-row .ava{width:34px;height:34px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:12px}
+.temp-row .tr-meta{flex:1;min-width:0}
+.temp-row .tr-nm{font-weight:700;font-size:13px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.temp-row .tr-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.temp-gauge{width:118px;flex:none}
+.temp-gauge .tg-v{font-size:11px;font-weight:800;text-align:right;margin-bottom:3px}
+.temp-gauge .tg-bar{height:7px;border-radius:5px;background:var(--surface-3);overflow:hidden}
+.temp-gauge .tg-bar i{display:block;height:100%;border-radius:5px;transition:width .5s}
+.temp-cooling{font-size:10.5px;font-weight:800;color:#ff8a5c;background:rgba(255,138,92,.14);padding:1px 7px;border-radius:6px}
+/* 프로필 온도 */
+.dr-temp{margin-top:14px;padding:13px 15px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2)}
+.dr-temp .dt-top{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.dr-temp .dt-t{font-weight:800;font-size:13.5px}
+.dr-temp .dt-big{margin-left:auto;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.dr-temp .dt-rfm{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.dr-temp .rfm .rk{font-size:10.5px;color:var(--muted-2);font-weight:700;display:flex;justify-content:space-between}
+.dr-temp .rfm .rbar{height:5px;border-radius:4px;background:var(--surface-3);overflow:hidden;margin-top:4px}
+.dr-temp .rfm .rbar i{display:block;height:100%;border-radius:4px;background:var(--accent)}
 /* pareto */
 .pareto-hero{text-align:center;padding:6px 0 20px;border-bottom:1px solid var(--line);margin-bottom:16px}
 .pareto-hero .big{font-size:34px;font-weight:800;letter-spacing:-.02em}
@@ -1152,6 +1180,17 @@ tbody tr.blocked:hover{opacity:.72}
 
       <div class="panel" style="margin-bottom:16px">
         <div class="panel-head">
+          <h3>🌡 관계 온도</h3><span class="hint" id="fanTempHint">팬 관계 건강도</span><div class="spacer"></div>
+          <div class="seg" id="fanTempMode" style="flex:none"><button data-m="cooling" class="on">🌥 식어가는 단골</button><button data-m="hot">🔥 뜨거운 팬</button></div>
+        </div>
+        <div class="panel-body">
+          <div class="temp-dist" id="fanTempDist"></div>
+          <div class="temp-list" id="fanTempList"></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-head">
           <h3>🎯 승급 임박 VIP</h3><span class="hint" id="nudgeHint"></span><div class="spacer"></div>
           <label class="auto-toggle" title="90% 도달 시 자동으로 넛지 발송"><span>마일스톤 자동 넛지</span><div class="tgl" id="msNudge"></div></label>
           <div class="seg" id="nudgeThresh" style="flex:none">
@@ -1346,6 +1385,7 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="seg" id="donSort" style="flex:none">
           <button data-sort="rank" class="on">후원 순위별</button>
           <button data-sort="grade">등급별</button>
+          <button data-sort="temp">🌡 온도순</button>
         </div>
         <div class="seg status-seg" id="donStatus" style="flex:none">
           <button data-st="active" class="on">활성</button>
@@ -1767,6 +1807,7 @@ tbody tr.blocked:hover{opacity:.72}
       </div>
     </div>
     <div class="gauge-box" id="drGauge"></div>
+    <div id="drTemp"></div>
     <div id="drConsent"></div>
     <div id="drBlock"></div>
   </div>
@@ -2608,6 +2649,8 @@ function renderDonators(){
       const ma=ga?ga.min:-1, mb=gb?gb.min:-1;
       return mb-ma || b.cash-a.cash;
     });
+  }else if(donSort==='temp'){
+    rows.sort((a,b)=> fanScore(b).temp - fanScore(a).temp);
   }else{
     rows.sort((a,b)=> donDir*((a[donCol]||0)-(b[donCol]||0)) );
   }
@@ -2620,6 +2663,7 @@ function renderDonators(){
     const tr=document.createElement('tr');
     const rank=donSort==='rank'&&donCol==='cash'&&donDir===-1 ? i+1 : (DB.donators.slice().sort((a,b)=>b.cash-a.cash).findIndex(x=>x.id===d.id)+1);
     const gg=gaugeData(d);
+    const tScore=fanScore(d);
     const tags=d.tags||[];
     const tagHtml=tags.length?`<div class="dn-tags">${tags.slice(0,3).map(t=>`<span class="tc" style="${tagStyle(t)}">${t}</span>`).join('')}${tags.length>3?`<span class="more">+${tags.length-3}</span>`:''}</div>`:'';
     const gMs=(gg.top||d.blocked)?null:milestoneOf(gg.pct);
@@ -2650,7 +2694,7 @@ function renderDonators(){
       </td>
       <td><div class="cash">${won(d.cash)}<small> 캐시</small></div></td>
       <td class="tnum">${won(d.count)}건</td>
-      <td>${gradeBadge(g)}${gaugeHtml}</td>
+      <td>${gradeBadge(g)}${d.blocked?'':`<span class="temp-badge" style="background:${hexA(tScore.level.color,.15)};color:${tScore.level.color};margin-left:5px" title="관계 온도 ${tScore.temp}°">${tScore.level.icon} ${tScore.temp}°</span>`}${gaugeHtml}</td>
       <td></td>
       <td class="act-cell">${actHtml}</td>`;
     // 액션 버튼 (행 클릭=프로필 열기와 분리)
@@ -3200,6 +3244,8 @@ function openDrawer(id){
   byId('drCash').innerHTML=`${won(d.cash)}<small>캐시</small>`;
   // 개인 목표 카드
   renderGoalCard(d);
+  // 관계 온도
+  renderDrTemp(d);
   // 알림톡 수신 동의
   renderDrConsent(d);
   // 차단 상태
@@ -3600,7 +3646,63 @@ byId('outreachOverlay').onclick=e=>{if(e.target===byId('outreachOverlay'))byId('
 byId('orTypeF').querySelectorAll('button').forEach(b=>b.onclick=()=>{orTypeSel=b.dataset.t;byId('orTypeF').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderOutreachModal();});
 byId('orResF').querySelectorAll('button').forEach(b=>b.onclick=()=>{orResSel=b.dataset.r;byId('orResF').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderOutreachModal();});
 
-function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderChurn();renderPareto();renderNudge();renderOutreach();renderAnniv();if(typeof renderAlerts==='function')renderAlerts();}
+/* =========================================================
+   관계 온도 (팬 건강 스코어 · RFM+)
+   ========================================================= */
+function fanLevel(t){
+  if(t>=85)return{key:'hot',label:'뜨거움',icon:'🔥',color:'#ff4d4f'};
+  if(t>=68)return{key:'warm',label:'따뜻함',icon:'☀️',color:'#ff8a5c'};
+  if(t>=45)return{key:'mild',label:'미지근',icon:'🌤',color:'#ffb020'};
+  if(t>=25)return{key:'cool',label:'식는 중',icon:'🌥',color:'#5b8cff'};
+  return{key:'cold',label:'차가움',icon:'❄️',color:'#7f9bd6'};
+}
+function pctRank(v,arr){if(!arr.length)return 50;let below=0,eq=0;for(const x of arr){if(x<v)below++;else if(x===v)eq++;}return Math.round((below+eq/2)/arr.length*100);}
+function fanScore(d){
+  const pool=DB.donators.filter(x=>!x.blocked);
+  const engOf=x=>((x.tags||[]).length*2)+(x.memo?3:0)+((x.awards||[]).length*2);
+  const cashArr=pool.map(x=>x.cash),cntArr=pool.map(x=>x.count),engArr=pool.map(engOf),dAgoArr=pool.map(x=>daysAgo(x));
+  const dAgo=daysAgo(d);
+  const r=100-pctRank(dAgo,dAgoArr);   // 최근일수록 높음 (동료 대비 백분위)
+  const f=pctRank(d.count,cntArr), m=pctRank(d.cash,cashArr), e=pctRank(engOf(d),engArr);
+  const temp=Math.round(0.35*r+0.25*f+0.25*m+0.15*e);
+  const spanDays=Math.max(1,Math.round((refNow()-parseD(d.join))/864e5));
+  const interval=spanDays/Math.max(1,d.count);
+  const cooling=dAgo>interval*1.6 && temp<72;
+  return {temp,level:fanLevel(temp),r,f,m,e,cooling,dAgo};
+}
+let fanTempMode='cooling';
+function renderFanTemp(){
+  if(!byId('fanTempDist'))return;
+  const pool=DB.donators.filter(d=>!d.blocked).map(d=>({d,s:fanScore(d)}));
+  const levels=[['hot','🔥','뜨거움',90],['warm','☀️','따뜻함',70],['mild','🌤','미지근',50],['cool','🌥','식는 중',30],['cold','❄️','차가움',10]];
+  const cnt={};pool.forEach(x=>cnt[x.s.level.key]=(cnt[x.s.level.key]||0)+1);
+  byId('fanTempDist').innerHTML=levels.map(([k,ic,lb,rep])=>{const c=fanLevel(rep).color;
+    return `<div class="td-cell"><div class="n" style="color:${c}">${cnt[k]||0}</div><div class="l">${ic} ${lb}</div></div>`;}).join('');
+  const coolingCnt=pool.filter(x=>x.s.cooling).length;
+  byId('fanTempHint').textContent=`팬 관계 건강도 · 식어가는 단골 ${coolingCnt}명`;
+  let list;
+  if(fanTempMode==='cooling'){list=pool.filter(x=>x.s.cooling).sort((a,b)=>a.s.temp-b.s.temp);if(!list.length)list=pool.slice().sort((a,b)=>a.s.temp-b.s.temp);}
+  else list=pool.slice().sort((a,b)=>b.s.temp-a.s.temp);
+  list=list.slice(0,8);
+  byId('fanTempList').innerHTML=list.length?list.map(({d,s})=>{const g=gradeForCash(d.cash);
+    return `<div class="temp-row" data-don="${d.id}"><div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}</div>
+      <div class="tr-meta"><div class="tr-nm">${d.alias||d.name} ${g?gradeBadge(g):''} <span class="temp-badge" style="background:${hexA(s.level.color,.16)};color:${s.level.color}">${s.level.icon} ${s.level.label}</span>${s.cooling?'<span class="temp-cooling">🌥 식는 중</span>':''}</div>
+        <div class="tr-sub">최근 후원 ${s.dAgo}일 전 · 누적 ${won(d.cash)}캐시 · ${won(d.count)}건</div></div>
+      <div class="temp-gauge"><div class="tg-v" style="color:${s.level.color}">${s.temp}°</div><div class="tg-bar"><i style="width:${s.temp}%;background:${s.level.color}"></i></div></div></div>`;
+  }).join(''):'<div class="helper" style="padding:16px;text-align:center">🎉 식어가는 단골이 없습니다</div>';
+  byId('fanTempList').querySelectorAll('[data-don]').forEach(el=>el.onclick=()=>openDrawer(el.dataset.don));
+}
+byId('fanTempMode').querySelectorAll('button').forEach(b=>b.onclick=()=>{fanTempMode=b.dataset.m;byId('fanTempMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderFanTemp();});
+function renderDrTemp(d){
+  const s=fanScore(d);
+  byId('drTemp').innerHTML=`<div class="dr-temp">
+    <div class="dt-top"><span style="font-size:16px">${s.level.icon}</span><span class="dt-t">관계 온도 · ${s.level.label}</span><span class="dt-big" style="color:${s.level.color}">${s.temp}°</span></div>
+    <div class="dt-rfm">${[['최근성',s.r],['빈도',s.f],['금액',s.m],['소통',s.e]].map(([k,v])=>`<div class="rfm"><div class="rk"><span>${k}</span><b>${v}</b></div><div class="rbar"><i style="width:${v}%;background:${s.level.color}"></i></div></div>`).join('')}</div>
+    ${s.cooling?'<div style="font-size:11.5px;color:#ff8a5c;font-weight:700;margin-top:10px">🌥 평소 주기보다 뜸해요 — 안부를 전해보세요</div>':''}
+  </div>`;
+}
+
+function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderChurn();renderPareto();renderFanTemp();renderNudge();renderOutreach();renderAnniv();if(typeof renderAlerts==='function')renderAlerts();}
 byId('insightRefresh').onclick=()=>{
   const b=byId('insightRefresh'); b.classList.remove('spinning'); void b.offsetWidth; b.classList.add('spinning');
   setTimeout(()=>b.classList.remove('spinning'),650);
