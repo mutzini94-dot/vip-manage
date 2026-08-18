@@ -59,7 +59,7 @@ export function seed() {
       join:`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`,
       last:`2024-${String(1+(i%10)).padStart(2,'0')}-${String(1+(i*5%27)).padStart(2,'0')}`,
       types:['text','signature','voice','quest'].filter(()=>Math.random()>.4),
-      awards: Math.random()>.85 ? ['t_bday'] : [], blocked:false,
+      awards: Math.random()>.85 ? ['t_bday'] : [], blocked:false, alimConsent: Math.random()>.22,
       history: Array.from({length:3+Math.round(Math.random()*3)},(_,k)=>({
         time:`2024-10-${String(10-k).padStart(2,'0')} ${String(10+k).padStart(2,'0')}:${String(k*7%60).padStart(2,'0')}:00`,
         kind:['텍스트','음성','시그니처','퀘스트'][k%4], amt:[1000,5000,10000,3000,50000][k%5],
@@ -90,7 +90,7 @@ function normalize(DB) {
   if (!DB.titles) DB.titles = seedTitles();
   if (!DB.autoLogs) DB.autoLogs = [];
   if (DB.annivAuto === undefined) DB.annivAuto = true;
-  (DB.donators||[]).forEach(d=>{ d.tags=d.tags||[]; d.awards=d.awards||[]; d.blocked=d.blocked||false; });
+  (DB.donators||[]).forEach(d=>{ d.tags=d.tags||[]; d.awards=d.awards||[]; d.blocked=d.blocked||false; if(d.alimConsent===undefined)d.alimConsent=true; });
   (DB.autos||[]).forEach(a=>{ if(!a.actions){ a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[]; delete a.action; delete a.cfg; } });
   if (!DB.schedules) DB.schedules = seedSchedules();
   if (!DB.msgCredit) DB.msgCredit = { balance:300, sent:0, log:[{ ts:nowClock(), type:'init', amount:300, balance:300 }] };

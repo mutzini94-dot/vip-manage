@@ -249,7 +249,7 @@ pre.json{margin:0;background:var(--ground);border:1px solid var(--line);border-r
           <div class="doc-hero">
             <h1>VIP 도네이터 관리 — 개발 정책 문서</h1>
             <p>투네이션 크리에이터용 <b>VIP 도네이터 관리(열혈시스템)</b> 플랫폼의 아키텍처·데이터 모델·API 규약·개발 절차를 정의합니다. 신규 개발자는 이 문서를 먼저 숙지한 뒤 코드에 기여하세요.</p>
-            <div class="rev"><span>버전 v1</span><span>대상 vip-donator-manager.html · server/ · api-console.html</span><span>최종 갱신 2026-08-14</span></div>
+            <div class="rev"><span>버전 v1</span><span>대상 vip-donator-manager.html · server/ · api-console.html</span><span>최종 갱신 2026-08-18</span></div>
           </div>
 
           <section id="d1">
@@ -294,8 +294,11 @@ pre.json{margin:0;background:var(--ground);border:1px solid var(--line);border-r
               <tr><td><code>toontalks</code></td><td>ToonTalk[]</td><td>투네톡(댓글 후원)</td></tr>
               <tr><td><code>stories</code></td><td>Story[]</td><td>크리에이터 스토리(공지)</td></tr>
               <tr><td><code>recaps</code></td><td>Recap[]</td><td>방송 성과 리캡</td></tr>
-              <tr><td><code>annivAuto</code></td><td>boolean</td><td>기념일 자동 축하 on/off</td></tr>
-              <tr><td><code>msgCredit</code> <span class="pill-lite new">최근</span></td><td>{balance,sent,log}</td><td>복귀 유도·넛지 알림톡 발송 건수(크레딧)</td></tr>
+              <tr><td><code>perks</code> <span class="pill-lite new">최근</span></td><td>Perk[]</td><td>등급별 전용 혜택(보상)</td></tr>
+              <tr><td><code>outreach</code> <span class="pill-lite new">최근</span></td><td>Outreach[]</td><td>복귀 유도·넛지 발송·전환 이력</td></tr>
+              <tr><td><code>autoRuns</code> <span class="pill-lite new">최근</span></td><td>AutoRun[]</td><td>자동화 발동·전환 이력</td></tr>
+              <tr><td><code>msgCredit</code></td><td>{balance,sent,log}</td><td>복귀 유도·넛지·감사 알림톡 발송 건수(크레딧)</td></tr>
+              <tr><td><code>settings</code> <span class="pill-lite new">최근</span></td><td>Settings</td><td>크리에이터 프로필·테마·자동화 기본값·인증</td></tr>
             </table></div>
             <h3>Donator 필드</h3>
             <div class="tbl-wrap"><table>
@@ -306,8 +309,10 @@ pre.json{margin:0;background:var(--ground);border:1px solid var(--line);border-r
               <tr><td><code>awards</code></td><td>string[]</td><td>수동 수여 칭호 ID</td></tr>
               <tr><td><code>blocked</code> / <code>blockReason</code></td><td>bool / string</td><td>블랙리스트</td></tr>
               <tr><td><code>nudged</code> / <code>celebrated</code></td><td>bool</td><td>승급 넛지 / 기념일 축하 발송 여부</td></tr>
-              <tr><td><code>reengaged</code> <span class="pill-lite new">최근</span></td><td>bool</td><td>복귀 유도 발송 이력 존재 여부</td></tr>
-              <tr><td><code>reengagedAt</code> <span class="pill-lite new">최근</span></td><td>ts(ms)</td><td>마지막 복귀 유도 발송 시각. <b>재발송 가능</b></td></tr>
+              <tr><td><code>reengaged</code> / <code>reengagedAt</code></td><td>bool / ts</td><td>복귀 유도 이력·마지막 발송 시각(재발송 가능)</td></tr>
+              <tr><td><code>alimConsent</code> <span class="pill-lite new">최근</span></td><td>bool</td><td>알림톡 수신 동의. <b>false면 발송 차단/제외</b></td></tr>
+              <tr><td><code>fanTemperature</code> <span class="pill-lite new">최근</span></td><td>계산</td><td>관계 온도(RFM+ 0~100°·레벨·cooling). 읽기 전용</td></tr>
+              <tr><td><code>perks</code> <span class="pill-lite new">최근</span></td><td>계산</td><td>등급으로 받는 전용 혜택. 읽기 전용</td></tr>
               <tr><td><code>history</code></td><td>Donation[]</td><td>후원 내역 <code>{time,kind,amt,msg}</code></td></tr>
             </table></div>
           </section>
@@ -316,19 +321,19 @@ pre.json{margin:0;background:var(--ground);border:1px solid var(--line);border-r
             <h2><span class="no">4</span> 개발된 기능</h2>
             <p>현재 관리 화면은 <b>10개 탭</b>으로 구성됩니다.</p>
             <div class="feat-grid">
-              <div class="feat"><div class="ft">📊 인사이트</div><div class="fd">KPI·후원 추이·등급 분포·파레토·이탈 위험 VIP·승급 임박·기념일·알림 센터</div></div>
-              <div class="feat"><div class="ft">🏆 명예의 전당 <span class="pill-lite new">신규</span></div><div class="fd">역대 누적/이번 달 랭킹, 시상대(포디움), 전용 등급 뱃지(후원왕·명예의 전당·레전드)</div></div>
-              <div class="feat"><div class="ft">🎖 등급</div><div class="fd">누적 금액 구간별 자동 분류, 등급 CRUD</div></div>
+              <div class="feat"><div class="ft">📊 인사이트</div><div class="fd">KPI·추이·등급 분포·파레토·이탈 위험·승급 임박·기념일·<b>관계 온도</b>·<b>복귀/넛지 성과</b>·알림 센터·새로고침</div></div>
+              <div class="feat"><div class="ft">🌡 관계 온도 <span class="pill-lite new">신규</span></div><div class="fd">RFM+ 팬 건강 스코어(0~100°)·레벨 분포·식어가는 단골 감지, 프로필·정렬 연동</div></div>
+              <div class="feat"><div class="ft">🏆 명예의 전당</div><div class="fd">역대/이번 달 랭킹·시상대·전용 등급 뱃지</div></div>
+              <div class="feat"><div class="ft">🎖 등급 · 🎁 전용 혜택 <span class="pill-lite new">신규</span></div><div class="fd">등급 CRUD + 등급별 자동 부여 보상(혜택) 정의·보유 인원 추적</div></div>
               <div class="feat"><div class="ft">💜 칭호</div><div class="fd">규칙 기반 자동 지급 + 수동 수여</div></div>
-              <div class="feat"><div class="ft">👥 도네이터</div><div class="fd">검색·정렬·프로필 드로어, 메모·태그, 승급 게이지</div></div>
-              <div class="feat"><div class="ft">🧾 후원 내역</div><div class="fd">시간순 통합 리스트, 검색·정렬·분류, 행 클릭 → 프로필</div></div>
-              <div class="feat"><div class="ft">⚙️ 자동화</div><div class="fd">멀티 액션·신규 트리거·쿨다운·스케줄·템플릿 프리셋, 개별 ON/OFF</div></div>
-              <div class="feat"><div class="ft">💬 투네톡</div><div class="fd">댓글 후원 접수·답장·상태(대기/완료/만료)</div></div>
-              <div class="feat"><div class="ft">📅 스케줄</div><div class="fd">방송 캘린더·반복 일정·예정 알림톡·iCal 내보내기·날짜별 후원 인사이트</div></div>
-              <div class="feat"><div class="ft">🔴 라이브</div><div class="fd">실시간 접속 VIP·피드·랭킹·세션 후원·해피아워 부스트</div></div>
+              <div class="feat"><div class="ft">👥 도네이터</div><div class="fd">검색·프로필, 메모·태그, <b>복귀/넛지 대상·수신 동의·온도순</b> 필터·정렬, 일괄 <b>감사 메시지</b></div></div>
+              <div class="feat"><div class="ft">🧾 후원 내역</div><div class="fd">시간순 통합 리스트, 검색·정렬·분류</div></div>
+              <div class="feat"><div class="ft">⚙️ 자동화</div><div class="fd">멀티 액션·트리거·쿨다운·스케줄·템플릿, 개별 ON/OFF, <b>발동·전환 성과</b></div></div>
+              <div class="feat"><div class="ft">💬 투네톡 · 📅 스케줄 · 🔴 라이브</div><div class="fd">댓글 후원·답장 / 방송 캘린더·알림·iCal / 실시간 랭킹·해피아워</div></div>
+              <div class="feat"><div class="ft">⚙️ 설정 · 🔒 로그인 <span class="pill-lite new">신규</span></div><div class="fd">크리에이터 프로필·테마(라이트/다크/시스템)·데이터 백업·로그인 게이트</div></div>
             </div>
-            <div class="callout"><b>후원 유도 · 이탈 방지 장치:</b> 승급 넛지, <b>복귀 유도(재발송 가능 + 마지막 발송 시점 표기)</b>, 해피아워 부스트, 기념일 자동 축하, 방송 예정 사전 알림.</div>
-            <div class="callout"><b>알림톡 발송 건수(크레딧):</b> 복귀 유도·넛지는 공용 발송 건수 풀(<code>msgCredit.balance</code>, 기본 300건)을 사용합니다. 발송 시 1건 차감, 상단 GNB에 잔여 표시, 소진 시 발송 차단 후 충전 유도. API는 <code>GET /settings/credits</code>·<code>POST /settings/credits/recharge</code>, 발송 응답의 <code>creditRemaining</code>, 부족 시 <code>422 INSUFFICIENT_CREDIT</code>.</div>
+            <div class="callout"><b>후원 유도 · 이탈 방지 장치:</b> 승급 넛지, <b>복귀 유도(재발송 가능)</b>, 관계 온도 기반 우선 케어, 감사 메시지 일괄 발송, 해피아워, 기념일 자동 축하, 방송 예정 사전 알림. 모든 발송은 <b>수신 동의(<code>alimConsent</code>)</b> + <b>크레딧(<code>msgCredit</code>)</b>을 함께 검증.</div>
+            <div class="callout"><b>알림톡 수신 동의 · 발송 건수:</b> 복귀 유도·넛지·감사는 공용 건수 풀(<code>msgCredit</code>, 기본 300건)을 사용하고 <b>동의자에게만</b> 발송됩니다. 미동의 시 <code>422 CONSENT_REQUIRED</code>, 잔여 부족 시 <code>422 INSUFFICIENT_CREDIT</code>. 자동화 <code>kakao_send</code>도 미동의자는 발송 생략.</div>
           </section>
 
           <section id="d5">
@@ -422,6 +427,10 @@ pre.json{margin:0;background:var(--ground);border:1px solid var(--line);border-r
 
           <section id="d11">
             <h2><span class="no">11</span> 변경 이력</h2>
+            <div class="chg-item"><div class="cd">2026-08-18</div><div class="cbody"><div class="ct">보상·소통 확장 <span class="pill-lite new">신규</span></div><div class="cs">등급별 전용 혜택(<code>/perks</code>)·감사 메시지 일괄 발송(<code>/donators/thanks</code>) 추가.</div></div></div>
+            <div class="chg-item"><div class="cd">2026-08-18</div><div class="cbody"><div class="ct">관계 온도(팬 건강 스코어) <span class="pill-lite new">신규</span></div><div class="cs">RFM+ 0~100° 스코어·레벨·식어가는 단골 감지. <code>GET /insights/fan-temperature</code>, 도네이터 DTO <code>fanTemperature</code>.</div></div></div>
+            <div class="chg-item"><div class="cd">2026-08-18</div><div class="cbody"><div class="ct">알림톡 수신 동의 <span class="pill-lite new">신규</span></div><div class="cs">도네이터 <code>alimConsent</code> 추가, 동의자에게만 발송. 미동의 시 <code>422 CONSENT_REQUIRED</code>, 자동화 <code>kakao_send</code>도 제외.</div></div></div>
+            <div class="chg-item"><div class="cd">2026-08-14</div><div class="cbody"><div class="ct">성과 분석 · 설정 허브 <span class="pill-lite new">신규</span></div><div class="cs">복귀/넛지 성과(<code>/insights/outreach</code>)·자동화 발동/전환(<code>/automations/{id}/runs</code>)·크리에이터 프로필/테마/백업 설정.</div></div></div>
             <div class="chg-item"><div class="cd">2026-08-14</div><div class="cbody"><div class="ct">알림톡 발송 건수(크레딧) 제한 <span class="pill-lite new">신규</span></div><div class="cs">복귀 유도·넛지 공용 발송 건수 총량 제한(기본 300건)·GNB 잔여 표시·충전. API: <code>/settings/credits</code>, 발송 응답 <code>creditRemaining</code>, 부족 시 <code>422 INSUFFICIENT_CREDIT</code>.</div></div></div>
             <div class="chg-item"><div class="cd">2026-08-14</div><div class="cbody"><div class="ct">도네이터 관리 액션 필터 <span class="pill-lite new">신규</span></div><div class="cs">도네이터 관리 탭에 복귀 유도·넛지 대상 필터와 행별 발송 버튼 추가.</div></div></div>
             <div class="chg-item"><div class="cd">2026-08-14</div><div class="cbody"><div class="ct">복귀 유도 재발송 <span class="pill-lite chg">변경</span></div><div class="cs">이탈 위험 VIP에서 복귀 유도를 <b>재발송 가능</b>하도록 변경하고, <b>마지막 발송 시점</b>(상대시간)을 표기. <code>reengagedAt</code> 타임스탬프 저장.</div></div></div>
@@ -511,7 +520,7 @@ function seed(){
       join:`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`,
       last:`2024-${String(1+(i%10)).padStart(2,'0')}-${String(1+(i*5%27)).padStart(2,'0')}`,
       types:['text','signature','voice','quest'].filter(()=>Math.random()>.4),
-      awards:Math.random()>.85?['t_bday']:[], blocked:false,
+      awards:Math.random()>.85?['t_bday']:[], blocked:false, alimConsent:Math.random()>.22,
       history:Array.from({length:3+Math.round(Math.random()*3)},(_,k)=>({
         time:`2024-10-${String(10-k).padStart(2,'0')} ${String(10+k).padStart(2,'0')}:${String(k*7%60).padStart(2,'0')}:00`,
         kind:['텍스트','음성','시그니처','퀘스트'][k%4],amt:[1000,5000,10000,3000,50000][k%5],
@@ -529,6 +538,11 @@ function seed(){
     {id:'g_yeol',name:'열혈',cls:'yeol',color:'#5b8cff',mode:'range',min:30000,max:99999}],
     donators,titles:seedTitles(),autoLogs:seedLogs(donators),annivAuto:true,schedules:seedSchedules(),
     msgCredit:{balance:300,sent:0,log:[{ts:nowClock(),type:'init',amount:300,balance:300}]},
+    perks:[
+      {id:uid(),icon:'😎',name:'전용 이모티콘',desc:'채팅 전용 이모티콘 사용',grades:['g_vvip','g_vip','g_yeol']},
+      {id:uid(),icon:'👋',name:'우선 인사',desc:'방송 시작 시 우선 인사·호명',grades:['g_vvip','g_vip']},
+      {id:uid(),icon:'💬',name:'디스코드 VIP 롤',desc:'디스코드 전용 채널·롤 지급',grades:['g_vvip']},
+    ],
     autos:[
       {id:uid(),on:true,situ:'login',targetMode:'class',classes:['g_vvip'],actions:[{type:'kakao_send',cfg:{msg:'{크리에이터} 님이 방송을 시작하였습니다'}}]},
       {id:uid(),on:true,situ:'amount',amt:{mode:'range',min:10000,max:100000},actions:[{type:'widget',cfg:{widget:'팡파르'}},{type:'tts',cfg:{voice:'ara'}}]},
@@ -545,7 +559,12 @@ function load(){let DB;try{const r=localStorage.getItem(LS);if(r)DB=JSON.parse(r
   if(!DB.titles)DB.titles=seedTitles(); if(!DB.autoLogs)DB.autoLogs=[]; if(DB.annivAuto===undefined)DB.annivAuto=true;
   if(!DB.schedules)DB.schedules=seedSchedules();
   if(!DB.msgCredit)DB.msgCredit={balance:300,sent:0,log:[{ts:nowClock(),type:'init',amount:300,balance:300}]};
-  (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;});
+  if(!DB.perks)DB.perks=[
+    {id:uid(),icon:'😎',name:'전용 이모티콘',desc:'채팅 전용 이모티콘 사용',grades:['g_vvip','g_vip','g_yeol']},
+    {id:uid(),icon:'👋',name:'우선 인사',desc:'방송 시작 시 우선 인사·호명',grades:['g_vvip','g_vip']},
+    {id:uid(),icon:'💬',name:'디스코드 VIP 롤',desc:'디스코드 전용 채널·롤 지급',grades:['g_vvip']},
+  ];
+  (DB.donators||[]).forEach(d=>{d.tags=d.tags||[];d.awards=d.awards||[];d.blocked=d.blocked||false;if(d.alimConsent===undefined)d.alimConsent=true;});
   (DB.autos||[]).forEach(a=>{if(!a.actions){a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[];delete a.action;delete a.cfg;}});
   return DB;
 }
@@ -569,13 +588,28 @@ function gradeDTO(g){return g?{id:g.id,name:g.name}:null;}
 function donatorDTO(DB,d,full){
   const g=gradeForCash(DB,d.cash);
   const base={id:d.id,name:d.name,alias:d.alias||'',cash:d.cash,count:d.count,grade:gradeDTO(g),
-    tags:d.tags||[],blocked:!!d.blocked};
+    tags:d.tags||[],blocked:!!d.blocked,alimConsent:d.alimConsent!==false};
   if(!full)return base;
   return {...base,memo:d.memo||'',awards:d.awards||[],blockReason:d.blockReason||null,blockedAt:d.blockedAt||null,
     join:d.join,last:d.last,types:d.types||[],nudged:!!d.nudged,celebrated:!!d.celebrated,
     reengaged:!!d.reengaged,reengagedAt:d.reengagedAt||null,
-    gauge:gaugeData(DB,d),titles:donatorTitles(DB,d).map(t=>({id:t.id,name:t.name,icon:t.icon})),
+    gauge:gaugeData(DB,d),fanTemperature:fanScore(DB,d),perks:donatorPerks(DB,d).map(p=>({id:p.id,name:p.name,icon:p.icon})),
+    titles:donatorTitles(DB,d).map(t=>({id:t.id,name:t.name,icon:t.icon})),
     history:d.history||[]};
+}
+/* 전용 혜택 · 관계 온도 */
+function donatorPerks(DB,d){const g=gradeForCash(DB,d.cash);if(!g)return [];return (DB.perks||[]).filter(p=>(p.grades||[]).includes(g.id));}
+function fanLevel(t){if(t>=85)return'hot';if(t>=68)return'warm';if(t>=45)return'mild';if(t>=25)return'cool';return'cold';}
+function pctRank(v,arr){if(!arr.length)return 50;let below=0,eq=0;for(const x of arr){if(x<v)below++;else if(x===v)eq++;}return Math.round((below+eq/2)/arr.length*100);}
+function fanScore(DB,d){
+  const pool=DB.donators.filter(x=>!x.blocked);
+  const engOf=x=>((x.tags||[]).length*2)+(x.memo?3:0)+((x.awards||[]).length*2);
+  const dAgo=daysAgo(DB,d);
+  const r=100-pctRank(dAgo,pool.map(x=>daysAgo(DB,x)));
+  const f=pctRank(d.count,pool.map(x=>x.count)),m=pctRank(d.cash,pool.map(x=>x.cash)),e=pctRank(engOf(d),pool.map(engOf));
+  const temp=Math.round(0.35*r+0.25*f+0.25*m+0.15*e);
+  const span=Math.max(1,Math.round((refNow(DB)-parseD(d.join))/864e5)),interval=span/Math.max(1,d.count);
+  return {temp,level:fanLevel(temp),cooling:dAgo>interval*1.6&&temp<72,r,f,m,e};
 }
 /* insights */
 function parseD(s){const p=(s||'2024-01-01').split('-').map(Number);return new Date(p[0],(p[1]||1)-1,p[2]||1).getTime();}
@@ -626,7 +660,7 @@ function fireEvent(DB,kind,d,amt){
     else if(a.situ==='amount'&&kind==='donate')m=amtHit(a,amt);
     else if(a.situ==='promote'&&kind==='promote')m=targetHit(DB,a,d);
     if(m){const g=gradeForCash(DB,d.cash);
-      (a.actions||[]).forEach(ac=>DB.autoLogs.unshift({when:nowClock(),situ:a.situ,name:d.alias||d.name,grade:g?g.name:'',action:ac.type,amt:NO_AMT.includes(a.situ)?0:amt}));
+      (a.actions||[]).forEach(ac=>{if(ac.type==='kakao_send'&&d.alimConsent===false)return; DB.autoLogs.unshift({when:nowClock(),situ:a.situ,name:d.alias||d.name,grade:g?g.name:'',action:ac.type,amt:NO_AMT.includes(a.situ)?0:amt});});
       fired.push({id:a.id,situ:a.situ,actions:(a.actions||[]).map(x=>x.type)});}
   });
   while(DB.autoLogs.length>200)DB.autoLogs.pop();
@@ -653,6 +687,12 @@ const ROUTES=[
     if(b.action==='block'){d.blocked=true;d.blockedAt=nowClock().slice(0,5);}
     if(b.action==='unblock'){d.blocked=false;delete d.blockReason;delete d.blockedAt;}});
     return{status:200,data:{affected:n,action:b.action},mut:1};}],
+  ['POST','/donators/thanks',(DB,p,q,b)=>{const ids=b.ids||[];const sel=DB.donators.filter(d=>ids.includes(d.id)&&!d.blocked);
+    const recips=sel.filter(d=>d.alimConsent!==false),excluded=sel.length-recips.length;
+    if(!recips.length)return err(422,'CONSENT_REQUIRED','수신 동의한 도네이터가 없습니다.');
+    if(DB.msgCredit.balance<recips.length)return err(422,'INSUFFICIENT_CREDIT',`잔여 발송 건수 부족 (필요 ${recips.length}, 잔여 ${DB.msgCredit.balance})`);
+    DB.msgCredit.balance-=recips.length;DB.msgCredit.sent=(DB.msgCredit.sent||0)+recips.length;
+    return{status:200,data:{sent:recips.length,excludedNoConsent:excluded,channel:'kakao_alimtalk',creditRemaining:DB.msgCredit.balance},mut:1};}],
   ['GET','/donators',(DB,p,q)=>{let rows=DB.donators.slice();
     const st=q.status||'active';
     if(st==='active')rows=rows.filter(d=>!d.blocked); else if(st==='blocked')rows=rows.filter(d=>d.blocked);
@@ -710,6 +750,28 @@ const ROUTES=[
   // hall of fame (명예의 전당)
   ['GET','/insights/hall-of-fame',(DB,p,q)=>{const scope=q.scope==='month'?'month':'total';const rows=hallOfFame(DB,scope);
     return{status:200,data:{scope,podium:rows.slice(0,3),ranking:rows.slice(0,20),totalRanked:rows.length}};}],
+  // 관계 온도 (팬 건강 스코어)
+  ['GET','/insights/fan-temperature',(DB)=>{const pool=DB.donators.filter(d=>!d.blocked).map(d=>({d,s:fanScore(DB,d)}));
+    const dist={hot:0,warm:0,mild:0,cool:0,cold:0};pool.forEach(x=>dist[x.s.level]++);
+    const cooling=pool.filter(x=>x.s.cooling).sort((a,b)=>a.s.temp-b.s.temp).slice(0,10).map(x=>({...donatorDTO(DB,x.d,false),temperature:x.s}));
+    const hot=pool.slice().sort((a,b)=>b.s.temp-a.s.temp).slice(0,10).map(x=>({...donatorDTO(DB,x.d,false),temperature:x.s}));
+    return{status:200,data:{distribution:dist,coolingCount:pool.filter(x=>x.s.cooling).length,cooling,hot}};}],
+  // 복귀 유도·넛지 성과 (결정적 집계)
+  ['GET','/insights/outreach',(DB)=>{const agg=t=>{const base=t==='reengage'?.34:.44;let sent=0,conv=0,cash=0;
+      DB.donators.filter(d=>!d.blocked).forEach(d=>{const r=hashFrac(t+'_'+d.id);if(r>.5)return;sent++;const g=gradeForCash(DB,d.cash);const bonus=g&&g.id==='g_vvip'?.16:g&&g.id==='g_vip'?.08:0;if(hashFrac(t+'2_'+d.id)<(base+bonus)){conv++;cash+=Math.round((3000+hashFrac(t+'3_'+d.id)*70000)/100)*100;}});
+      return{sent,converted:conv,rate:sent?Math.round(conv/sent*100):0,cash,pending:0};};
+    const re=agg('reengage'),nu=agg('nudge');
+    return{status:200,data:{reengage:re,nudge:nu,totalCash:re.cash+nu.cash}};}],
+  // perks (전용 혜택) — literal/deeper first
+  ['GET','/perks',(DB)=>({status:200,data:(DB.perks||[]).map(p=>({...p,holders:DB.donators.filter(d=>!d.blocked&&donatorPerks(DB,d).some(x=>x.id===p.id)).length}))})],
+  ['POST','/perks',(DB,p,q,b)=>{if(!b.name||!(b.grades||[]).length)return err(400,'VALIDATION_ERROR','name, grades required');const pk={id:uid(),name:b.name,icon:b.icon||'🎁',desc:b.desc||'',grades:b.grades};DB.perks.push(pk);return{status:201,data:pk,mut:1};}],
+  ['PUT','/perks/:id',(DB,p,q,b)=>{const pk=DB.perks.find(x=>x.id===p.id);if(!pk)return err(404,'NOT_FOUND','perk');Object.assign(pk,{name:b.name??pk.name,icon:b.icon??pk.icon,desc:b.desc??pk.desc,grades:b.grades??pk.grades});return{status:200,data:pk,mut:1};}],
+  ['DELETE','/perks/:id',(DB,p)=>{const n=DB.perks.length;DB.perks=DB.perks.filter(x=>x.id!==p.id);return n===DB.perks.length?err(404,'NOT_FOUND','perk'):{status:200,data:{deleted:p.id},mut:1};}],
+  ['GET','/donators/:id/perks',(DB,p)=>{const d=DB.donators.find(x=>x.id===p.id);if(!d)return err(404,'NOT_FOUND','donator');return{status:200,data:donatorPerks(DB,d)};}],
+  ['GET','/automations/:id/runs',(DB,p)=>{const a=DB.autos.find(x=>x.id===p.id);if(!a)return err(404,'NOT_FOUND','automation');
+    const rate={login:.30,prestart:.34,anniv:.44,promote:.52,first:.28,donate:.40,amount:.46}[a.situ]??.35;
+    const runs=8+Math.floor(hashFrac('run_'+a.id)*20),conv=Math.round(runs*rate),cash=conv*Math.round(8000+hashFrac('c_'+a.id)*20000);
+    return{status:200,data:{autoId:a.id,situ:a.situ,runs,converted:conv,rate:Math.round(conv/runs*100),convCash:cash}};}],
   // schedules (방송 스케줄) — literal/deeper routes first
   ['POST','/schedules/:id/remind',(DB,p)=>{const s=(DB.schedules||[]).find(x=>x.id===p.id);if(!s)return err(404,'NOT_FOUND','schedule');
     const recipients=DB.donators.filter(d=>!d.blocked&&gradeForCash(DB,d.cash)).length;
@@ -767,6 +829,7 @@ const ROUTES=[
 ];
 function notify(DB,id,b,kind,flag){const d=DB.donators.find(x=>x.id===id);if(!d)return err(404,'NOT_FOUND','donator');
   const usesCredit=(kind==='nudge'||kind==='reengage');
+  if(d.alimConsent===false)return err(422,'CONSENT_REQUIRED','알림톡 수신에 동의하지 않은 도네이터입니다.');
   if(usesCredit&&DB.msgCredit.balance<=0)return err(422,'INSUFFICIENT_CREDIT','알림톡 발송 잔여 건수가 없습니다. 충전이 필요합니다.');
   if(flag==='d.nudged')d.nudged=true; if(flag==='d.celebrated')d.celebrated=true;
   if(kind==='reengage'){d.reengaged=true;d.reengagedAt=Date.now();}
@@ -843,6 +906,7 @@ const CATALOG=[
     ['POST','/automations','자동화 생성',{situ:'amount',amt:{mode:'over',min:50000,max:0},actions:[{type:'widget',cfg:{widget:'폭죽'}}]}],
     ['PATCH','/automations/:id','on/off 토글',{on:false}],
     ['POST','/automations/:id/test','테스트 발동'],
+    ['GET','/automations/:id/runs','발동·전환 성과'],
     ['DELETE','/automations/:id','자동화 삭제'],
     ['GET','/automations/templates','추천 템플릿'],
   ]},
@@ -858,9 +922,18 @@ const CATALOG=[
     ['GET','/insights/churn','이탈 위험 VIP',null,{days:30}],
     ['GET','/insights/upgrade-candidates','승급 임박(넛지)',null,{within:50000}],
     ['GET','/insights/anniversaries','다가오는 기념일',null,{within:30}],
+    ['GET','/insights/fan-temperature','관계 온도(팬 건강 스코어)'],
+    ['GET','/insights/outreach','복귀 유도·넛지 성과'],
   ]},
   {grp:'명예의 전당 Hall of Fame',items:[
     ['GET','/insights/hall-of-fame','랭킹·시상대·전용 뱃지',null,{scope:'total'}],
+  ]},
+  {grp:'전용 혜택 Perks',items:[
+    ['GET','/perks','혜택 목록 + 보유 인원'],
+    ['POST','/perks','혜택 생성',{name:'생일 선물',icon:'🎀',desc:'생일에 기프티콘',grades:['g_vvip']}],
+    ['PUT','/perks/:id','혜택 수정',{name:'전용 이모티콘'}],
+    ['DELETE','/perks/:id','혜택 삭제'],
+    ['GET','/donators/:id/perks','도네이터 보유 혜택'],
   ]},
   {grp:'방송 스케줄 Schedules',items:[
     ['GET','/schedules','일정 목록 + 다음 방송',null,{status:'upcoming'}],
@@ -877,6 +950,7 @@ const CATALOG=[
     ['POST','/donators/:id/nudge','승급 넛지 발송',{message:'{닉네임}님, {다음등급}까지 {남은금액}원!'}],
     ['POST','/donators/:id/reengage','복귀 유도 발송',{message:'{닉네임}님 오랜만이에요!'}],
     ['POST','/donators/:id/celebrate','기념일 축하 발송',{message:'{닉네임}님 {주년}주년 축하해요!'}],
+    ['POST','/donators/thanks','감사 메시지 일괄 발송',{ids:[],message:'{닉네임}님 항상 감사해요!'}],
   ]},
   {grp:'설정 Settings',items:[
     ['GET','/settings','설정 조회'],
@@ -921,6 +995,7 @@ function autofill(tmpl){const DB=load();
     if(tmpl.startsWith('/titles'))return (DB.titles[0]||{}).id||m;
     if(tmpl.startsWith('/automations'))return (DB.autos[0]||{}).id||m;
     if(tmpl.startsWith('/schedules'))return ((DB.schedules||[])[0]||{}).id||m;
+    if(tmpl.startsWith('/perks'))return ((DB.perks||[])[0]||{}).id||m;
     return m;});
 }
 function loadEndpoint(it,row){

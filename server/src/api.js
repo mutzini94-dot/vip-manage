@@ -10,6 +10,7 @@ function paginate(arr, query) {
 function notify(DB, id, b, kind, flag) {
   const d = DB.donators.find(x=>x.id===id); if(!d) return err(404,'NOT_FOUND','donator');
   const usesCredit = (kind==='nudge' || kind==='reengage');
+  if (d.alimConsent===false) return err(422,'CONSENT_REQUIRED','알림톡 수신에 동의하지 않은 도네이터입니다.');
   if (usesCredit && DB.msgCredit.balance<=0) return err(422,'INSUFFICIENT_CREDIT','알림톡 발송 잔여 건수가 없습니다. 충전이 필요합니다.');
   if (flag==='nudged') d.nudged=true; if (flag==='celebrated') d.celebrated=true;
   if (kind==='reengage') { d.reengaged=true; d.reengagedAt=Date.now(); }

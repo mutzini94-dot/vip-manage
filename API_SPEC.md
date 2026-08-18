@@ -56,6 +56,7 @@ GET /donators?page=1&limit=20
 | 409 | `CONFLICT` | 중복(예: 등급명) |
 | 422 | `RULE_ERROR` | 규칙 위반(예: 최소>최대) |
 | 422 | `INSUFFICIENT_CREDIT` | 알림톡 발송 건수 부족(충전 필요) |
+| 422 | `CONSENT_REQUIRED` | 알림톡 수신 미동의 도네이터에게 발송 시도 |
 | 429 | `RATE_LIMITED` | 과도한 요청 |
 
 ---
@@ -78,10 +79,16 @@ GET /donators?page=1&limit=20
   "awards": ["t_bday"], "blocked": false, "blockReason": null, "blockedAt": null,
   "join": "2023-05-11", "last": "2024-10-31",
   "types": ["text","voice"], "nudged": false, "celebrated": false,
+  "reengaged": false, "reengagedAt": null, "alimConsent": true,
   "gauge": { "top": false, "next": {"id":"g_vvip","name":"VVIP"}, "remaining": 12000, "pct": 92 },
+  "fanTemperature": { "temp": 78, "level": "warm", "cooling": false, "r": 90, "f": 74, "m": 82, "e": 55 },
+  "perks": [ { "id":"pk1", "name":"전용 이모티콘", "icon":"😎" } ],
   "history": [ { "time":"2024-10-10 10:00:00", "kind":"텍스트", "amt":1000, "msg":"후원합니다!" } ] }
 ```
-- `grade`·`gauge`는 서버 계산 필드(읽기 전용). `types`: `text|signature|voice|quest`
+- `grade`·`gauge`·`fanTemperature`·`perks`는 서버 계산 필드(읽기 전용). `types`: `text|signature|voice|quest`
+- **`alimConsent`**: 알림톡 수신 동의. `false`면 발송 계열 API(`nudge`·`reengage`·`celebrate`·`thanks`·자동화 `kakao_send`)에서 **발송 제외/차단**
+- **`reengagedAt`**: 마지막 복귀 유도 발송 시각(ms). 복귀 유도는 재발송 가능
+- **`fanTemperature`**(관계 온도): RFM+ 점수(0~100°)와 레벨(`hot|warm|mild|cool|cold`), `cooling`(평소 주기보다 뜸함). `r/f/m/e`=최근성·빈도·금액·소통 백분위
 
 ### Title (칭호)
 ```json
@@ -113,9 +120,40 @@ GET /donators?page=1&limit=20
 { "balance": 300, "sent": 12,
   "log": [ { "ts":"08-14 14:03", "type":"recharge", "amount":300, "balance":598 } ] }
 ```
-- **복귀 유도(reengage)·승급 넛지(nudge)** 알림톡이 공용으로 사용하는 발송 건수 풀. 기본 300건
+- **복귀 유도(reengage)·승급 넛지(nudge)·감사(thanks)** 알림톡이 공용으로 사용하는 발송 건수 풀. 기본 300건
 - 발송 1건당 `balance` 1 차감, `sent` 1 증가. `balance<=0`이면 발송 차단(`422 INSUFFICIENT_CREDIT`)
 - 크리에이터가 충전하면 `balance` 증가 + `log`에 이력 기록
+
+### Perk (전용 혜택)
+```json
+{ "id":"pk1", "name":"디스코드 VIP 롤", "icon":"💬", "desc":"디스코드 전용 채널·롤 지급",
+  "grades":["g_vvip"] }
+```
+- `grades`에 속한 등급의 도네이터에게 **자동 부여**(별도 저장 없이 등급으로 계산)
+
+### Outreach (복귀 유도·넛지 발송 이력)
+```json
+{ "id":"or1", "donatorId":"id7x…", "type":"reengage", "ts":1723600000000,
+  "result":"converted", "resultAt":1723800000000, "amount":30000 }
+```
+- `type`: `reengage` | `nudge`. `result`: `converted`(복귀/후원 전환) | `none`(무응답) | `pending`(대기)
+- `amount`: 전환 시 발생한 후원 캐시(추정). 전환율은 `pending` 제외한 확정 건 기준
+
+### AutomationRun (자동화 발동·전환 이력)
+```json
+{ "id":"ar1", "autoId":"a1", "donatorId":"id7x…", "ts":1723600000000,
+  "result":"converted", "convAmount":12000 }
+```
+- 자동화 발동 1건당 1레코드. `result`로 발동 후 후원 전환 추적
+
+### Settings (설정)
+```json
+{ "annivAuto": true, "milestoneNudge": false, "toonUnreadAlert": true,
+  "creatorName":"크리에이터", "channelName":"", "broadcastUrl":"",
+  "churnDays":30, "nudgeAmount":50000 }
+```
+- `creatorName`은 메시지 치환자 `{크리에이터}`에 반영. `churnDays`·`nudgeAmount`는 이탈/승급 기준 기본값
+- 인증(로그인) 자격증명은 별도 보관하며 **응답에 노출하지 않음**
 
 ---
 
@@ -173,6 +211,9 @@ GET /donators?page=1&limit=20
 | DELETE | `/automations/{id}` | 삭제 |
 | GET | `/automations/templates` | 추천 템플릿 프리셋 |
 | POST | `/automations/{id}/test` | 테스트 발동(시뮬레이션 결과 반환) |
+| GET | `/automations/{id}/runs` | 발동 이력 + 성과(발동수·전환수·전환율·전환후원) |
+
+> 자동화 `kakao_send` 액션은 **수신 미동의(`alimConsent:false`) 도네이터에게는 발송 생략**(위젯·TTS 등 화면 효과는 유지).
 
 ### 4.5 자동화 로그 Automation Logs
 | 메서드 | 경로 | 설명 |
@@ -190,24 +231,45 @@ GET /donators?page=1&limit=20
 | GET | `/insights/churn?days=30` | 이탈 위험 VIP(무후원 N일↑, 차단 제외) |
 | GET | `/insights/upgrade-candidates?within=50000` | 승급 임박 VIP(넛지 대상) |
 | GET | `/insights/anniversaries?within=30` | 다가오는 가입 기념일 |
+| GET | `/insights/hall-of-fame?scope=total` | 명예의 전당 랭킹·시상대·전용 뱃지 |
+| GET | `/insights/outreach` | 복귀 유도·넛지 성과(유형별 발송·전환·전환율·유도후원) |
+| GET | `/insights/fan-temperature` | 관계 온도(팬 건강 스코어) 분포 + 식어가는 단골·뜨거운 팬 |
 
 **예시** `GET /insights/summary`
 ```json
 { "totalCash": 6120000, "activeVip": 26, "thisMonth": 612000, "trendDeltaPct": 26, "churnCount": 23 }
 ```
+**예시** `GET /insights/outreach`
+```json
+{ "reengage": { "sent":10, "converted":6, "rate":60, "cash":298200, "pending":1 },
+  "nudge": { "sent":10, "converted":6, "rate":60, "cash":202900, "pending":1 },
+  "totalCash": 501100 }
+```
 
-### 4.7 알림 발송 Actions (카카오 알림톡 등)
+### 4.7 전용 혜택 Perks
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| GET | `/perks` | 혜택 목록(+ 등급 기준 보유 인원수) |
+| POST | `/perks` | 생성 `{name,icon,desc,grades}` |
+| PUT | `/perks/{id}` | 수정 |
+| DELETE | `/perks/{id}` | 삭제 |
+| GET | `/donators/{id}/perks` | 해당 도네이터가 등급으로 받는 혜택 |
+
+### 4.8 알림 발송 Actions (카카오 알림톡 등)
 | 메서드 | 경로 | 설명 |
 |--------|------|------|
 | POST | `/donators/{id}/nudge` | 승급 넛지 발송 `{message}` (치환자 `{닉네임}{다음등급}{남은금액}` 지원) |
-| POST | `/donators/{id}/reengage` | 이탈 복귀 유도 발송 `{message}` |
+| POST | `/donators/{id}/reengage` | 이탈 복귀 유도 발송 `{message}` (재발송 가능) |
 | POST | `/donators/{id}/celebrate` | 기념일 축하 발송 `{message}` |
+| POST | `/donators/thanks` | 감사 메시지 **일괄 발송** `{ids:[], message}` → 동의자에게만 발송 |
 
 응답 예: `{ "sent": true, "channel": "kakao_alimtalk", "to": "톰하디", "at": "2026-08-10 14:03:00", "creditRemaining": 299 }`
 
+> **수신 동의 필수:** `alimConsent:false`인 도네이터는 위 발송이 **차단**(`422 CONSENT_REQUIRED`). 일괄 발송(`thanks`)은 미동의자를 제외하고 동의자에게만 발송하며 발송 수만큼 크레딧 차감.
+
 > **발송 건수(크레딧):** `nudge`·`reengage`는 발송 시 **발송 건수 1건을 차감**하고 응답에 `creditRemaining`을 포함합니다. 잔여 건수가 없으면 `422 INSUFFICIENT_CREDIT`. `celebrate`는 차감하지 않습니다. 조회·충전은 §4.11 참고.
 
-### 4.8 라이브 Live (방송)
+### 4.9 라이브 Live (방송)
 | 메서드 | 경로 | 설명 |
 |--------|------|------|
 | POST | `/live/start` | 방송 시작 |
@@ -224,7 +286,7 @@ WebSocket 이벤트 예:
   "amount":30000, "boost":3, "rankTop5":[ … ], "sessionTotal":420000 }
 ```
 
-### 4.9 방송 스케줄 Schedules
+### 4.10 방송 스케줄 Schedules
 | 메서드 | 경로 | 설명 |
 |--------|------|------|
 | GET | `/schedules?status=upcoming` | 일정 목록(+ `next` 다음 방송). status: upcoming·live·done·cancelled |
@@ -234,7 +296,7 @@ WebSocket 이벤트 예:
 | POST | `/schedules/{id}/remind` | 예정 알림톡 발송(활성 VIP 대상) → `{recipients}` |
 | GET | `/schedules/export.ics` | **iCal(.ics)** 내보내기 (`text/calendar`) — 구글/애플 캘린더 구독 |
 
-### 4.10 방송 Broadcasts
+### 4.11 방송 Broadcasts
 | 메서드 | 경로 | 설명 |
 |--------|------|------|
 | POST | `/broadcasts/start` | 방송 시작 → **login 트리거 자동화 발동** → `{firedCount, matches, next}` |
@@ -242,11 +304,11 @@ WebSocket 이벤트 예:
 
 > `situ='prestart'` 자동화는 `lead`(방송 N시간 전) 필드를 가집니다. 모든 자동화는 `PATCH /automations/{id} {on}`으로 **ON/OFF** 가능.
 
-### 4.11 설정 Settings
+### 4.12 설정 Settings
 | 메서드 | 경로 | 설명 |
 |--------|------|------|
-| GET | `/settings` | `{ annivAuto: true }` |
-| PUT | `/settings` | 설정 갱신 |
+| GET | `/settings` | 설정 조회(자동화 기본값 + 크리에이터 프로필) |
+| PUT | `/settings` | 설정 갱신 `{annivAuto,milestoneNudge,toonUnreadAlert,creatorName,channelName,broadcastUrl,churnDays,nudgeAmount}` |
 | GET | `/settings/credits` | 알림톡 발송 건수 조회 → `{ balance, sent }` |
 | POST | `/settings/credits/recharge` | 발송 건수 충전 `{amount}` → `{ balance, added }` |
 
@@ -280,7 +342,7 @@ WebSocket 이벤트 예:
 ## 6. 서버 구현 가이드 (권장 스택)
 
 - **런타임**: Node.js(Express/Nest) 또는 Spring Boot
-- **DB 테이블**: `grades`, `donators`, `titles`, `donator_awards`(N:M), `automations`, `automation_logs`, `settings`
+- **DB 테이블**: `grades`, `donators`(+`alim_consent`), `titles`, `donator_awards`(N:M), `automations`, `automation_logs`, `automation_runs`, `perks`(+`perk_grades`), `outreach`, `message_credits`, `schedules`, `settings`
 - **계산 필드**(grade/gauge/insights)는 쿼리 시 계산하거나 머티리얼라이즈드 뷰로 캐싱
 - **자동화 엔진**: 웹훅 수신 → 활성 자동화 매칭 → 쿨다운/스케줄 게이트 → 액션 실행 → 로그 적재
 - **알림 발송**: 카카오 알림톡 API 연동(발송 이력 테이블 기록)

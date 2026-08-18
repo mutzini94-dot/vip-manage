@@ -78,6 +78,8 @@ export class ApiClient {
       nudge:   (id, message)    => req('POST', `/donators/${id}/nudge`, { body: { message } }),
       reengage:(id, message)    => req('POST', `/donators/${id}/reengage`, { body: { message } }),
       celebrate:(id, message)   => req('POST', `/donators/${id}/celebrate`, { body: { message } }),
+      perks:   (id)             => req('GET', `/donators/${id}/perks`),
+      thanks:  (ids, message)   => req('POST', '/donators/thanks', { body: { ids, message } }), // 일괄 감사(동의자만)
     };
     this.titles = {
       list:    ()            => req('GET', '/titles'),
@@ -93,9 +95,16 @@ export class ApiClient {
       toggle:    (id, on)    => req('PATCH', `/automations/${id}`, { body: { on } }),
       remove:    (id)        => req('DELETE', `/automations/${id}`),
       test:      (id)        => req('POST', `/automations/${id}/test`),
+      runs:      (id)        => req('GET', `/automations/${id}/runs`),   // 발동·전환 성과
       templates: ()          => req('GET', '/automations/templates'),
       logs:      (query)     => req('GET', '/automation-logs', { query }),
       clearLogs: ()          => req('DELETE', '/automation-logs'),
+    };
+    this.perks = {
+      list:   ()          => req('GET', '/perks'),
+      create: (body)      => req('POST', '/perks', { body }),
+      update: (id, body)  => req('PUT', `/perks/${id}`, { body }),
+      remove: (id)        => req('DELETE', `/perks/${id}`),
     };
     this.insights = {
       summary:            ()      => req('GET', '/insights/summary'),
@@ -105,6 +114,9 @@ export class ApiClient {
       churn:              (days)  => req('GET', '/insights/churn', { query: { days } }),
       upgradeCandidates:  (within)=> req('GET', '/insights/upgrade-candidates', { query: { within } }),
       anniversaries:      (within)=> req('GET', '/insights/anniversaries', { query: { within } }),
+      hallOfFame:         (scope) => req('GET', '/insights/hall-of-fame', { query: { scope } }),
+      fanTemperature:     ()      => req('GET', '/insights/fan-temperature'),
+      outreach:           ()      => req('GET', '/insights/outreach'),
     };
     this.settings = {
       get:      ()        => req('GET', '/settings'),

@@ -36,7 +36,7 @@ const gradeDTO = g => g?{id:g.id,name:g.name}:null;
 export function donatorDTO(DB, d, full) {
   const g = gradeForCash(DB, d.cash);
   const base = { id:d.id, name:d.name, alias:d.alias||'', cash:d.cash, count:d.count,
-    grade:gradeDTO(g), tags:d.tags||[], blocked:!!d.blocked };
+    grade:gradeDTO(g), tags:d.tags||[], blocked:!!d.blocked, alimConsent:d.alimConsent!==false };
   if (!full) return base;
   return { ...base, memo:d.memo||'', awards:d.awards||[], blockReason:d.blockReason||null, blockedAt:d.blockedAt||null,
     join:d.join, last:d.last, types:d.types||[], nudged:!!d.nudged, celebrated:!!d.celebrated,
