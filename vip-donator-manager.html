@@ -234,6 +234,16 @@ select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+x
 .seg{display:flex;gap:4px;background:var(--surface-2);border:1px solid var(--line);padding:4px;border-radius:11px}
 .seg button{flex:1;padding:8px 10px;border-radius:8px;color:var(--muted);font-weight:700;font-size:13px;transition:.12s}
 .seg button.on{background:var(--surface-3);color:var(--text)}
+/* 도네이터 관리 서브탭 */
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 16px;border-bottom:1px solid var(--line);padding-bottom:0}
+.subtabs button{position:relative;display:inline-flex;align-items:center;gap:7px;padding:11px 16px;border-radius:10px 10px 0 0;color:var(--muted);font-weight:800;font-size:14px;transition:.12s;border:1px solid transparent;border-bottom:none;top:1px}
+.subtabs button:hover{color:var(--text);background:var(--surface-2)}
+.subtabs button.on{color:var(--accent);background:var(--surface-1);border-color:var(--line);border-bottom:2px solid var(--accent)}
+.subtabs .st-cnt{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:19px;padding:0 6px;border-radius:9px;background:var(--surface-3);color:var(--muted);font-size:11px;font-weight:800}
+.subtabs button.on .st-cnt{background:var(--accent);color:#fff}
+.subtabs button.danger.on{color:#ff6b6b;border-bottom-color:#ff6b6b}
+.subtabs button.danger.on .st-cnt{background:#ff6b6b}
+@media(max-width:640px){.subtabs button{padding:10px 11px;font-size:13px}}
 .amt-wrap{display:flex;align-items:center;gap:8px}
 .amt-wrap .inp{text-align:right}
 .amt-wrap .to{color:var(--muted);font-weight:700}
@@ -528,7 +538,6 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .churn-row .re-last{font-size:11px;font-weight:700;color:var(--on);white-space:nowrap;display:flex;align-items:center;gap:4px}
 /* 도네이터 타깃 필터 + 행 액션 */
 .seg-cnt{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;margin-left:4px;border-radius:8px;background:var(--surface-3);color:var(--muted);font-size:10px;font-weight:800;vertical-align:middle}
-#donTarget button.on .seg-cnt{background:var(--accent);color:#fff}
 .btn.xs{padding:4px 9px;font-size:11.5px;border-radius:7px;font-weight:700}
 .act-cell{white-space:nowrap}
 .act-cell .act-wrap{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
@@ -1421,20 +1430,22 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="page-head">
         <div>
           <h1>도네이터 관리</h1>
-          <p>후원 순위·등급별로 정렬하고, 복귀 유도·승급 넛지 대상을 필터해 바로 발송하세요.</p>
+          <p id="donViewDesc">누적 후원 금액이 높은 순으로 도네이터를 정렬해 보여줍니다.</p>
         </div>
         <div class="spacer"></div>
+      </div>
+
+      <div class="subtabs" id="donView">
+        <button data-view="rank" class="on">🏆 후원 순위별</button>
+        <button data-view="temp">🌡 관계 온도별</button>
+        <button data-view="churn" class="danger">💤 이탈 위험 <span class="st-cnt" id="vwChurnCnt">0</span></button>
+        <button data-view="promote">🎯 승급 임박 <span class="st-cnt" id="vwPromoteCnt">0</span></button>
       </div>
 
       <div class="toolbar-row">
         <div class="searchbar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
           <input id="donSearch" placeholder="도네이터 명 또는 별칭 검색 (Like 검색)">
-        </div>
-        <div class="seg" id="donTarget" style="flex:none">
-          <button data-tg="all" class="on">전체</button>
-          <button data-tg="churn">💤 복귀 유도 대상 <span class="seg-cnt" id="tgChurnCnt">0</span></button>
-          <button data-tg="nudge">🎯 넛지 대상 <span class="seg-cnt" id="tgNudgeCnt">0</span></button>
         </div>
         <div class="seg" id="donConsent" style="flex:none">
           <button data-cs="all" class="on">전체</button>
@@ -1454,11 +1465,6 @@ tbody tr.blocked:hover{opacity:.72}
           <option value="cool">🌥 식는 중</option>
           <option value="cold">❄️ 차가움</option>
         </select>
-        <div class="seg" id="donSort" style="flex:none">
-          <button data-sort="rank" class="on">후원 순위별</button>
-          <button data-sort="grade">등급별</button>
-          <button data-sort="temp">🌡 온도순</button>
-        </div>
         <div class="seg status-seg" id="donStatus" style="flex:none">
           <button data-st="active" class="on">활성</button>
           <button data-st="all">전체</button>
@@ -2765,11 +2771,20 @@ byId('thanksSend').onclick=()=>{
 /* =========================================================
    TAB 2 — 도네이터 관리
    ========================================================= */
-let donSort='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active', donTarget='all', donConsent='all', donMember='member', donGradeF='all', donTempF='all', donPage=1;
+let donView='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active', donConsent='all', donMember='member', donGradeF='all', donTempF='all', donPage=1;
+const DON_VIEW_DESC={
+  rank:'누적 후원 금액이 높은 순으로 도네이터를 정렬해 보여줍니다.',
+  temp:'관계 온도(최근성·빈도·금액)가 높은 순으로 정렬합니다.',
+  churn:'한동안 후원이 없어 이탈 위험이 있는 도네이터입니다. 복귀 유도를 보내보세요.',
+  promote:'다음 등급 승급이 눈앞인 도네이터입니다. 넛지로 마지막 한 걸음을 도와주세요.'
+};
 byId('donSearch').addEventListener('input',e=>{donQuery=e.target.value.trim().toLowerCase();donPage=1;renderDonators();});
-byId('donTarget').querySelectorAll('button').forEach(b=>b.onclick=()=>{
-  donTarget=b.dataset.tg; donPage=1;
-  byId('donTarget').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+byId('donView').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  donView=b.dataset.view; donPage=1;
+  if(donView==='rank'){ donCol='cash'; donDir=-1;
+    document.querySelectorAll('th.sortable').forEach(x=>{x.classList.remove('act');x.querySelector('.arr').textContent='';}); }
+  byId('donView').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  const desc=byId('donViewDesc'); if(desc)desc.textContent=DON_VIEW_DESC[donView]||'';
   renderDonators();
 });
 byId('donConsent').querySelectorAll('button').forEach(b=>b.onclick=()=>{
@@ -2800,13 +2815,6 @@ function fillGradeFilter(){
 function isMember(d){return d.member!==false;}
 function isChurnTarget(d){return isMember(d) && !d.blocked && !!gradeForCash(d.cash) && daysAgo(d)>=churnThreshold;}
 function isNudgeTarget(d){if(!isMember(d)||d.blocked)return false;const g=gaugeData(d);return !g.top && g.remaining<=nudgeThreshold;}
-byId('donSort').querySelectorAll('button').forEach(b=>b.onclick=()=>{
-  donSort=b.dataset.sort; donPage=1;
-  if(donSort==='rank'){ donCol='cash'; donDir=-1;   // 후원 순위 = 누적 후원 금액 내림차순
-    document.querySelectorAll('th.sortable').forEach(x=>{x.classList.remove('act');x.querySelector('.arr').textContent='';}); }
-  byId('donSort').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
-  renderDonators();
-});
 byId('donStatus').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   donStatus=b.dataset.st; donPage=1;
   byId('donStatus').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
@@ -2815,8 +2823,9 @@ byId('donStatus').querySelectorAll('button').forEach(b=>b.onclick=()=>{
 document.querySelectorAll('th.sortable').forEach(th=>th.onclick=()=>{
   const c=th.dataset.col; donPage=1;
   if(donCol===c) donDir*=-1; else {donCol=c;donDir=-1;}
-  donSort='rank';   // 컬럼 헤더 정렬은 순위 모드에서 동작
-  byId('donSort').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.sort==='rank'));
+  donView='rank';   // 컬럼 헤더 정렬은 후원 순위별 탭에서 동작
+  byId('donView').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.view==='rank'));
+  const desc=byId('donViewDesc'); if(desc)desc.textContent=DON_VIEW_DESC.rank;
   document.querySelectorAll('th.sortable').forEach(x=>{x.classList.remove('act');x.querySelector('.arr').textContent='';});
   th.classList.add('act'); th.querySelector('.arr').textContent=donDir<0?'↓':'↑';
   renderDonators();
@@ -2840,8 +2849,8 @@ function renderDonPager(totalPages,total){
 function renderDonators(){
   const tb=byId('donTbody'); tb.innerHTML='';
   fillGradeFilter();
-  byId('tgChurnCnt').textContent=DB.donators.filter(isChurnTarget).length;
-  byId('tgNudgeCnt').textContent=DB.donators.filter(isNudgeTarget).length;
+  byId('vwChurnCnt').textContent=DB.donators.filter(isChurnTarget).length;
+  byId('vwPromoteCnt').textContent=DB.donators.filter(isNudgeTarget).length;
   byId('csYesCnt').textContent=DB.donators.filter(d=>d.alimConsent).length;
   byId('csNoCnt').textContent=DB.donators.filter(d=>!d.alimConsent).length;
   byId('mbCnt').textContent=DB.donators.filter(isMember).length;
@@ -2851,8 +2860,8 @@ function renderDonators(){
     if(donMember==='non' && isMember(d)) return false;
     if(donStatus==='active' && d.blocked) return false;
     if(donStatus==='blocked' && !d.blocked) return false;
-    if(donTarget==='churn' && !isChurnTarget(d)) return false;
-    if(donTarget==='nudge' && !isNudgeTarget(d)) return false;
+    if(donView==='churn' && !isChurnTarget(d)) return false;
+    if(donView==='promote' && !isNudgeTarget(d)) return false;
     if(donConsent==='yes' && !d.alimConsent) return false;
     if(donConsent==='no' && d.alimConsent) return false;
     if(donGradeF!=='all'){const g=gradeForCash(d.cash); if(donGradeF==='none'){if(g)return false;} else if(!g||g.id!==donGradeF) return false;}
@@ -2861,15 +2870,16 @@ function renderDonators(){
     return d.name.toLowerCase().includes(donQuery) || (d.alias||'').toLowerCase().includes(donQuery)
       || (d.tags||[]).some(t=>t.toLowerCase().includes(donQuery)) || (d.memo||'').toLowerCase().includes(donQuery);
   });
-  if(donSort==='grade'){
-    rows.sort((a,b)=>{
-      const ga=gradeForCash(a.cash), gb=gradeForCash(b.cash);
-      const ma=ga?ga.min:-1, mb=gb?gb.min:-1;
-      return mb-ma || b.cash-a.cash;
-    });
-  }else if(donSort==='temp'){
+  if(donView==='temp'){
     rows.sort((a,b)=> fanScore(b).temp - fanScore(a).temp);
+  }else if(donView==='churn'){
+    // 이탈 위험: 마지막 후원 후 경과일이 긴 순 (오래 잠든 팬 먼저)
+    rows.sort((a,b)=> daysAgo(b) - daysAgo(a) || b.cash-a.cash);
+  }else if(donView==='promote'){
+    // 승급 임박: 다음 등급까지 남은 금액이 적은 순 (가장 가까운 팬 먼저)
+    rows.sort((a,b)=> (gaugeData(a).remaining||0) - (gaugeData(b).remaining||0));
   }else{
+    // 후원 순위별: 컬럼 정렬(기본 누적 금액 내림차순)
     rows.sort((a,b)=> donDir*((a[donCol]||0)-(b[donCol]||0)) );
   }
   const assigned=DB.donators.filter(d=>gradeForCash(d.cash)).length;
@@ -2938,7 +2948,7 @@ function renderDonators(){
     tb.appendChild(tr);
   });
   if(!rows.length){
-    tb.innerHTML=`<tr><td colspan="8"><div class="empty" style="padding:40px"><div class="t">${donTarget==='churn'?'복귀 유도 대상이 없습니다':donTarget==='nudge'?'넛지 대상이 없습니다':'검색 결과가 없습니다'}</div></div></td></tr>`;
+    tb.innerHTML=`<tr><td colspan="8"><div class="empty" style="padding:40px"><div class="t">${donView==='churn'?'이탈 위험 도네이터가 없습니다 🎉':donView==='promote'?'승급 임박 도네이터가 없습니다':'검색 결과가 없습니다'}</div></div></td></tr>`;
   }
   renderDonPager(totalPages, rows.length);
   updateBulkBar();
