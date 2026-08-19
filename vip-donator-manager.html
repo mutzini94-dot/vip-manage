@@ -2856,7 +2856,7 @@ function renderDonators(){
     if(donConsent==='yes' && !d.alimConsent) return false;
     if(donConsent==='no' && d.alimConsent) return false;
     if(donGradeF!=='all'){const g=gradeForCash(d.cash); if(donGradeF==='none'){if(g)return false;} else if(!g||g.id!==donGradeF) return false;}
-    if(donTempF!=='all' && fanScore(d).level!==donTempF) return false;
+    if(donTempF!=='all' && fanScore(d).level.key!==donTempF) return false;
     if(!donQuery) return true;
     return d.name.toLowerCase().includes(donQuery) || (d.alias||'').toLowerCase().includes(donQuery)
       || (d.tags||[]).some(t=>t.toLowerCase().includes(donQuery)) || (d.memo||'').toLowerCase().includes(donQuery);
