@@ -72,6 +72,7 @@ input,textarea,select{font-family:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 .tnum{font-variant-numeric:tabular-nums}
 .hidden{display:none!important}
+.alim-editor{display:none!important}   /* 알림톡 메시지는 고정 템플릿 — 편집 영역 숨김(미리보기만 노출) */
 /* 프로필 이미지 오버레이 */
 .ava,.dr-avatar,.pod-ava{position:relative;overflow:hidden}
 .ava-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -1922,13 +1923,13 @@ tbody tr.blocked:hover{opacity:.72}
     </div>
     <div class="modal-body">
       <div class="re-target" id="reTarget"></div>
-      <div class="field">
+      <div class="field alim-editor">
         <label>카카오 알림톡 메시지</label>
         <textarea class="inp" id="reMsg" rows="4"></textarea>
         <div class="helper">프로토타입입니다 — 실제 알림톡은 발송되지 않으며, 발송 이력만 기록됩니다.</div>
       </div>
       <div class="preview-box">
-        <div class="preview-lbl">👁 미리보기</div>
+        <div class="preview-lbl">👁 발송 메시지 미리보기</div>
         <div id="rePreview"></div>
       </div>
     </div>
@@ -2089,9 +2090,9 @@ tbody tr.blocked:hover{opacity:.72}
     <div class="modal-head"><h2>💌 감사 메시지 일괄 발송</h2><div class="spacer"></div><button class="xbtn" id="thanksClose">✕</button></div>
     <div class="modal-body">
       <div class="thanks-summary" id="thanksSummary"></div>
-      <div class="field"><label>카카오 알림톡 메시지</label><textarea class="inp" id="thanksMsg" rows="4"></textarea>
+      <div class="field alim-editor"><label>카카오 알림톡 메시지</label><textarea class="inp" id="thanksMsg" rows="4"></textarea>
         <div class="helper">{닉네임}·{등급}·{크리에이터} 자동 치환 · <b>수신 동의자에게만</b> 발송, 1건당 1크레딧 차감</div></div>
-      <div class="preview-box"><div class="preview-lbl">👁 미리보기</div><div id="thanksPreview"></div></div>
+      <div class="preview-box"><div class="preview-lbl">👁 발송 메시지 미리보기</div><div id="thanksPreview"></div></div>
     </div>
     <div class="modal-foot"><button class="btn ghost" id="thanksCancel">취소</button><div class="spacer"></div><button class="btn primary" id="thanksSend">발송</button></div>
   </div>
@@ -2139,12 +2140,12 @@ tbody tr.blocked:hover{opacity:.72}
     <div class="modal-body">
       <div class="re-target" id="nudgeTarget"></div>
       <div class="gauge-box" id="nudgeGauge" style="margin:0 0 18px"></div>
-      <div class="field">
+      <div class="field alim-editor">
         <label>카카오 알림톡 메시지</label>
         <textarea class="inp" id="nudgeMsg" rows="3"></textarea>
         <div class="helper">{닉네임}·{다음등급}·{남은금액} 은 자동 치환됩니다. 프로토타입 — 실제 발송 없이 이력만 기록.</div>
       </div>
-      <div class="preview-box"><div class="preview-lbl">👁 미리보기</div><div id="nudgePreview"></div></div>
+      <div class="preview-box"><div class="preview-lbl">👁 발송 메시지 미리보기</div><div id="nudgePreview"></div></div>
     </div>
     <div class="modal-foot">
       <button class="btn ghost" id="nudgeCancel">취소</button>
@@ -2162,12 +2163,12 @@ tbody tr.blocked:hover{opacity:.72}
     </div>
     <div class="modal-body">
       <div class="re-target" id="celebTarget"></div>
-      <div class="field">
+      <div class="field alim-editor">
         <label>카카오 알림톡 메시지</label>
         <textarea class="inp" id="celebMsg" rows="4"></textarea>
         <div class="helper">프로토타입입니다 — 실제 발송은 되지 않으며, 발송 이력만 기록됩니다.</div>
       </div>
-      <div class="preview-box"><div class="preview-lbl">👁 미리보기</div><div id="celebPreview"></div></div>
+      <div class="preview-box"><div class="preview-lbl">👁 발송 메시지 미리보기</div><div id="celebPreview"></div></div>
     </div>
     <div class="modal-foot">
       <button class="btn ghost" id="celebCancel">취소</button>
@@ -2219,10 +2220,10 @@ tbody tr.blocked:hover{opacity:.72}
     <div class="modal-head"><h2>📢 방송 예정 알림톡</h2><div class="spacer"></div><button class="xbtn" id="remindClose">✕</button></div>
     <div class="modal-body">
       <div class="re-target" id="remindTarget"></div>
-      <div class="field"><label>카카오 알림톡 메시지</label>
+      <div class="field alim-editor"><label>카카오 알림톡 메시지</label>
         <textarea class="inp" id="remindMsg" rows="4"></textarea>
         <div class="helper">활성 VIP에게 방송 시작 전 알림톡을 발송합니다. 프로토타입 — 실제 발송 없이 이력만 기록됩니다.</div></div>
-      <div class="preview-box"><div class="preview-lbl">👁 미리보기</div><div id="remindPreview"></div></div>
+      <div class="preview-box"><div class="preview-lbl">👁 발송 메시지 미리보기</div><div id="remindPreview"></div></div>
     </div>
     <div class="modal-foot"><button class="btn ghost" id="remindCancel">취소</button><div class="spacer"></div>
       <button class="btn primary" id="remindSend"><span id="remindCount">0</span>명에게 발송</button></div>
