@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>열혈네이션 — VIP 도네이터 관리</title>
 <script>try{var _t=localStorage.getItem('toon_theme');if(_t==='light'||(_t==='system'&&!window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','light');}catch(e){}
+try{var _sk=localStorage.getItem('toon_skin');if(_sk&&_sk!=='default')document.documentElement.setAttribute('data-skin',_sk);}catch(e){}
 try{if(localStorage.getItem('toon_auth')==='1')document.documentElement.setAttribute('data-auth','1');}catch(e){}</script>
 <style>
 :root{
@@ -18,6 +19,7 @@ try{if(localStorage.getItem('toon_auth')==='1')document.documentElement.setAttri
   --yeol:#5b8cff; --yeol-soft:rgba(91,140,255,.15);
   --kakao:#fee500; --kakao-txt:#3c1e1e;
   --r:14px; --r-sm:9px;
+  --elev:none; --accent-glow:rgba(255,61,104,.3);
   --font:"Pretendard","Pretendard Variable",-apple-system,BlinkMacSystemFont,"Malgun Gothic","Apple SD Gothic Neo","Segoe UI",Roboto,sans-serif;
 }
 /* ===== 라이트 모드 ===== */
@@ -36,6 +38,51 @@ try{if(localStorage.getItem('toon_auth')==='1')document.documentElement.setAttri
 :root[data-theme="light"] .kpi .sub .down{color:#e5484d}
 :root[data-theme="light"] .remote{background:var(--surface-2)}
 :root[data-theme="light"] ::-webkit-scrollbar-thumb:hover{background:#c2c6d4}
+/* ===== UI 스타일(스킨) 프리셋 — 라이트 블록 뒤에 위치해 두 축이 합쳐짐 =====
+   토큰만 갈아끼우면 카드/버튼/모서리/그림자/포인트색이 일괄 전환됨(강조색을 직접 고른 경우엔 인라인 값이 우선) */
+/* Bento UI — 큰 모서리·부드러운 그림자·바이올렛 포인트 */
+:root[data-skin="bento"]{
+  --ground:#12121c; --surface:#1c1d2b; --surface-2:#24263a; --surface-3:#2f3350;
+  --line:rgba(255,255,255,.07); --line-strong:rgba(255,255,255,.13);
+  --accent:#7c6cff; --accent-soft:rgba(124,108,255,.16); --accent-press:#6455e6; --accent-glow:rgba(124,108,255,.32);
+  --r:20px; --r-sm:13px; --elev:0 10px 26px rgba(0,0,0,.30);
+}
+:root[data-skin="bento"][data-theme="light"]{
+  --ground:#eef0fb; --surface:#ffffff; --surface-2:#f5f4ff; --surface-3:#eae8ff;
+  --line:rgba(40,30,90,.08); --line-strong:rgba(40,30,90,.16);
+  --accent:#6c5ce7; --accent-soft:rgba(108,92,231,.12); --accent-press:#5a4bd6; --accent-glow:rgba(108,92,231,.22);
+  --elev:0 8px 22px rgba(80,70,160,.12);
+}
+/* Dark Premium — 딥 블랙·골드 포인트·은은한 광 */
+:root[data-skin="premium"]{
+  --ground:#070709; --surface:#101013; --surface-2:#17171c; --surface-3:#212128;
+  --line:rgba(255,255,255,.10); --line-strong:rgba(230,200,120,.22);
+  --text:#f3f0e9; --muted:#9a968c; --muted-2:#6d6a61;
+  --accent:#e3b34b; --accent-soft:rgba(227,179,75,.14); --accent-press:#caa03f; --accent-glow:rgba(227,179,75,.28);
+  --r:12px; --r-sm:8px; --elev:0 8px 30px rgba(0,0,0,.55);
+}
+:root[data-skin="premium"][data-theme="light"]{
+  --ground:#f3efe6; --surface:#fffdf8; --surface-2:#f6f1e6; --surface-3:#ece4d3;
+  --line:rgba(60,45,10,.12); --line-strong:rgba(150,110,20,.28);
+  --text:#2a2620; --muted:#6b6455; --muted-2:#9a917d;
+  --accent:#b8860b; --accent-soft:rgba(184,134,11,.12); --accent-press:#a3760a; --accent-glow:rgba(184,134,11,.22);
+  --elev:0 8px 24px rgba(120,90,20,.14);
+}
+/* Minimal SaaS — 플랫·헤어라인·작은 모서리·인디고 포인트 */
+:root[data-skin="minimal"]{
+  --ground:#0f1115; --surface:#15171c; --surface-2:#1b1e24; --surface-3:#252932;
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --accent:#5b7cff; --accent-soft:rgba(91,124,255,.14); --accent-press:#4a6be6; --accent-glow:rgba(91,124,255,.22);
+  --r:10px; --r-sm:7px; --elev:none;
+}
+:root[data-skin="minimal"][data-theme="light"]{
+  --ground:#fbfcfe; --surface:#ffffff; --surface-2:#f7f8fa; --surface-3:#eef0f4;
+  --line:rgba(20,25,40,.10); --line-strong:rgba(20,25,40,.16);
+  --accent:#4f46e5; --accent-soft:rgba(79,70,229,.10); --accent-press:#4038c7; --accent-glow:rgba(79,70,229,.18);
+  --r:10px; --r-sm:7px; --elev:none;
+}
+/* 스킨 그림자·포인트 광 토큰을 실제 카드/버튼에 반영 */
+.panel,.stat,.kpi,.auto-card{box-shadow:var(--elev)}
 /* 테마 토글 버튼 */
 .theme-toggle{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);transition:.12s}
 .theme-toggle:hover{color:var(--text);border-color:var(--line-strong)}
@@ -204,7 +251,7 @@ input,textarea,select{font-family:inherit}
 /* Buttons */
 .btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;padding:10px 16px;
   border-radius:10px;transition:.14s;border:1px solid transparent}
-.btn.primary{background:var(--accent);color:#fff;box-shadow:0 3px 14px rgba(255,61,104,.3)}
+.btn.primary{background:var(--accent);color:#fff;box-shadow:0 3px 14px var(--accent-glow)}
 .btn.primary:hover{background:var(--accent-press);transform:translateY(-1px)}
 .btn.ghost{background:var(--surface);border-color:var(--line);color:var(--text)}
 .btn.ghost:hover{border-color:var(--line-strong);background:var(--surface-2)}
@@ -294,6 +341,22 @@ select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+x
 .swatches{display:flex;gap:8px}
 .swatch{width:30px;height:30px;border-radius:9px;cursor:pointer;border:2px solid transparent;transition:.12s}
 .swatch.on{border-color:#fff;transform:scale(1.08)}
+/* UI 스타일(스킨) 선택기 */
+.skin-grid{display:flex;gap:8px;flex-wrap:wrap;width:100%;margin-top:2px}
+.skin-card{display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;flex:1;min-width:132px;
+  padding:9px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);cursor:pointer;transition:.12s}
+.skin-card:hover{border-color:var(--line-strong)}
+.skin-card.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.sk-prev{position:relative;display:block;width:100%;height:42px;border-radius:9px;overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+.sk-prev i{position:absolute;left:8px;right:22px;height:7px;border-radius:4px;background:rgba(255,255,255,.20)}
+.sk-prev i:nth-child(1){top:9px} .sk-prev i:nth-child(2){top:22px;right:36px}
+.sk-prev b{position:absolute;right:8px;bottom:8px;width:15px;height:15px;border-radius:50%}
+.sk-nm{font-weight:800;font-size:13px} .sk-ds{font-size:11px;color:var(--muted);line-height:1.3}
+/* 프리뷰 팔레트(현재 테마와 무관하게 각 스킨 정체성 표시) */
+.sk-prev.sk-default{background:#0d0e13} .sk-prev.sk-default b{background:#ff3d68}
+.sk-prev.sk-bento{background:#1c1d2b;border-radius:13px} .sk-prev.sk-bento i{background:rgba(255,255,255,.24)} .sk-prev.sk-bento b{background:#7c6cff}
+.sk-prev.sk-premium{background:#08090c;border-color:rgba(230,200,120,.22)} .sk-prev.sk-premium i{background:rgba(230,200,120,.30)} .sk-prev.sk-premium b{background:#e3b34b}
+.sk-prev.sk-minimal{background:#15171c;border-radius:7px} .sk-prev.sk-minimal i{background:rgba(255,255,255,.16)} .sk-prev.sk-minimal b{background:#5b7cff}
 
 /* ===== Table ===== */
 .toolbar-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
@@ -2091,6 +2154,7 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="set-row"><label>테마</label><div class="seg" id="setTheme"><button data-m="light">☀️ 라이트</button><button data-m="dark">🌙 다크</button><button data-m="system">🖥 시스템</button></div></div>
         <div class="set-row"><label>기본 시작 탭</label><select class="inp" id="setDefaultTab" style="max-width:220px"></select></div>
         <div class="set-row"><label>강조 색상</label><div class="swatches" id="setAccent"></div></div>
+        <div class="set-row" style="align-items:flex-start;flex-direction:column"><label>UI 스타일 <span class="set-hint">화면 톤·모서리·그림자·포인트색 프리셋 (라이트/다크와 함께 적용)</span></label><div class="skin-grid" id="setSkin"></div></div>
       </div>
       <div class="set-sec">
         <div class="set-h">🔔 알림 · 자동화 기본값</div>
@@ -5406,12 +5470,28 @@ themeMQ.addEventListener('change',()=>{if(theme==='system')applyTheme();});
 byId('themeToggle').onclick=()=>{const next=effTheme()==='light'?'dark':'light';setTheme(next);toast(next==='light'?'☀️ 라이트 모드':'🌙 다크 모드');};
 applyTheme();
 
+/* ---------- UI 스타일(스킨) ---------- */
+const SKIN_KEY='toon_skin';
+const SKINS=[
+  {id:'default',emoji:'🔴',name:'열혈 레드',desc:'기본 · 선명한 레드 포인트'},
+  {id:'bento',  emoji:'🧩',name:'Bento UI', desc:'큰 모서리 · 부드러운 그림자 · 바이올렛'},
+  {id:'premium',emoji:'👑',name:'Dark Premium',desc:'딥 블랙 · 골드 포인트 · 은은한 광'},
+  {id:'minimal',emoji:'⬜',name:'Minimal SaaS',desc:'플랫 · 헤어라인 · 인디고'},
+];
+let skin=(()=>{try{return localStorage.getItem(SKIN_KEY)||'default';}catch(e){return 'default';}})();
+function applySkin(s){ if(s&&s!=='default')document.documentElement.setAttribute('data-skin',s); else document.documentElement.removeAttribute('data-skin'); }
+function setSkin(s){ skin=s; try{localStorage.setItem(SKIN_KEY,s);}catch(e){} applySkin(s);
+  if(byId('setSkin'))byId('setSkin').querySelectorAll('.skin-card').forEach(c=>c.classList.toggle('on',c.dataset.skin===s));
+  const meta=SKINS.find(x=>x.id===s); toast(`${meta?meta.emoji+' '+meta.name:'기본'} 스타일 적용`);
+}
+applySkin(skin);
+
 /* ---------- 강조 색상 · 크리에이터 UI ---------- */
 function darken(hex,f){const h=(hex||'').replace('#','');const n=h.length===3?h.split('').map(c=>c+c).join(''):h;
   const s=[0,2,4].map(i=>Math.max(0,Math.round(parseInt(n.slice(i,i+2),16)*f)).toString(16).padStart(2,'0'));return '#'+s.join('');}
 function applyAccent(hex){const r=document.documentElement.style;
-  if(hex&&hex.toLowerCase()!=='#ff3d68'){r.setProperty('--accent',hex);r.setProperty('--accent-soft',hexA(hex,0.14));r.setProperty('--accent-press',darken(hex,0.86));}
-  else{r.removeProperty('--accent');r.removeProperty('--accent-soft');r.removeProperty('--accent-press');}}
+  if(hex&&hex.toLowerCase()!=='#ff3d68'){r.setProperty('--accent',hex);r.setProperty('--accent-soft',hexA(hex,0.14));r.setProperty('--accent-press',darken(hex,0.86));r.setProperty('--accent-glow',hexA(hex,0.3));}
+  else{r.removeProperty('--accent');r.removeProperty('--accent-soft');r.removeProperty('--accent-press');r.removeProperty('--accent-glow');}}
 function applyCreatorUI(){byId('gnbAvatar').textContent=(DB.settings.initials||'CR').slice(0,2);}
 
 /* ---------- 설정 ---------- */
@@ -5427,6 +5507,11 @@ function renderSettings(){
   // 강조색
   byId('setAccent').innerHTML=ACCENT_PRESETS.map(c=>`<div class="swatch ${(S.accent||'#ff3d68').toLowerCase()===c?'on':''}" data-c="${c}" style="background:${c}"></div>`).join('');
   byId('setAccent').querySelectorAll('.swatch').forEach(sw=>sw.onclick=()=>{S.accent=sw.dataset.c;save();applyAccent(S.accent);renderSettings();});
+  // UI 스타일(스킨)
+  byId('setSkin').innerHTML=SKINS.map(s=>`<button class="skin-card ${skin===s.id?'on':''}" data-skin="${s.id}">
+    <span class="sk-prev sk-${s.id}"><i></i><i></i><b></b></span>
+    <span class="sk-nm">${s.emoji} ${s.name}</span><span class="sk-ds">${s.desc}</span></button>`).join('');
+  byId('setSkin').querySelectorAll('.skin-card').forEach(c=>c.onclick=()=>setSkin(c.dataset.skin));
   byId('setAnniv').classList.toggle('on',!!DB.annivAuto);
   byId('setMilestone').classList.toggle('on',!!DB.milestoneNudge);
   byId('setToonAlert').classList.toggle('on',!!DB.toonUnreadAlert);
