@@ -1444,6 +1444,15 @@ tbody tr.blocked:hover{opacity:.72}
           <button data-mb="member" class="on">🎫 멤버십 <span class="seg-cnt" id="mbCnt">0</span></button>
           <button data-mb="non">미가입 <span class="seg-cnt" id="mbNonCnt">0</span></button>
         </div>
+        <select class="inp" id="donGradeF" title="등급 필터" style="flex:none;width:auto"><option value="all">등급 전체</option></select>
+        <select class="inp" id="donTempF" title="관계 온도 필터" style="flex:none;width:auto">
+          <option value="all">온도 전체</option>
+          <option value="hot">🔥 뜨거움</option>
+          <option value="warm">☀️ 따뜻함</option>
+          <option value="mild">🌤 미지근</option>
+          <option value="cool">🌥 식는 중</option>
+          <option value="cold">❄️ 차가움</option>
+        </select>
         <div class="seg" id="donSort" style="flex:none">
           <button data-sort="rank" class="on">후원 순위별</button>
           <button data-sort="grade">등급별</button>
@@ -2754,7 +2763,7 @@ byId('thanksSend').onclick=()=>{
 /* =========================================================
    TAB 2 — 도네이터 관리
    ========================================================= */
-let donSort='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active', donTarget='all', donConsent='all', donMember='member';
+let donSort='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active', donTarget='all', donConsent='all', donMember='member', donGradeF='all', donTempF='all';
 byId('donSearch').addEventListener('input',e=>{donQuery=e.target.value.trim().toLowerCase();renderDonators();});
 byId('donTarget').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   donTarget=b.dataset.tg;
@@ -2771,6 +2780,19 @@ byId('donMember').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   byId('donMember').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
   renderDonators();
 });
+byId('donGradeF').onchange=e=>{donGradeF=e.target.value;renderDonators();};
+byId('donTempF').onchange=e=>{donTempF=e.target.value;renderDonators();};
+/* 등급 필터 옵션 채우기(등급 변경 반영, 선택값 유지) */
+function fillGradeFilter(){
+  const sel=byId('donGradeF'); if(!sel)return;
+  const cur=donGradeF;
+  const opts=['<option value="all">등급 전체</option>']
+    .concat([...DB.grades].sort((a,b)=>b.min-a.min).map(g=>`<option value="${g.id}">${g.name}</option>`))
+    .concat('<option value="none">미분류</option>');
+  sel.innerHTML=opts.join('');
+  sel.value=[...sel.options].some(o=>o.value===cur)?cur:'all';
+  donGradeF=sel.value;
+}
 /* 도네이터 관리에서 바로 쓰는 액션 대상 판별 (인사이트 탭 기준과 동일) */
 /* 무료 멤버십 가입 여부 — 가입 팬만 시스템에서 관리·적용 */
 function isMember(d){return d.member!==false;}
@@ -2795,6 +2817,7 @@ document.querySelectorAll('th.sortable').forEach(th=>th.onclick=()=>{
 });
 function renderDonators(){
   const tb=byId('donTbody'); tb.innerHTML='';
+  fillGradeFilter();
   byId('tgChurnCnt').textContent=DB.donators.filter(isChurnTarget).length;
   byId('tgNudgeCnt').textContent=DB.donators.filter(isNudgeTarget).length;
   byId('csYesCnt').textContent=DB.donators.filter(d=>d.alimConsent).length;
@@ -2810,6 +2833,8 @@ function renderDonators(){
     if(donTarget==='nudge' && !isNudgeTarget(d)) return false;
     if(donConsent==='yes' && !d.alimConsent) return false;
     if(donConsent==='no' && d.alimConsent) return false;
+    if(donGradeF!=='all'){const g=gradeForCash(d.cash); if(donGradeF==='none'){if(g)return false;} else if(!g||g.id!==donGradeF) return false;}
+    if(donTempF!=='all' && fanScore(d).level!==donTempF) return false;
     if(!donQuery) return true;
     return d.name.toLowerCase().includes(donQuery) || (d.alias||'').toLowerCase().includes(donQuery)
       || (d.tags||[]).some(t=>t.toLowerCase().includes(donQuery)) || (d.memo||'').toLowerCase().includes(donQuery);
