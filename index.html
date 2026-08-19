@@ -603,6 +603,22 @@ input.tnum.sm-inp{width:80px;text-align:right}
   box-shadow:0 10px 30px rgba(0,0,0,.4);display:flex;align-items:center;gap:9px;animation:toastin .25s}
 .toast .ti{color:var(--on)}
 @keyframes toastin{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+/* VIP 입장 화면 알림 */
+.vip-alert-wrap{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:120;display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none;max-width:92vw}
+.vip-alert{pointer-events:auto;cursor:pointer;position:relative;overflow:hidden;display:flex;align-items:center;gap:13px;padding:13px 24px 13px 15px;border-radius:16px;
+  background:var(--surface);border:1px solid var(--line-strong);box-shadow:0 18px 48px rgba(0,0,0,.45),0 0 0 2px var(--vip-c) inset;min-width:min(340px,88vw);animation:vipIn .5s cubic-bezier(.2,1.25,.4,1)}
+.vip-alert::before{content:'';position:absolute;inset:0;background:linear-gradient(115deg,var(--vip-c),transparent 62%);opacity:.16;pointer-events:none}
+.vip-alert.out{animation:vipOut .4s ease forwards}
+.vip-alert .va-ava{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:17px;flex:none;position:relative;box-shadow:0 0 0 3px var(--vip-c),0 4px 14px rgba(0,0,0,.3)}
+.vip-alert .va-ava img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover}
+.vip-alert .va-body{min-width:0;position:relative;flex:1}
+.vip-alert .va-tier{font-size:12px;font-weight:800;color:var(--vip-c);display:flex;align-items:center;gap:5px;letter-spacing:.01em}
+.vip-alert .va-nm{font-size:17px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.vip-alert .va-sub{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:1px}
+.vip-alert .va-spark{position:absolute;top:-2px;right:0;font-size:17px;animation:vipSpark 1.2s ease-in-out infinite}
+@keyframes vipIn{from{opacity:0;transform:translateY(-16px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes vipOut{to{opacity:0;transform:translateY(-12px) scale(.96)}}
+@keyframes vipSpark{0%,100%{transform:scale(1);opacity:.75}50%{transform:scale(1.3) rotate(12deg);opacity:1}}
 
 /* ===== Insights ===== */
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
@@ -2192,6 +2208,7 @@ tbody tr.blocked:hover{opacity:.72}
         <label class="set-toggle"><div><div class="st-t">투네톡 미답장 알림</div><div class="st-s">미응답 투네톡 하루 1회 알림</div></div><div class="tgl" id="setToonAlert"></div></label>
         <div class="set-row"><label>이탈 위험 기준</label><div class="seg" id="setChurn"><button data-d="14">14일</button><button data-d="30">30일</button><button data-d="60">60일</button></div></div>
         <div class="set-row"><label>승급 임박 기준</label><div class="seg" id="setNudge"><button data-n="30000">3만</button><button data-n="50000">5만</button><button data-n="100000">10만</button></div></div>
+        <div class="set-row"><label>VIP 입장 화면 알림 <span class="set-hint">라이브 중 단골 팬 입장 시 화면 배너</span></label><div class="seg" id="setVipAlert"><button data-v="off">끄기</button><button data-v="vvip">VVIP만</button><button data-v="vip">VIP 이상</button><button data-v="all">전 등급</button></div></div>
       </div>
       <div class="set-sec">
         <div class="set-h">💾 데이터 · 백업</div>
@@ -4465,7 +4482,34 @@ function liveTick(){
 function loginRandom(offline){
   const d=pick(offline); if(!d)return;
   LIVE.online.set(d.id,{mins:0}); pushFeed('login',d,'입장했습니다');
+  vipEnterAlert(d);              // VIP 입장 화면 알림
   fireAutos('login',d,0);
+}
+/* VIP 입장 화면 알림 — 등급 티어 기준 충족 시 상단 배너 */
+function vipAlertTier(){ return (DB.settings&&DB.settings.vipAlertTier)||'vip'; }
+function vipTierOK(cls){
+  const set=vipAlertTier(); if(set==='off')return false;
+  const rank={vvip:3,vip:2,yeol:1}[cls]||0;
+  const need={vvip:3,vip:2,all:1}[set]||2;
+  return rank>0 && rank>=need;
+}
+function removeVipAlert(el){ if(!el||!el.parentNode)return; el.classList.add('out'); setTimeout(()=>el.remove(),400); }
+function vipEnterAlert(d){
+  const g=gradeForCash(d.cash); if(!g||!vipTierOK(g.cls))return;
+  let wrap=byId('vipAlertWrap');
+  if(!wrap){ wrap=document.createElement('div'); wrap.id='vipAlertWrap'; wrap.className='vip-alert-wrap'; document.body.appendChild(wrap); }
+  const el=document.createElement('div'); el.className='vip-alert'; el.style.setProperty('--vip-c',g.color);
+  el.innerHTML=`<div class="va-ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
+    <div class="va-body">
+      <div class="va-tier">${g.cls==='vvip'?'👑':g.cls==='vip'?'⭐':'💙'} ${g.name} 입장</div>
+      <div class="va-nm">${d.alias||d.name}</div>
+      <div class="va-sub">누적 ${won(d.cash)}캐시 · ${won(d.count)}건</div>
+      <span class="va-spark">✨</span>
+    </div>`;
+  el.onclick=()=>{ removeVipAlert(el); openDrawer(d.id); };
+  wrap.appendChild(el);
+  while(wrap.children.length>3) wrap.removeChild(wrap.firstChild);
+  setTimeout(()=>removeVipAlert(el),5200);
 }
 function pushFeed(type,d,msg,amt,boost){
   LIVE.feed.unshift({type,name:d?(d.alias||d.name):'',gid:d?d.id:null,
@@ -5596,6 +5640,7 @@ function renderSettings(){
   byId('setToonAlert').classList.toggle('on',!!DB.toonUnreadAlert);
   byId('setChurn').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.d===churnThreshold));
   byId('setNudge').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.n===nudgeThreshold));
+  byId('setVipAlert').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v===vipAlertTier()));
   byId('setAuthId').value=S.authId||''; byId('setAuthPw').value='';
   renderStorageInfo(); renderSnapshots();
 }
@@ -5665,6 +5710,10 @@ byId('setChurn').querySelectorAll('button').forEach(b=>b.onclick=()=>{churnThres
 byId('setNudge').querySelectorAll('button').forEach(b=>b.onclick=()=>{nudgeThreshold=+b.dataset.n;DB.settings.nudgeAmount=nudgeThreshold;save();
   byId('setNudge').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
   if(byId('nudgeThresh'))byId('nudgeThresh').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.n===nudgeThreshold));renderNudge();});
+byId('setVipAlert').querySelectorAll('button').forEach(b=>b.onclick=()=>{DB.settings.vipAlertTier=b.dataset.v;save();
+  byId('setVipAlert').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  const lbl={off:'끄기',vvip:'VVIP만',vip:'VIP 이상',all:'전 등급'}[b.dataset.v];
+  toast(`VIP 입장 알림: ${lbl}`); });
 
 /* ---------- 로그인 / 계정 ---------- */
 byId('loginForm').onsubmit=e=>{
