@@ -616,6 +616,11 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .kpi.alert{border-color:rgba(255,70,70,.35);background:linear-gradient(180deg,rgba(255,70,70,.06),var(--surface))}
 .ins-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:16px;align-items:start}
 @media(max-width:900px){.ins-grid{grid-template-columns:1fr}}
+/* 인사이트 상단 소형 카드 — 메이슨리(높이 차로 생기는 빈 공백 최소화) */
+.ins-masonry{columns:2;column-gap:16px;margin-bottom:16px}
+.ins-masonry>.panel{break-inside:avoid;width:100%;margin:0 0 16px}
+.ins-masonry>.panel:last-child{margin-bottom:0}
+@media(max-width:900px){.ins-masonry{columns:1}}
 /* 후원 금액 분포 차트 */
 .ad-row{display:flex;align-items:center;gap:10px;margin:11px 0}
 .ad-lb{width:64px;flex:none;text-align:right;font-size:12px;font-weight:700;color:var(--muted)}
@@ -1340,7 +1345,7 @@ tbody tr.blocked:hover{opacity:.72}
 
       <div class="kpi-row" id="kpiRow"></div>
 
-      <div class="ins-grid">
+      <div class="ins-masonry">
         <div class="panel">
           <div class="panel-head"><h3>후원 추이</h3><span class="hint">최근 6개월</span><div class="spacer"></div><div id="trendDelta" class="trend-delta"></div></div>
           <div class="panel-body" id="trendChart"></div>
@@ -1349,9 +1354,6 @@ tbody tr.blocked:hover{opacity:.72}
           <div class="panel-head"><h3>등급별 매출 비중</h3></div>
           <div class="panel-body" id="gradeMix"></div>
         </div>
-      </div>
-
-      <div class="ins-grid">
         <div class="panel">
           <div class="panel-head"><h3>💰 후원 금액 분포</h3><span class="hint" id="amtDistHint"></span></div>
           <div class="panel-body" id="amtDistBox"></div>
@@ -1360,9 +1362,6 @@ tbody tr.blocked:hover{opacity:.72}
           <div class="panel-head"><h3>✍️ 상위 후원 시그니처</h3><span class="hint" id="topSigHint"></span></div>
           <div class="panel-body" id="topSigBox"></div>
         </div>
-      </div>
-
-      <div class="ins-grid">
         <div class="panel">
           <div class="panel-head">
             <h3>⚠️ 이탈 위험 VIP</h3><span class="hint" id="churnHint"></span><div class="spacer"></div>
