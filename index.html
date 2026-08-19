@@ -3816,14 +3816,15 @@ function renderTopSig(){
   const ds=realDonations().filter(x=>x.sig);
   const agg={};
   ds.forEach(x=>{const s=agg[x.sig]=agg[x.sig]||{name:x.sig,count:0,cash:0,amt:x.amount};s.count++;s.cash+=x.amount;});
-  const rows=Object.values(agg).sort((a,b)=>b.cash-a.cash).slice(0,8);
-  if(byId('topSigHint'))byId('topSigHint').textContent=`시그니처 ${won(Object.keys(agg).length)}종 · ${won(ds.length)}건`;
+  // 후원 건수(사용 빈도)가 많은 시그니처 메뉴 순
+  const rows=Object.values(agg).sort((a,b)=>b.count-a.count || b.cash-a.cash).slice(0,8);
+  if(byId('topSigHint'))byId('topSigHint').textContent=`시그니처 ${won(Object.keys(agg).length)}종 · 후원 건수순`;
   if(!rows.length){box.innerHTML='<div class="helper" style="padding:20px;text-align:center">시그니처 후원 데이터가 없습니다</div>';return;}
-  const mx=rows[0].cash||1;
+  const mx=rows[0].count||1;
   box.innerHTML=rows.map((r,i)=>`<div class="sig-row"><div class="rk">${i+1}</div>
     <div class="sig-meta"><div class="sig-nm">✍️ ${r.name.replace(/</g,'&lt;')} <span class="sig-amt">${won(r.amt)}캐시</span></div>
-      <div class="sig-bar"><i style="width:${(r.cash/mx*100).toFixed(0)}%"></i></div></div>
-    <div class="sig-val">${won(r.cash)}<small>${won(r.count)}건</small></div></div>`).join('');
+      <div class="sig-bar"><i style="width:${(r.count/mx*100).toFixed(0)}%"></i></div></div>
+    <div class="sig-val">${won(r.count)}건<small>${won(r.cash)}캐시</small></div></div>`).join('');
 }
 function renderPareto(){
   const{sorted,total,n20,pc20}=paretoData();
