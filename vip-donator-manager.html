@@ -1503,6 +1503,7 @@ tbody tr.blocked:hover{opacity:.72}
             <tbody id="donTbody"></tbody>
           </table>
         </div>
+        <div class="dl-pager" id="donPager"></div>
       </div>
     </section>
 
@@ -2764,25 +2765,25 @@ byId('thanksSend').onclick=()=>{
 /* =========================================================
    TAB 2 — 도네이터 관리
    ========================================================= */
-let donSort='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active', donTarget='all', donConsent='all', donMember='member', donGradeF='all', donTempF='all';
-byId('donSearch').addEventListener('input',e=>{donQuery=e.target.value.trim().toLowerCase();renderDonators();});
+let donSort='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active', donTarget='all', donConsent='all', donMember='member', donGradeF='all', donTempF='all', donPage=1;
+byId('donSearch').addEventListener('input',e=>{donQuery=e.target.value.trim().toLowerCase();donPage=1;renderDonators();});
 byId('donTarget').querySelectorAll('button').forEach(b=>b.onclick=()=>{
-  donTarget=b.dataset.tg;
+  donTarget=b.dataset.tg; donPage=1;
   byId('donTarget').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
   renderDonators();
 });
 byId('donConsent').querySelectorAll('button').forEach(b=>b.onclick=()=>{
-  donConsent=b.dataset.cs;
+  donConsent=b.dataset.cs; donPage=1;
   byId('donConsent').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
   renderDonators();
 });
 byId('donMember').querySelectorAll('button').forEach(b=>b.onclick=()=>{
-  donMember=b.dataset.mb;
+  donMember=b.dataset.mb; donPage=1;
   byId('donMember').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
   renderDonators();
 });
-byId('donGradeF').onchange=e=>{donGradeF=e.target.value;renderDonators();};
-byId('donTempF').onchange=e=>{donTempF=e.target.value;renderDonators();};
+byId('donGradeF').onchange=e=>{donGradeF=e.target.value;donPage=1;renderDonators();};
+byId('donTempF').onchange=e=>{donTempF=e.target.value;donPage=1;renderDonators();};
 /* 등급 필터 옵션 채우기(등급 변경 반영, 선택값 유지) */
 function fillGradeFilter(){
   const sel=byId('donGradeF'); if(!sel)return;
@@ -2800,22 +2801,42 @@ function isMember(d){return d.member!==false;}
 function isChurnTarget(d){return isMember(d) && !d.blocked && !!gradeForCash(d.cash) && daysAgo(d)>=churnThreshold;}
 function isNudgeTarget(d){if(!isMember(d)||d.blocked)return false;const g=gaugeData(d);return !g.top && g.remaining<=nudgeThreshold;}
 byId('donSort').querySelectorAll('button').forEach(b=>b.onclick=()=>{
-  donSort=b.dataset.sort;
+  donSort=b.dataset.sort; donPage=1;
+  if(donSort==='rank'){ donCol='cash'; donDir=-1;   // 후원 순위 = 누적 후원 금액 내림차순
+    document.querySelectorAll('th.sortable').forEach(x=>{x.classList.remove('act');x.querySelector('.arr').textContent='';}); }
   byId('donSort').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
   renderDonators();
 });
 byId('donStatus').querySelectorAll('button').forEach(b=>b.onclick=()=>{
-  donStatus=b.dataset.st;
+  donStatus=b.dataset.st; donPage=1;
   byId('donStatus').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
   renderDonators();
 });
 document.querySelectorAll('th.sortable').forEach(th=>th.onclick=()=>{
-  const c=th.dataset.col;
+  const c=th.dataset.col; donPage=1;
   if(donCol===c) donDir*=-1; else {donCol=c;donDir=-1;}
+  donSort='rank';   // 컬럼 헤더 정렬은 순위 모드에서 동작
+  byId('donSort').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.sort==='rank'));
   document.querySelectorAll('th.sortable').forEach(x=>{x.classList.remove('act');x.querySelector('.arr').textContent='';});
   th.classList.add('act'); th.querySelector('.arr').textContent=donDir<0?'↓':'↑';
   renderDonators();
 });
+/* 페이저 렌더 */
+function renderDonPager(totalPages,total){
+  const box=byId('donPager'); if(!box)return;
+  if(total<=20){box.innerHTML='';return;}
+  const p=donPage, btn=(n,lbl,dis,on)=>`<button ${dis?'disabled':''} class="${on?'on':''}" data-pg="${n}">${lbl||n}</button>`;
+  let nums=[]; const win=2;
+  let lo=Math.max(1,p-win), hi=Math.min(totalPages,p+win);
+  if(lo>1)nums.push(1); if(lo>2)nums.push('…');
+  for(let i=lo;i<=hi;i++)nums.push(i);
+  if(hi<totalPages-1)nums.push('…'); if(hi<totalPages)nums.push(totalPages);
+  box.innerHTML=`<span class="pg-info">${won((p-1)*20+1)}–${won(Math.min(p*20,total))} / ${won(total)}명</span>`
+    +btn(p-1,'‹',p<=1)
+    +nums.map(n=>n==='…'?'<span class="pg-info">…</span>':btn(n,null,false,n===p)).join('')
+    +btn(p+1,'›',p>=totalPages);
+  box.querySelectorAll('button[data-pg]').forEach(b=>b.onclick=()=>{const n=+b.dataset.pg;if(n>=1&&n<=totalPages){donPage=n;renderDonators();document.querySelector('#page-donator .panel').scrollIntoView({behavior:'smooth',block:'start'});}});
+}
 function renderDonators(){
   const tb=byId('donTbody'); tb.innerHTML='';
   fillGradeFilter();
@@ -2856,7 +2877,10 @@ function renderDonators(){
   byId('tabCntDon').textContent=won(DB.donators.length);
 
   const _rankMap={};{const _s=DB.donators.slice().sort((a,b)=>b.cash-a.cash);for(let _i=0;_i<_s.length;_i++)_rankMap[_s[_i].id]=_i+1;}
-  const _CAP=400, _shown=rows.slice(0,_CAP);
+  const DON_PER=20;
+  const totalPages=Math.max(1,Math.ceil(rows.length/DON_PER));
+  if(donPage>totalPages)donPage=totalPages; if(donPage<1)donPage=1;
+  const _shown=rows.slice((donPage-1)*DON_PER, donPage*DON_PER);
   _shown.forEach((d,i)=>{
     const g=gradeForCash(d.cash);
     const tr=document.createElement('tr');
@@ -2913,14 +2937,10 @@ function renderDonators(){
     tr.onclick=()=>openDrawer(d.id);
     tb.appendChild(tr);
   });
-  if(rows.length>_CAP){
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td colspan="8" style="text-align:center;color:var(--muted);padding:14px 0">상위 ${won(_CAP)}명 표시 · 외 <b>${won(rows.length-_CAP)}명</b> 더 있습니다 (검색·필터로 좁혀보세요)</td>`;
-    tb.appendChild(tr);
-  }
   if(!rows.length){
     tb.innerHTML=`<tr><td colspan="8"><div class="empty" style="padding:40px"><div class="t">${donTarget==='churn'?'복귀 유도 대상이 없습니다':donTarget==='nudge'?'넛지 대상이 없습니다':'검색 결과가 없습니다'}</div></div></td></tr>`;
   }
+  renderDonPager(totalPages, rows.length);
   updateBulkBar();
 }
 
