@@ -244,6 +244,22 @@ select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+x
 .subtabs button.danger.on{color:#ff6b6b;border-bottom-color:#ff6b6b}
 .subtabs button.danger.on .st-cnt{background:#ff6b6b}
 @media(max-width:640px){.subtabs button{padding:10px 11px;font-size:13px}}
+/* 이탈위험·승급임박 성과 요약 */
+.don-osum{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--surface-1);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:14px}
+.don-osum .os-lead{display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;color:var(--text)}
+.don-osum .os-lead .os-ic{font-size:18px}
+.don-osum .os-lead .os-sub{font-weight:600;font-size:12px;color:var(--muted)}
+.don-osum .os-tiles{display:flex;gap:10px;flex-wrap:wrap;flex:1;min-width:0}
+.don-osum .os-tile{display:flex;flex-direction:column;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 13px;min-width:96px}
+.don-osum .os-tile .k{font-size:11px;font-weight:700;color:var(--muted)}
+.don-osum .os-tile .v{font-size:17px;font-weight:800;color:var(--text);line-height:1.15}
+.don-osum .os-tile .v small{font-size:11px;font-weight:600;color:var(--muted);margin-left:2px}
+.don-osum .os-tile.hl .v{color:var(--accent)}
+.don-osum .os-tile.re .v{color:var(--yeol)}
+.don-osum .os-bar{width:100%;height:5px;border-radius:3px;background:var(--surface-3);overflow:hidden;margin-top:5px}
+.don-osum .os-bar i{display:block;height:100%;border-radius:3px}
+.don-osum .os-more{margin-left:auto}
+@media(max-width:640px){.don-osum{padding:12px 13px;gap:10px}.don-osum .os-more{margin-left:0;width:100%}}
 .amt-wrap{display:flex;align-items:center;gap:8px}
 .amt-wrap .inp{text-align:right}
 .amt-wrap .to{color:var(--muted);font-weight:700}
@@ -1490,6 +1506,8 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="spacer"></div>
         <button class="btn ghost sm" id="bulkClear">선택 해제</button>
       </div>
+
+      <div class="don-osum hidden" id="donOutreachSummary"></div>
 
       <div class="panel">
         <div class="table-wrap">
@@ -2846,9 +2864,44 @@ function renderDonPager(totalPages,total){
     +btn(p+1,'›',p>=totalPages);
   box.querySelectorAll('button[data-pg]').forEach(b=>b.onclick=()=>{const n=+b.dataset.pg;if(n>=1&&n<=totalPages){donPage=n;renderDonators();document.querySelector('#page-donator .panel').scrollIntoView({behavior:'smooth',block:'start'});}});
 }
+/* 이탈위험·승급임박 탭 상단 성과 요약 */
+function renderDonOutreach(){
+  const box=byId('donOutreachSummary'); if(!box)return;
+  if(donView!=='churn' && donView!=='promote'){ box.classList.add('hidden'); box.innerHTML=''; return; }
+  box.classList.remove('hidden');
+  const st=outreachStats();
+  const tile=(k,v,unit,cls,rate,color)=>`<div class="os-tile ${cls||''}"><div class="k">${k}</div><div class="v">${v}${unit?`<small>${unit}</small>`:''}</div>${rate!=null?`<div class="os-bar"><i style="width:${rate}%;background:${color}"></i></div>`:''}</div>`;
+  if(donView==='churn'){
+    const targets=DB.donators.filter(isChurnTarget);
+    const sent=targets.filter(d=>d.reengagedAt||d.reengaged).length;
+    const t=st.reengage, rate=st.reRate;
+    box.innerHTML=
+      `<div class="os-lead"><span class="os-ic">💤</span><div>복귀 유도 성과<div class="os-sub">이탈 위험 ${won(targets.length)}명 · 유도 완료 ${won(sent)}명</div></div></div>`
+      +`<div class="os-tiles">`
+      +tile('누적 발송',won(t.sent),'건')
+      +tile('복귀 전환',won(t.conv),'명','re',rate,'var(--yeol)')
+      +tile('전환율',rate,'%'+(t.pending?` · 대기 ${t.pending}`:''))
+      +tile('유도 후원',won(t.cash),'캐시','hl')
+      +`</div><button class="btn ghost sm os-more" id="donOsMore">전체 성과 보기 ▸</button>`;
+  }else{
+    const targets=DB.donators.filter(isNudgeTarget);
+    const sent=targets.filter(d=>d.nudged).length;
+    const t=st.nudge, rate=st.nuRate;
+    box.innerHTML=
+      `<div class="os-lead"><span class="os-ic">🎯</span><div>승급 넛지 성과<div class="os-sub">승급 임박 ${won(targets.length)}명 · 넛지 완료 ${won(sent)}명</div></div></div>`
+      +`<div class="os-tiles">`
+      +tile('누적 발송',won(t.sent),'건')
+      +tile('후원 전환',won(t.conv),'명','hl',rate,'var(--accent)')
+      +tile('전환율',rate,'%'+(t.pending?` · 대기 ${t.pending}`:''))
+      +tile('유도 후원',won(t.cash),'캐시','hl')
+      +`</div><button class="btn ghost sm os-more" id="donOsMore">전체 성과 보기 ▸</button>`;
+  }
+  const more=byId('donOsMore'); if(more)more.onclick=openOutreachModal;
+}
 function renderDonators(){
   const tb=byId('donTbody'); tb.innerHTML='';
   fillGradeFilter();
+  renderDonOutreach();
   byId('vwChurnCnt').textContent=DB.donators.filter(isChurnTarget).length;
   byId('vwPromoteCnt').textContent=DB.donators.filter(isNudgeTarget).length;
   byId('csYesCnt').textContent=DB.donators.filter(d=>d.alimConsent).length;
