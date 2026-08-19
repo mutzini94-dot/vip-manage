@@ -2445,7 +2445,7 @@ function normalize(){
   (DB.autos||[]).forEach(a=>{ if(!a.actions){a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[];delete a.action;delete a.cfg;} });
   (DB.autoLogs||[]).forEach(l=>{ if(!l.situ&&l.type) l.situ=l.type; });
 }
-function save(){ try{ localStorage.setItem(LS, JSON.stringify(DB)); }catch(e){} }
+function save(){ bumpData(); try{ localStorage.setItem(LS, JSON.stringify(DB)); }catch(e){} }
 
 /* ---------- grade helpers ---------- */
 const clsOf = g => g.cls || 'none';
@@ -2829,10 +2829,12 @@ function renderDonators(){
   byId('assignedCount').textContent=Math.min(assigned,100);
   byId('tabCntDon').textContent=won(DB.donators.length);
 
-  rows.forEach((d,i)=>{
+  const _rankMap={};{const _s=DB.donators.slice().sort((a,b)=>b.cash-a.cash);for(let _i=0;_i<_s.length;_i++)_rankMap[_s[_i].id]=_i+1;}
+  const _CAP=400, _shown=rows.slice(0,_CAP);
+  _shown.forEach((d,i)=>{
     const g=gradeForCash(d.cash);
     const tr=document.createElement('tr');
-    const rank=donSort==='rank'&&donCol==='cash'&&donDir===-1 ? i+1 : (DB.donators.slice().sort((a,b)=>b.cash-a.cash).findIndex(x=>x.id===d.id)+1);
+    const rank=_rankMap[d.id]||(i+1);
     const gg=gaugeData(d);
     const tScore=fanScore(d);
     const tags=d.tags||[];
@@ -2885,6 +2887,11 @@ function renderDonators(){
     tr.onclick=()=>openDrawer(d.id);
     tb.appendChild(tr);
   });
+  if(rows.length>_CAP){
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td colspan="8" style="text-align:center;color:var(--muted);padding:14px 0">상위 ${won(_CAP)}명 표시 · 외 <b>${won(rows.length-_CAP)}명</b> 더 있습니다 (검색·필터로 좁혀보세요)</td>`;
+    tb.appendChild(tr);
+  }
   if(!rows.length){
     tb.innerHTML=`<tr><td colspan="8"><div class="empty" style="padding:40px"><div class="t">${donTarget==='churn'?'복귀 유도 대상이 없습니다':donTarget==='nudge'?'넛지 대상이 없습니다':'검색 결과가 없습니다'}</div></div></td></tr>`;
   }
@@ -3469,7 +3476,12 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();close
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
    ========================================================= */
 function parseD(s){const[a,b,c]=(s||'2024-01-01').split('-').map(Number);return new Date(a,(b||1)-1,c||1).getTime();}
-function refNow(){let mx=0;DB.donators.forEach(d=>{const t=parseD(d.last);if(t>mx)mx=t;});return mx||parseD('2024-12-01');}
+/* 데이터 버전 기반 캐시 — 대량 데이터(수백~천명)에서 O(n³) 재계산 방지 */
+let _dataVer=0, _refNowC={ver:-1,val:0};
+function bumpData(){_dataVer++;}
+function refNow(){ if(_refNowC.ver===_dataVer) return _refNowC.val;
+  let mx=0;DB.donators.forEach(d=>{const t=parseD(d.last);if(t>mx)mx=t;});
+  _refNowC={ver:_dataVer,val:mx||parseD('2024-12-01')}; return _refNowC.val; }
 function daysAgo(d){return Math.max(0,Math.round((refNow()-parseD(d.last))/864e5));}
 const manWon=n=>Math.round((n||0)/10000).toLocaleString('ko-KR')+'만';
 
@@ -3831,18 +3843,32 @@ function fanLevel(t){
   if(t>=25)return{key:'cool',label:'식는 중',icon:'🌥',color:'#5b8cff'};
   return{key:'cold',label:'차가움',icon:'❄️',color:'#7f9bd6'};
 }
+/* 정렬된 배열에서 백분위(이진탐색) — O(log n) */
+function pctRankSorted(v,sorted){if(!sorted.length)return 50;let lo=0,hi=sorted.length;
+  while(lo<hi){const mid=(lo+hi)>>1; if(sorted[mid]<v) lo=mid+1; else hi=mid;} // lo = #(<v)
+  let hi2=lo; while(hi2<sorted.length&&sorted[hi2]===v)hi2++; const eq=hi2-lo;
+  return Math.round((lo+eq/2)/sorted.length*100);}
 function pctRank(v,arr){if(!arr.length)return 50;let below=0,eq=0;for(const x of arr){if(x<v)below++;else if(x===v)eq++;}return Math.round((below+eq/2)/arr.length*100);}
-function fanScore(d){
+/* 관계 온도 풀·결과 캐시 (데이터 버전별) — 대량 데이터 성능 */
+let _fanPoolC={ver:-1}, _fanC={ver:-1,m:new Map()};
+function fanPools(){ if(_fanPoolC.ver===_dataVer) return _fanPoolC;
   const pool=DB.donators.filter(x=>isMember(x)&&!x.blocked);
-  const cashArr=pool.map(x=>x.cash),cntArr=pool.map(x=>x.count),dAgoArr=pool.map(x=>daysAgo(x));
+  const num=(a)=>a.slice().sort((x,y)=>x-y);
+  _fanPoolC={ver:_dataVer,
+    cash:num(pool.map(x=>x.cash)), cnt:num(pool.map(x=>x.count)), dAgo:num(pool.map(x=>daysAgo(x)))};
+  return _fanPoolC; }
+function fanScore(d){
+  if(_fanC.ver!==_dataVer) _fanC={ver:_dataVer,m:new Map()};
+  const hit=_fanC.m.get(d.id); if(hit) return hit;
+  const P=fanPools();
   const dAgo=daysAgo(d);
-  const r=100-pctRank(dAgo,dAgoArr);   // 최근일수록 높음 (동료 대비 백분위)
-  const f=pctRank(d.count,cntArr), m=pctRank(d.cash,cashArr);
-  const temp=Math.round(0.40*r+0.30*f+0.30*m);   // 최근성 40 · 빈도 30 · 금액 30
+  const r=100-pctRankSorted(dAgo,P.dAgo);
+  const f=pctRankSorted(d.count,P.cnt), m=pctRankSorted(d.cash,P.cash);
+  const temp=Math.round(0.40*r+0.30*f+0.30*m);
   const spanDays=Math.max(1,Math.round((refNow()-parseD(d.join))/864e5));
   const interval=spanDays/Math.max(1,d.count);
-  const cooling=dAgo>interval*1.6 && temp<72;
-  return {temp,level:fanLevel(temp),r,f,m,cooling,dAgo};
+  const res={temp,level:fanLevel(temp),r,f,m,cooling:dAgo>interval*1.6&&temp<72,dAgo};
+  _fanC.m.set(d.id,res); return res;
 }
 let fanTempMode='cooling';
 function renderFanTemp(){
