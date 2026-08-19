@@ -153,6 +153,31 @@ input,textarea,select{font-family:inherit}
 .tab .ic{width:17px;height:17px}
 .tab .cnt{font-size:11px;font-weight:800;padding:1px 7px;border-radius:20px;background:var(--surface-3);color:var(--muted)}
 .tab.on .cnt{background:var(--accent-soft);color:var(--accent)}
+/* 모바일 햄버거 내비 (데스크톱에서는 숨김) */
+.gnb-burger{display:none;place-items:center;width:38px;height:38px;flex:none;border-radius:10px;color:var(--text);background:var(--surface-2);border:1px solid var(--line)}
+.gnb-burger svg{width:20px;height:20px}
+.gnb-burger .ic-close{display:none}
+.gnb-burger.open .ic-open{display:none}
+.gnb-burger.open .ic-close{display:block}
+.nav-backdrop{display:none}
+/* 모바일: 탭바를 가로 스와이프 대신 햄버거 드롭다운으로 전환
+   (base 규칙 뒤에 위치해야 캐스케이드에서 우선 적용됨) */
+@media(max-width:640px){
+  .gnb-burger{display:grid}
+  .tabbar{
+    position:fixed;top:56px;left:0;right:0;z-index:39;
+    height:auto;max-height:calc(100dvh - 56px);overflow-y:auto;
+    flex-direction:column;align-items:stretch;gap:4px;padding:10px 12px;
+    background:var(--surface);box-shadow:0 16px 30px rgba(0,0,0,.32);
+    transform:translateY(-10px);opacity:0;visibility:hidden;pointer-events:none;
+    transition:transform .18s ease,opacity .18s ease,visibility .18s}
+  .tabbar.open{transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto}
+  .tab{width:100%;justify-content:flex-start;padding:13px 14px;font-size:15px;border-radius:10px}
+  .tab .cnt{margin-left:auto}
+  .nav-backdrop{position:fixed;inset:56px 0 0;z-index:38;background:rgba(0,0,0,.42);
+    opacity:0;visibility:hidden;transition:.18s}
+  .nav-backdrop.open{opacity:1;visibility:visible}
+}
 
 /* ===== Layout ===== */
 .wrap{max-width:1240px;margin:0 auto;width:100%;padding:26px 20px 60px}
@@ -1136,6 +1161,10 @@ tbody tr.blocked:hover{opacity:.72}
 
   <!-- GNB -->
   <div class="gnb">
+    <button class="gnb-burger" id="navBurger" aria-label="메뉴 열기" aria-expanded="false">
+      <svg class="ic-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      <svg class="ic-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
     <div class="logo">
       <div class="mark"><svg viewBox="0 0 210 78" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="투네이션"><rect x="22" y="6" width="22" height="66" rx="11" fill="#4d8bff"/><rect x="0" y="28" width="66" height="22" rx="11" fill="#4d8bff"/><circle cx="101" cy="39" r="26" fill="none" stroke="#c1d9fd" stroke-width="20"/><circle cx="169" cy="39" r="26" fill="none" stroke="#4d8bff" stroke-width="20"/></svg></div>
       <div>열혈네이션<div class="sub">투네이션 VIP 도네이터 관리</div></div>
@@ -1210,6 +1239,7 @@ tbody tr.blocked:hover{opacity:.72}
       라이브 <span class="live-dot" id="liveDot"></span>
     </button>
   </div>
+  <div class="nav-backdrop" id="navBackdrop"></div>
 
   <div class="wrap">
     <!-- ============ TAB: 인사이트 ============ -->
@@ -2579,8 +2609,19 @@ function titleBadge(t){return `<span class="tbadge" style="--tc:${t.color}"><spa
    ========================================================= */
 const pages={insight:byId('page-insight'),hall:byId('page-hall'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),donations:byId('page-donations'),auto:byId('page-auto'),toon:byId('page-toon'),sched:byId('page-sched'),live:byId('page-live')};
 function byId(id){return document.getElementById(id);}
+/* 모바일 햄버거 내비 토글 */
+function setNav(open){
+  const bar=document.querySelector('.tabbar'), bd=byId('navBackdrop'), bt=byId('navBurger');
+  bar.classList.toggle('open',open); bd.classList.toggle('open',open); bt.classList.toggle('open',open);
+  bt.setAttribute('aria-expanded',open?'true':'false');
+  bt.setAttribute('aria-label',open?'메뉴 닫기':'메뉴 열기');
+}
+byId('navBurger').onclick=()=>setNav(!document.querySelector('.tabbar').classList.contains('open'));
+byId('navBackdrop').onclick=()=>setNav(false);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')setNav(false);});
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
+  setNav(false);   // 탭 선택 시 모바일 메뉴 닫기
   const tab=t.dataset.tab;
   Object.entries(pages).forEach(([k,el])=>el.classList.toggle('hidden',k!==tab));
   if(tab==='insight') renderInsights();
