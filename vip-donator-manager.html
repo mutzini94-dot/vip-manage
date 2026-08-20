@@ -339,6 +339,21 @@ select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+x
 .don-osum .os-bar i{display:block;height:100%;border-radius:3px}
 .don-osum .os-more{margin-left:auto}
 @media(max-width:640px){.don-osum{padding:12px 13px;gap:10px}.don-osum .os-more{margin-left:0;width:100%}}
+/* 관계 온도 범위 슬라이더 (도네이터 관리) */
+.temp-slider{flex:none;display:flex;flex-direction:column;gap:5px;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:7px 12px 9px;min-width:186px}
+.temp-slider .ts-cap{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--muted)}
+.temp-slider .ts-cap b{color:var(--text);font-weight:800}
+.temp-slider .ts-ic{font-size:13px}
+.ts-track{position:relative;height:18px}
+.ts-rail{position:absolute;top:7px;left:0;right:0;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,#5b8cff,#4fc0e8,#ffb020,#ff8a5c,#ff4d4f);opacity:.35}
+.ts-fill{position:absolute;top:7px;height:5px;border-radius:3px;background:var(--accent)}
+.ts-track input[type=range]{position:absolute;top:0;left:0;width:100%;height:18px;margin:0;background:none;pointer-events:none;-webkit-appearance:none;appearance:none}
+.ts-track input[type=range]:focus{outline:none}
+.ts-track input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;pointer-events:auto;width:15px;height:15px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,.35)}
+.ts-track input[type=range]::-moz-range-thumb{pointer-events:auto;width:15px;height:15px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,.35)}
+.ts-track input[type=range]::-webkit-slider-runnable-track{background:none}
+.ts-track input[type=range]::-moz-range-track{background:none}
 .amt-wrap{display:flex;align-items:center;gap:8px}
 .amt-wrap .inp{text-align:right}
 .amt-wrap .to{color:var(--muted);font-weight:700}
@@ -1634,14 +1649,15 @@ tbody tr.blocked:hover{opacity:.72}
           <button data-mb="non">미가입 <span class="seg-cnt" id="mbNonCnt">0</span></button>
         </div>
         <select class="inp" id="donGradeF" title="등급 필터" style="flex:none;width:auto"><option value="all">등급 전체</option></select>
-        <select class="inp" id="donTempF" title="관계 온도 필터" style="flex:none;width:auto">
-          <option value="all">온도 전체</option>
-          <option value="hot">🔥 뜨거움</option>
-          <option value="warm">☀️ 따뜻함</option>
-          <option value="mild">🌤 미지근</option>
-          <option value="cool">🌥 식는 중</option>
-          <option value="cold">❄️ 차가움</option>
-        </select>
+        <div class="temp-slider" id="donTempSlider" title="관계 온도 범위 — 슬라이더로 조절">
+          <div class="ts-cap"><span class="ts-ic">🌡</span><b id="tsLabel">온도 전체</b></div>
+          <div class="ts-track">
+            <div class="ts-rail"></div>
+            <div class="ts-fill" id="tsFill"></div>
+            <input type="range" id="tsMin" min="0" max="100" step="1" value="0" aria-label="최소 온도">
+            <input type="range" id="tsMax" min="0" max="100" step="1" value="100" aria-label="최대 온도">
+          </div>
+        </div>
         <div class="seg status-seg" id="donStatus" style="flex:none">
           <button data-st="active" class="on">활성</button>
           <button data-st="all">전체</button>
@@ -2977,7 +2993,7 @@ byId('thanksSend').onclick=()=>{
 /* =========================================================
    TAB 2 — 도네이터 관리
    ========================================================= */
-let donView='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active', donConsent='all', donMember='member', donGradeF='all', donTempF='all', donPage=1;
+let donView='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active', donConsent='all', donMember='member', donGradeF='all', donTempMin=0, donTempMax=100, donPage=1;
 const DON_VIEW_DESC={
   rank:'누적 후원 금액이 높은 순으로 도네이터를 정렬해 보여줍니다.',
   temp:'관계 온도(최근성·빈도·금액)가 높은 순으로 정렬합니다.',
@@ -3004,7 +3020,21 @@ byId('donMember').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   renderDonators();
 });
 byId('donGradeF').onchange=e=>{donGradeF=e.target.value;donPage=1;renderDonators();};
-byId('donTempF').onchange=e=>{donTempF=e.target.value;donPage=1;renderDonators();};
+/* 관계 온도 범위 슬라이더 */
+(function(){
+  const tsMin=byId('tsMin'), tsMax=byId('tsMax');
+  function updateTempUI(){
+    const fill=byId('tsFill'); if(fill){ fill.style.left=donTempMin+'%'; fill.style.right=(100-donTempMax)+'%'; }
+    const lbl=byId('tsLabel'); if(lbl) lbl.textContent=(donTempMin<=0 && donTempMax>=100)?'온도 전체':`${donTempMin}–${donTempMax}°`;
+  }
+  function onSlide(e){
+    let mn=+tsMin.value, mx=+tsMax.value;
+    if(mn>mx){ if(e && e.target===tsMin){ mn=mx; tsMin.value=mn; } else { mx=mn; tsMax.value=mx; } }
+    donTempMin=mn; donTempMax=mx; updateTempUI(); donPage=1; renderDonators();
+  }
+  if(tsMin&&tsMax){ tsMin.addEventListener('input',onSlide); tsMax.addEventListener('input',onSlide); }
+  window._updateTempUI=updateTempUI; updateTempUI();
+})();
 /* 등급 필터 옵션 채우기(등급 변경 반영, 선택값 유지) */
 function fillGradeFilter(){
   const sel=byId('donGradeF'); if(!sel)return;
@@ -3106,7 +3136,7 @@ function renderDonators(){
     if(donConsent==='yes' && !d.alimConsent) return false;
     if(donConsent==='no' && d.alimConsent) return false;
     if(donGradeF!=='all'){const g=gradeForCash(d.cash); if(donGradeF==='none'){if(g)return false;} else if(!g||g.id!==donGradeF) return false;}
-    if(donTempF!=='all' && fanScore(d).level.key!==donTempF) return false;
+    if(donTempMin>0 || donTempMax<100){ const t=fanScore(d).temp; if(t<donTempMin || t>donTempMax) return false; }
     if(!donQuery) return true;
     return d.name.toLowerCase().includes(donQuery) || (d.alias||'').toLowerCase().includes(donQuery)
       || (d.tags||[]).some(t=>t.toLowerCase().includes(donQuery)) || (d.memo||'').toLowerCase().includes(donQuery);
