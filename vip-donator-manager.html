@@ -392,15 +392,8 @@ select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+x
 .don-filters .temp-slider{min-width:150px;padding:6px 11px 8px}
 .don-actions{margin-bottom:8px}
 .don-actions .limit-note{white-space:nowrap}
-/* 등급 다중선택 체크박스 칩 */
-.grade-checks{display:flex;align-items:center;gap:5px;flex-wrap:wrap;flex:none}
-.gchk{display:inline-flex;align-items:center;gap:5px;padding:6px 9px 6px 7px;border-radius:9px;
-  background:var(--surface-2);border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:12.5px;transition:.12s}
-.gchk:hover{color:var(--text);border-color:var(--line-strong)}
-.gchk .gck-box{width:15px;height:15px;border-radius:5px;border:1.5px solid var(--line-strong);flex:none;display:grid;place-items:center;transition:.12s}
-.gchk.on{color:var(--text);border-color:var(--accent);background:var(--accent-soft)}
-.gchk.on .gck-box{background:var(--accent);border-color:var(--accent)}
-.gchk.on .gck-box::after{content:'';width:8px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:translateY(-1px) rotate(-45deg)}
+/* 등급 다중선택 세그먼트 — 다른 세그먼트(수신동의·멤버십)와 동일한 형태·크기·강조 사용 */
+.grade-seg button.on{background:var(--surface-3);color:var(--text)}
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 thead th{text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;
@@ -1666,7 +1659,7 @@ tbody tr.blocked:hover{opacity:.72}
           <button data-mb="member" class="on">🎫 멤버십 <span class="seg-cnt" id="mbCnt">0</span></button>
           <button data-mb="non">미가입 <span class="seg-cnt" id="mbNonCnt">0</span></button>
         </div>
-        <div class="grade-checks" id="donGradeF" title="등급 필터 · 복수 선택 가능"></div>
+        <div class="seg grade-seg" id="donGradeF" style="flex:none" title="등급 필터 · 복수 선택 가능"></div>
         <div class="temp-slider" id="donTempSlider" title="관계 온도 범위 — 슬라이더로 조절">
           <div class="ts-cap"><span class="ts-ic">🌡</span><b id="tsLabel">온도 전체</b></div>
           <div class="ts-track">
@@ -3060,11 +3053,17 @@ function fillGradeFilter(){
   // 존재하지 않는 등급 선택값 정리
   const valid=new Set([...DB.grades.map(g=>g.id),'none']);
   [...donGradeSel].forEach(k=>{ if(!valid.has(k)) donGradeSel.delete(k); });
-  const items=[...DB.grades].sort((a,b)=>b.min-a.min).map(g=>({k:g.id,name:g.name})).concat([{k:'none',name:'미분류'}]);
-  box.innerHTML=items.map(it=>`<button class="gchk ${donGradeSel.has(it.k)?'on':''}" data-g="${it.k}"><span class="gck-box"></span>${it.name}</button>`).join('');
-  box.querySelectorAll('.gchk').forEach(b=>b.onclick=()=>{
+  const items=[{k:'__all',name:'전체'}]
+    .concat([...DB.grades].sort((a,b)=>b.min-a.min).map(g=>({k:g.id,name:g.name})))
+    .concat([{k:'none',name:'미분류'}]);
+  box.innerHTML=items.map(it=>{
+    const on=it.k==='__all' ? donGradeSel.size===0 : donGradeSel.has(it.k);
+    return `<button class="${on?'on':''}" data-g="${it.k}">${it.name}</button>`;
+  }).join('');
+  box.querySelectorAll('button').forEach(b=>b.onclick=()=>{
     const k=b.dataset.g;
-    if(donGradeSel.has(k)) donGradeSel.delete(k); else donGradeSel.add(k);
+    if(k==='__all') donGradeSel.clear();
+    else { if(donGradeSel.has(k)) donGradeSel.delete(k); else donGradeSel.add(k); }
     donPage=1; renderDonators();
   });
 }
