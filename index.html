@@ -1652,12 +1652,12 @@ tbody tr.blocked:hover{opacity:.72}
         </div>
         <div class="seg" id="donConsent" style="flex:none">
           <button data-cs="all" class="on">전체</button>
-          <button data-cs="yes">✅ 수신 동의 <span class="seg-cnt" id="csYesCnt">0</span></button>
-          <button data-cs="no">🚫 미동의 <span class="seg-cnt" id="csNoCnt">0</span></button>
+          <button data-cs="yes">✅ 수신동의</button>
+          <button data-cs="no">🚫 미동의</button>
         </div>
         <div class="seg" id="donMember" style="flex:none" title="무료 멤버십 가입 팬만 시스템에서 관리됩니다">
-          <button data-mb="member" class="on">🎫 멤버십 <span class="seg-cnt" id="mbCnt">0</span></button>
-          <button data-mb="non">미가입 <span class="seg-cnt" id="mbNonCnt">0</span></button>
+          <button data-mb="member" class="on">🎫 멤버십</button>
+          <button data-mb="non">미가입</button>
         </div>
         <div class="seg grade-seg" id="donGradeF" style="flex:none" title="등급 필터 · 복수 선택 가능"></div>
         <div class="temp-slider" id="donTempSlider" title="관계 온도 범위 — 슬라이더로 조절">
@@ -3143,10 +3143,6 @@ function renderDonators(){
   renderDonOutreach();
   byId('vwChurnCnt').textContent=DB.donators.filter(isChurnTarget).length;
   byId('vwPromoteCnt').textContent=DB.donators.filter(isNudgeTarget).length;
-  byId('csYesCnt').textContent=DB.donators.filter(d=>d.alimConsent).length;
-  byId('csNoCnt').textContent=DB.donators.filter(d=>!d.alimConsent).length;
-  byId('mbCnt').textContent=DB.donators.filter(isMember).length;
-  byId('mbNonCnt').textContent=DB.donators.filter(d=>!isMember(d)).length;
   let rows=DB.donators.filter(d=>{
     if(donMember==='member' && !isMember(d)) return false;
     if(donMember==='non' && isMember(d)) return false;
