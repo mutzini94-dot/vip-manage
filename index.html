@@ -213,6 +213,7 @@ input,textarea,select{font-family:inherit}
 .gnb-burger.open .ic-open{display:none}
 .gnb-burger.open .ic-close{display:block}
 .nav-backdrop{display:none}
+body.nav-lock{overflow:hidden}                        /* 햄버거 메뉴 열림 중 배경 스크롤 잠금 */
 /* 모바일: 탭바를 가로 스와이프 대신 햄버거 드롭다운으로 전환
    (base 규칙 뒤에 위치해야 캐스케이드에서 우선 적용됨) */
 @media(max-width:640px){
@@ -227,13 +228,13 @@ input,textarea,select{font-family:inherit}
   .tabbar.open{transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto}
   .tab{width:100%;justify-content:flex-start;padding:13px 14px;font-size:15px;border-radius:10px}
   .tab .cnt{margin-left:auto}
-  .nav-backdrop{position:fixed;inset:56px 0 0;z-index:38;background:rgba(0,0,0,.42);
-    opacity:0;visibility:hidden;transition:.18s}
+  .nav-backdrop{display:block;position:fixed;inset:56px 0 0;z-index:38;background:rgba(0,0,0,.42);
+    opacity:0;visibility:hidden;transition:opacity .18s ease,visibility .18s}
   .nav-backdrop.open{opacity:1;visibility:visible}
 }
 
 /* ===== Layout ===== */
-.wrap{max-width:1240px;margin:0 auto;width:100%;padding:26px 20px 60px;overflow-x:hidden}
+.wrap{max-width:1240px;margin:0 auto;width:100%;padding:26px 20px 60px}
 .page-head{display:flex;align-items:flex-end;gap:16px;margin-bottom:22px;flex-wrap:wrap}
 .page-head h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em}
 .page-head p{margin:5px 0 0;color:var(--muted);font-size:13.5px}
@@ -639,6 +640,8 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .ins-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:16px;align-items:start}
 @media(max-width:900px){.ins-grid{grid-template-columns:1fr}}
 /* 인사이트 상단 소형 카드 — 메이슨리(높이 차로 생기는 빈 공백 최소화) */
+/* 인사이트 하단 대형 카드(화면 밖) 페인트 스킵 — 모바일 스크롤 부하 감소 */
+#page-insight>.panel{content-visibility:auto;contain-intrinsic-size:auto 500px}
 .ins-masonry{columns:2;column-gap:16px;margin-bottom:16px}
 .ins-masonry>.panel{break-inside:avoid;width:100%;margin:0 0 16px}
 .ins-masonry>.panel:last-child{margin-bottom:0}
@@ -2747,6 +2750,7 @@ function setNav(open){
   bar.classList.toggle('open',open); bd.classList.toggle('open',open); bt.classList.toggle('open',open);
   bt.setAttribute('aria-expanded',open?'true':'false');
   bt.setAttribute('aria-label',open?'메뉴 닫기':'메뉴 열기');
+  document.body.classList.toggle('nav-lock',open);   // 메뉴 열림 중 배경 스크롤 잠금
 }
 byId('navBurger').onclick=()=>setNav(!document.querySelector('.tabbar').classList.contains('open'));
 byId('navBackdrop').onclick=()=>setNav(false);
