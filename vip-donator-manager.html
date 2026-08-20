@@ -1353,32 +1353,36 @@ tbody tr.blocked:hover{opacity:.72}
           <p>후원 흐름과 VIP 관계를 한눈에. 이탈 위험 VIP를 찾아 관계를 이어가세요.</p>
         </div>
         <div class="spacer"></div>
+        <button class="btn ghost sm" id="insightCustomize" title="표시할 항목 선택">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="var(--surface)"/><circle cx="15" cy="12" r="2" fill="var(--surface)"/><circle cx="7" cy="18" r="2" fill="var(--surface)"/></svg>
+          표시 항목
+        </button>
         <button class="btn ghost sm" id="insightRefresh" title="집계 새로고침">
           <svg id="insightRefreshIc" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
           새로고침
         </button>
       </div>
 
-      <div class="kpi-row" id="kpiRow"></div>
+      <div class="kpi-row" id="kpiRow" data-insec="kpi"></div>
 
       <div class="ins-masonry">
-        <div class="panel">
+        <div class="panel" data-insec="trend">
           <div class="panel-head"><h3>후원 추이</h3><span class="hint">최근 6개월</span><div class="spacer"></div><div id="trendDelta" class="trend-delta"></div></div>
           <div class="panel-body" id="trendChart"></div>
         </div>
-        <div class="panel">
+        <div class="panel" data-insec="gradeMix">
           <div class="panel-head"><h3>등급별 매출 비중</h3></div>
           <div class="panel-body" id="gradeMix"></div>
         </div>
-        <div class="panel">
+        <div class="panel" data-insec="amtDist">
           <div class="panel-head"><h3>💰 후원 금액 분포</h3><span class="hint" id="amtDistHint"></span></div>
           <div class="panel-body" id="amtDistBox"></div>
         </div>
-        <div class="panel">
+        <div class="panel" data-insec="topSig">
           <div class="panel-head"><h3>✍️ 상위 후원 시그니처</h3><span class="hint" id="topSigHint"></span></div>
           <div class="panel-body" id="topSigBox"></div>
         </div>
-        <div class="panel">
+        <div class="panel" data-insec="churn">
           <div class="panel-head">
             <h3>⚠️ 이탈 위험 VIP</h3><span class="hint" id="churnHint"></span><div class="spacer"></div>
             <div class="seg" id="churnThresh" style="flex:none">
@@ -1387,13 +1391,13 @@ tbody tr.blocked:hover{opacity:.72}
           </div>
           <div class="panel-body" id="churnBox"></div>
         </div>
-        <div class="panel">
+        <div class="panel" data-insec="pareto">
           <div class="panel-head"><h3>상위 후원자 기여도</h3><span class="hint">파레토</span></div>
           <div class="panel-body" id="paretoBox"></div>
         </div>
       </div>
 
-      <div class="panel" style="margin-bottom:16px">
+      <div class="panel" style="margin-bottom:16px" data-insec="fanTemp">
         <div class="panel-head">
           <h3>🌡 관계 온도</h3><span class="hint" id="fanTempHint">팬 관계 건강도</span><div class="spacer"></div>
           <div class="seg" id="fanTempMode" style="flex:none"><button data-m="cooling" class="on">🌥 식어가는 단골</button><button data-m="hot">🔥 뜨거운 팬</button></div>
@@ -1404,7 +1408,7 @@ tbody tr.blocked:hover{opacity:.72}
         </div>
       </div>
 
-      <div class="panel" style="margin-bottom:16px">
+      <div class="panel" style="margin-bottom:16px" data-insec="nudge">
         <div class="panel-head">
           <h3>🎯 승급 임박 VIP</h3><span class="hint" id="nudgeHint"></span><div class="spacer"></div>
           <label class="auto-toggle" title="90% 도달 시 자동으로 넛지 발송"><span>마일스톤 자동 넛지</span><div class="tgl" id="msNudge"></div></label>
@@ -1415,7 +1419,7 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="panel-body"><div id="nudgeBox"></div></div>
       </div>
 
-      <div class="panel" style="margin-bottom:16px">
+      <div class="panel" style="margin-bottom:16px" data-insec="outreach">
         <div class="panel-head">
           <h3>📈 복귀 유도·넛지 성과</h3><span class="hint" id="outreachHint">발송 대비 전환 분석</span><div class="spacer"></div>
           <button class="btn ghost sm" id="outreachMore">전체 성과 보기 ▸</button>
@@ -1426,7 +1430,7 @@ tbody tr.blocked:hover{opacity:.72}
         </div>
       </div>
 
-      <div class="panel" style="margin-bottom:16px">
+      <div class="panel" style="margin-bottom:16px" data-insec="anniv">
         <div class="panel-head">
           <h3>🎂 다가오는 기념일</h3><span class="hint" id="annivHint">가입 기념일 30일 이내</span><div class="spacer"></div>
           <label class="auto-toggle"><span>기념일 자동 축하</span><div class="tgl" id="annivAuto"></div></label>
@@ -2232,6 +2236,18 @@ tbody tr.blocked:hover{opacity:.72}
       </div>
     </div>
     <div class="modal-foot"><a class="btn ghost sm" href="manual.html" target="_blank" rel="noopener">📖 사용 매뉴얼</a><div class="spacer"></div><button class="btn primary" id="setDone">완료</button></div>
+  </div>
+</div>
+
+<!-- ============ 인사이트 표시 항목 커스텀 ============ -->
+<div class="overlay" id="insightCustomOverlay">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head"><h2>🧩 인사이트 표시 항목</h2><div class="spacer"></div><button class="xbtn" id="icClose">✕</button></div>
+    <div class="modal-body">
+      <p class="helper" style="margin:0 0 14px">화면에 표시할 카드를 선택하세요. 변경은 즉시 반영되고 저장됩니다.</p>
+      <div id="icList" class="ic-list"></div>
+    </div>
+    <div class="modal-foot"><button class="btn ghost sm" id="icAll">모두 표시</button><div class="spacer"></div><button class="btn primary" id="icDone">완료</button></div>
   </div>
 </div>
 
@@ -3730,7 +3746,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','creditOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay','perkOverlay','thanksOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','creditOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay','perkOverlay','thanksOverlay','insightCustomOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -4191,7 +4207,47 @@ function renderDrTemp(d){
   </div>`;
 }
 
-function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderAmtDist();renderTopSig();renderChurn();renderPareto();renderFanTemp();renderNudge();renderOutreach();renderAnniv();if(typeof renderAlerts==='function')renderAlerts();}
+function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderAmtDist();renderTopSig();renderChurn();renderPareto();renderFanTemp();renderNudge();renderOutreach();renderAnniv();applyInsightVisibility();if(typeof renderAlerts==='function')renderAlerts();}
+
+/* ---------- 인사이트 표시 항목 커스텀 ---------- */
+const INSIGHT_SECTIONS=[
+  {id:'kpi',    label:'핵심 지표(KPI)',     desc:'누적·활성·이번달·이탈위험 요약'},
+  {id:'trend',  label:'후원 추이',          desc:'최근 6개월 추이'},
+  {id:'gradeMix',label:'등급별 매출 비중',   desc:'등급별 매출 도넛'},
+  {id:'amtDist',label:'후원 금액 분포',      desc:'금액 구간별 건수'},
+  {id:'topSig', label:'상위 후원 시그니처',  desc:'인기 시그니처 순위'},
+  {id:'churn',  label:'이탈 위험 VIP',       desc:'무후원 단골 목록'},
+  {id:'pareto', label:'상위 후원자 기여도',  desc:'파레토 상위 기여'},
+  {id:'fanTemp',label:'관계 온도',           desc:'팬 관계 건강도'},
+  {id:'nudge',  label:'승급 임박 VIP',       desc:'넛지 대상'},
+  {id:'outreach',label:'복귀 유도·넛지 성과',desc:'발송 대비 전환'},
+  {id:'anniv',  label:'다가오는 기념일',     desc:'가입 기념일 임박'},
+];
+function insightHidden(){ return (DB.settings&&DB.settings.insightHidden)||[]; }
+function applyInsightVisibility(){
+  const hidden=insightHidden();
+  document.querySelectorAll('#page-insight [data-insec]').forEach(el=>{
+    el.style.display = hidden.includes(el.dataset.insec) ? 'none' : '';
+  });
+}
+function renderInsightCustom(){
+  const hidden=insightHidden();
+  byId('icList').innerHTML=INSIGHT_SECTIONS.map(s=>`
+    <label class="set-toggle" data-ic="${s.id}"><div><div class="st-t">${s.label}</div><div class="st-s">${s.desc}</div></div>
+      <div class="tgl ${hidden.includes(s.id)?'':'on'}"></div></label>`).join('');
+  byId('icList').querySelectorAll('.set-toggle').forEach(row=>row.onclick=()=>{
+    const id=row.dataset.ic; let h=insightHidden().slice();
+    if(h.includes(id)) h=h.filter(x=>x!==id); else h.push(id);
+    DB.settings.insightHidden=h; save();
+    row.querySelector('.tgl').classList.toggle('on',!h.includes(id));
+    applyInsightVisibility();
+  });
+}
+function openInsightCustom(){ renderInsightCustom(); byId('insightCustomOverlay').classList.add('show'); }
+byId('insightCustomize').onclick=openInsightCustom;
+byId('icClose').onclick=byId('icDone').onclick=()=>byId('insightCustomOverlay').classList.remove('show');
+byId('insightCustomOverlay').onclick=e=>{if(e.target===byId('insightCustomOverlay'))byId('insightCustomOverlay').classList.remove('show');};
+byId('icAll').onclick=()=>{ DB.settings.insightHidden=[]; save(); renderInsightCustom(); applyInsightVisibility(); toast('모든 항목을 표시합니다'); };
 byId('insightRefresh').onclick=()=>{
   const b=byId('insightRefresh'); b.classList.remove('spinning'); void b.offsetWidth; b.classList.add('spinning');
   setTimeout(()=>b.classList.remove('spinning'),650);
