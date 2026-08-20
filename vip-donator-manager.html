@@ -385,14 +385,22 @@ select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+x
 .toolbar-row .spacer{flex:1}
 /* 도네이터 관리: 필터는 한 줄로 최대한 압축, 액션(CSV·카운트)은 아래 줄 */
 .don-filters{gap:8px;margin-bottom:10px}
-.don-filters .searchbar{min-width:150px;flex:1 1 160px;max-width:none;padding:8px 12px}
+.don-filters .searchbar{min-width:120px;flex:0 1 200px;max-width:220px;padding:8px 12px}
 .don-filters .seg{padding:3px}
 .don-filters .seg button{padding:7px 8px;font-size:12.5px}
 .don-filters .seg-cnt{margin-left:3px}
-.don-filters #donGradeF{padding:8px 26px 8px 10px}
 .don-filters .temp-slider{min-width:150px;padding:6px 11px 8px}
 .don-actions{margin-bottom:8px}
 .don-actions .limit-note{white-space:nowrap}
+/* 등급 다중선택 체크박스 칩 */
+.grade-checks{display:flex;align-items:center;gap:5px;flex-wrap:wrap;flex:none}
+.gchk{display:inline-flex;align-items:center;gap:5px;padding:6px 9px 6px 7px;border-radius:9px;
+  background:var(--surface-2);border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:12.5px;transition:.12s}
+.gchk:hover{color:var(--text);border-color:var(--line-strong)}
+.gchk .gck-box{width:15px;height:15px;border-radius:5px;border:1.5px solid var(--line-strong);flex:none;display:grid;place-items:center;transition:.12s}
+.gchk.on{color:var(--text);border-color:var(--accent);background:var(--accent-soft)}
+.gchk.on .gck-box{background:var(--accent);border-color:var(--accent)}
+.gchk.on .gck-box::after{content:'';width:8px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:translateY(-1px) rotate(-45deg)}
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 thead th{text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;
@@ -1658,7 +1666,7 @@ tbody tr.blocked:hover{opacity:.72}
           <button data-mb="member" class="on">🎫 멤버십 <span class="seg-cnt" id="mbCnt">0</span></button>
           <button data-mb="non">미가입 <span class="seg-cnt" id="mbNonCnt">0</span></button>
         </div>
-        <select class="inp" id="donGradeF" title="등급 필터" style="flex:none;width:auto"><option value="all">등급 전체</option></select>
+        <div class="grade-checks" id="donGradeF" title="등급 필터 · 복수 선택 가능"></div>
         <div class="temp-slider" id="donTempSlider" title="관계 온도 범위 — 슬라이더로 조절">
           <div class="ts-cap"><span class="ts-ic">🌡</span><b id="tsLabel">온도 전체</b></div>
           <div class="ts-track">
@@ -3005,7 +3013,7 @@ byId('thanksSend').onclick=()=>{
 /* =========================================================
    TAB 2 — 도네이터 관리
    ========================================================= */
-let donView='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active', donConsent='all', donMember='member', donGradeF='all', donTempMin=0, donTempMax=100, donPage=1;
+let donView='rank', donCol='cash', donDir=-1, donQuery='', donStatus='active', donConsent='all', donMember='member', donGradeSel=new Set(), donTempMin=0, donTempMax=100, donPage=1;
 const DON_VIEW_DESC={
   rank:'누적 후원 금액이 높은 순으로 도네이터를 정렬해 보여줍니다.',
   temp:'관계 온도(최근성·빈도·금액)가 높은 순으로 정렬합니다.',
@@ -3031,7 +3039,6 @@ byId('donMember').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   byId('donMember').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
   renderDonators();
 });
-byId('donGradeF').onchange=e=>{donGradeF=e.target.value;donPage=1;renderDonators();};
 /* 관계 온도 범위 슬라이더 */
 (function(){
   const tsMin=byId('tsMin'), tsMax=byId('tsMax');
@@ -3049,14 +3056,17 @@ byId('donGradeF').onchange=e=>{donGradeF=e.target.value;donPage=1;renderDonators
 })();
 /* 등급 필터 옵션 채우기(등급 변경 반영, 선택값 유지) */
 function fillGradeFilter(){
-  const sel=byId('donGradeF'); if(!sel)return;
-  const cur=donGradeF;
-  const opts=['<option value="all">등급 전체</option>']
-    .concat([...DB.grades].sort((a,b)=>b.min-a.min).map(g=>`<option value="${g.id}">${g.name}</option>`))
-    .concat('<option value="none">미분류</option>');
-  sel.innerHTML=opts.join('');
-  sel.value=[...sel.options].some(o=>o.value===cur)?cur:'all';
-  donGradeF=sel.value;
+  const box=byId('donGradeF'); if(!box)return;
+  // 존재하지 않는 등급 선택값 정리
+  const valid=new Set([...DB.grades.map(g=>g.id),'none']);
+  [...donGradeSel].forEach(k=>{ if(!valid.has(k)) donGradeSel.delete(k); });
+  const items=[...DB.grades].sort((a,b)=>b.min-a.min).map(g=>({k:g.id,name:g.name})).concat([{k:'none',name:'미분류'}]);
+  box.innerHTML=items.map(it=>`<button class="gchk ${donGradeSel.has(it.k)?'on':''}" data-g="${it.k}"><span class="gck-box"></span>${it.name}</button>`).join('');
+  box.querySelectorAll('.gchk').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.g;
+    if(donGradeSel.has(k)) donGradeSel.delete(k); else donGradeSel.add(k);
+    donPage=1; renderDonators();
+  });
 }
 /* 도네이터 관리에서 바로 쓰는 액션 대상 판별 (인사이트 탭 기준과 동일) */
 /* 무료 멤버십 가입 여부 — 가입 팬만 시스템에서 관리·적용 */
@@ -3147,7 +3157,7 @@ function renderDonators(){
     if(donView==='promote' && !isNudgeTarget(d)) return false;
     if(donConsent==='yes' && !d.alimConsent) return false;
     if(donConsent==='no' && d.alimConsent) return false;
-    if(donGradeF!=='all'){const g=gradeForCash(d.cash); if(donGradeF==='none'){if(g)return false;} else if(!g||g.id!==donGradeF) return false;}
+    if(donGradeSel.size>0){const g=gradeForCash(d.cash); const key=g?g.id:'none'; if(!donGradeSel.has(key)) return false;}
     if(donTempMin>0 || donTempMax<100){ const t=fanScore(d).temp; if(t<donTempMin || t>donTempMax) return false; }
     if(!donQuery) return true;
     return d.name.toLowerCase().includes(donQuery) || (d.alias||'').toLowerCase().includes(donQuery)
