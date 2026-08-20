@@ -1175,16 +1175,28 @@ tbody tr.blocked:hover{opacity:.72}
 .or-list{max-height:340px;overflow-y:auto}
 .or-list .or-row{padding:11px 2px}
 /* 자동화 성과 스트립 */
-.ac-stats{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:12px 0 2px;padding-top:12px;border-top:1px solid var(--line);cursor:pointer;transition:.12s}
-.ac-stats:hover{opacity:.85}
-.ac-stats .as-m{display:flex;flex-direction:column;gap:1px;flex:none}
-.ac-stats .as-k{font-size:10.5px;color:var(--muted-2);font-weight:700}
-.ac-stats .as-v{font-size:14.5px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text)}
-.ac-stats .as-v small{font-size:11px;color:var(--muted);font-weight:600}
-.ac-stats .as-v.on{color:var(--on)} .ac-stats .as-v.ac{color:var(--accent)}
-.ac-stats .as-bar{flex:1;min-width:50px;height:6px;border-radius:4px;background:var(--surface-3);overflow:hidden}
-.ac-stats .as-bar i{display:block;height:100%;background:var(--on);border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
-.ac-stats .as-more{font-size:11px;font-weight:800;color:var(--accent);white-space:nowrap;flex:none}
+/* 자동화 성과 — 부각된 카드형 */
+.ac-stats{display:block;margin:12px 0 2px;padding:12px 13px;border:1px solid var(--line);border-radius:12px;
+  background:linear-gradient(180deg,var(--accent-soft),transparent 90%);cursor:pointer;transition:.12s}
+.ac-stats:hover{border-color:var(--accent)}
+.btn.is-disabled{opacity:.5;cursor:not-allowed}   /* 최대 개수 도달 시 추가 버튼 흐리게(클릭 시 안내 토스트) */
+.ac-stats .as-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.ac-stats .as-title{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.02em}
+.ac-stats .as-more{font-size:11px;font-weight:800;color:var(--accent);white-space:nowrap}
+.ac-stats .as-hero{display:flex;align-items:center;gap:15px}
+.ac-stats .as-rate{flex:none;text-align:center;min-width:62px}
+.ac-stats .as-rate-v{font-size:29px;font-weight:800;line-height:1;color:var(--on);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.ac-stats .as-rate-v small{font-size:15px;color:var(--muted);font-weight:700}
+.ac-stats .as-rate-k{font-size:10.5px;color:var(--muted-2);font-weight:700;margin-top:4px}
+.ac-stats .as-metrics{display:flex;gap:16px;flex:1;flex-wrap:wrap;border-left:1px solid var(--line);padding-left:15px}
+.ac-stats .as-m{display:flex;flex-direction:column-reverse;gap:2px}
+.ac-stats .as-m .as-v{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text)}
+.ac-stats .as-m .as-v small{font-size:11px;color:var(--muted);font-weight:600}
+.ac-stats .as-m .as-v.on{color:var(--on)} .ac-stats .as-m .as-v.ac{color:var(--accent)}
+.ac-stats .as-m .as-k{font-size:10.5px;color:var(--muted-2);font-weight:700}
+.ac-stats .as-bar{height:7px;border-radius:4px;background:var(--surface-3);overflow:hidden;margin-top:11px}
+.ac-stats .as-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--on),var(--accent));border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+@media(max-width:520px){.ac-stats .as-metrics{border-left:none;padding-left:0;gap:13px}}
 /* 설정 모달 */
 .set-sec{margin-bottom:22px}
 .set-sec:last-child{margin-bottom:0}
@@ -1735,6 +1747,7 @@ tbody tr.blocked:hover{opacity:.72}
           <p>특정 상황이 발생하면 자동으로 액션을 발동합니다. VIP 도네이터의 로그인·후원 시 특별한 경험을 제공하세요.</p>
         </div>
         <div class="spacer"></div>
+        <span class="limit-note" title="자동화는 최대 6개까지 설정할 수 있습니다">자동화 <b id="autoCount">0</b> / 6</span>
         <button class="btn ghost" id="tplBtn">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.09 4.26L19 8l-3.5 3.4.8 4.6L12 14l-4.3 2 .8-4.6L5 8l4.91-.74z"/></svg>
           추천 템플릿
@@ -3250,10 +3263,15 @@ function situText(a){
   const suffix={login:'에게 방송 시작 시',donate:'후원 시',promote:'승급 시',anniv:'가입 기념일'}[a.situ]||s.label;
   return `${who} ${suffix}`;
 }
+const MAX_AUTOS=6;
+function canAddAuto(){ if(DB.autos.length>=MAX_AUTOS){ toast(`자동화는 최대 ${MAX_AUTOS}개까지 설정할 수 있습니다`,'⚠️'); return false; } return true; }
 function renderAutos(){
   const grid=byId('autoGrid'); grid.innerHTML='';
   byId('autoEmpty').classList.toggle('hidden',DB.autos.length>0);
   byId('tabCntAuto').textContent=DB.autos.length;
+  const full=DB.autos.length>=MAX_AUTOS;
+  if(byId('autoCount'))byId('autoCount').textContent=DB.autos.length;
+  const addB=byId('addAutoBtn'); if(addB){ addB.classList.toggle('is-disabled',full); addB.title=full?`최대 ${MAX_AUTOS}개까지 설정할 수 있습니다`:'자동화 추가'; }
   renderAutoLogs();
   DB.autos.forEach(a=>{
     const s=SITU[a.situ]; const acts=a.actions||[]; const firstAct=ACTIONS[acts[0]?.type];
@@ -3279,12 +3297,17 @@ function renderAutos(){
         ${actChips}
       </div>
       <div class="ac-stats" data-stats="${a.id}" title="클릭하여 상세 성과 보기">
-        <div class="as-m"><div class="as-k">발동</div><div class="as-v">${won(st.runs)}<small>회</small></div></div>
-        <div class="as-m"><div class="as-k">전환</div><div class="as-v on">${won(st.conv)}<small> · ${st.rate}%</small></div></div>
-        <div class="as-m"><div class="as-k">전환 후원</div><div class="as-v ac">${won(st.cash)}<small> 캐시</small></div></div>
-        ${st.pending?`<div class="as-m"><div class="as-k">대기</div><div class="as-v">${won(st.pending)}</div></div>`:''}
+        <div class="as-head"><span class="as-title">📊 성과 요약</span><span class="as-more">상세 보기 ▸</span></div>
+        <div class="as-hero">
+          <div class="as-rate"><div class="as-rate-v">${st.rate}<small>%</small></div><div class="as-rate-k">전환율</div></div>
+          <div class="as-metrics">
+            <div class="as-m"><div class="as-v">${won(st.runs)}<small>회</small></div><div class="as-k">발동</div></div>
+            <div class="as-m"><div class="as-v on">${won(st.conv)}<small>건</small></div><div class="as-k">전환</div></div>
+            <div class="as-m"><div class="as-v ac">${won(st.cash)}<small> 캐시</small></div><div class="as-k">전환 후원</div></div>
+            ${st.pending?`<div class="as-m"><div class="as-v">${won(st.pending)}</div><div class="as-k">대기</div></div>`:''}
+          </div>
+        </div>
         <div class="as-bar" title="전환율 ${st.rate}%"><i style="width:${st.rate}%"></i></div>
-        <span class="as-more">📊 성과 ▸</span>
       </div>
       <div class="ac-foot">
         <div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
@@ -3310,6 +3333,7 @@ byId('wizClose').onclick=byId('wizCancel').onclick=closeWizard;
 wizOv.onclick=e=>{if(e.target===wizOv)closeWizard();};
 
 function openWizard(id){
+  if(!id && !canAddAuto()) return;   // 신규 추가 시 최대 6개 제한
   if(id){
     const a=DB.autos.find(x=>x.id===id);
     W={step:1,id,situ:a.situ,targetMode:a.targetMode||'class',classes:[...(a.classes||[])],picks:[...(a.picks||[])],
@@ -3590,7 +3614,7 @@ byId('wizNext').onclick=()=>{
   if(s.lead) obj.lead=W.lead;
   if(s.target){obj.targetMode=W.targetMode;obj.classes=[...W.classes];obj.picks=[...W.picks];}
   if(W.id){const idx=DB.autos.findIndex(x=>x.id===W.id);DB.autos[idx]={...DB.autos[idx],...obj};}
-  else DB.autos.push(obj);
+  else { if(!canAddAuto()){closeWizard();return;} DB.autos.push(obj); }
   save();closeWizard();renderAutos();toast(W.id?'자동화가 수정되었습니다':'자동화가 추가되었습니다');
 };
 
@@ -3636,11 +3660,13 @@ function renderTpl(){
   });
 }
 function addPreset(key){
+  if(!canAddAuto())return;
   const p=AUTO_PRESETS.find(x=>x.key===key);if(!p)return;
   DB.autos.push({id:uid(),on:true,...p.make()});
   save();closeTpl();renderAutos();toast(`‘${p.title}’ 자동화를 추가했습니다`);
 }
 function openPresetWizard(key){
+  if(!canAddAuto())return;
   const p=AUTO_PRESETS.find(x=>x.key===key);if(!p)return;const obj=p.make();
   W={step:1,id:null,situ:obj.situ,targetMode:obj.targetMode||'class',classes:[...(obj.classes||[])],picks:[...(obj.picks||[])],
      amt:{...(obj.amt||{mode:'range',min:0,max:0})},lead:obj.lead||3,actions:obj.actions.map(a=>({type:a.type,cfg:{...a.cfg}})),cooldown:defCooldown(),schedule:defSchedule()};
