@@ -383,6 +383,16 @@ select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+x
 /* ===== Table ===== */
 .toolbar-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
 .toolbar-row .spacer{flex:1}
+/* 도네이터 관리: 필터는 한 줄로 최대한 압축, 액션(CSV·카운트)은 아래 줄 */
+.don-filters{gap:8px;margin-bottom:10px}
+.don-filters .searchbar{min-width:150px;flex:1 1 160px;max-width:none;padding:8px 12px}
+.don-filters .seg{padding:3px}
+.don-filters .seg button{padding:7px 8px;font-size:12.5px}
+.don-filters .seg-cnt{margin-left:3px}
+.don-filters #donGradeF{padding:8px 26px 8px 10px}
+.don-filters .temp-slider{min-width:150px;padding:6px 11px 8px}
+.don-actions{margin-bottom:8px}
+.don-actions .limit-note{white-space:nowrap}
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 thead th{text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;
@@ -1634,10 +1644,10 @@ tbody tr.blocked:hover{opacity:.72}
         <button data-view="promote">🎯 승급 임박 <span class="st-cnt" id="vwPromoteCnt">0</span></button>
       </div>
 
-      <div class="toolbar-row">
+      <div class="toolbar-row don-filters">
         <div class="searchbar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
-          <input id="donSearch" placeholder="도네이터 명 또는 별칭 검색 (Like 검색)">
+          <input id="donSearch" placeholder="도네이터 검색">
         </div>
         <div class="seg" id="donConsent" style="flex:none">
           <button data-cs="all" class="on">전체</button>
@@ -1663,12 +1673,14 @@ tbody tr.blocked:hover{opacity:.72}
           <button data-st="all">전체</button>
           <button data-st="blocked" class="bad">⛔ 차단</button>
         </div>
+      </div>
+      <div class="toolbar-row don-actions">
         <div class="spacer"></div>
+        <div class="limit-note">등급 지정 <b id="assignedCount">0</b> / 100명</div>
         <button class="btn ghost sm" id="exportAllBtn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>
           CSV 내보내기
         </button>
-        <div class="limit-note">등급 지정 <b id="assignedCount">0</b> / 100명</div>
       </div>
 
       <div class="bulk-bar hidden" id="bulkBar">
