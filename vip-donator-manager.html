@@ -622,6 +622,13 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .dr-cash .val small{font-size:13px;color:var(--muted);margin-left:2px}
 .dr-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:20px 22px}
 .dr-sec{margin-bottom:24px}
+/* 프로필 드로어 성격별 탭 (클릭 시 해당 영역으로 앵커 이동) */
+.dr-tabs{flex:none;display:flex;gap:2px;padding:0 10px;background:var(--surface);border-bottom:1px solid var(--line);position:relative;z-index:1}
+.dr-tabs button{flex:1;padding:12px 4px;font-size:12.5px;font-weight:800;color:var(--muted);border-bottom:2px solid transparent;transition:.12s;white-space:nowrap}
+.dr-tabs button:hover{color:var(--text)}
+.dr-tabs button.on{color:var(--dr-grade-text,var(--accent));border-bottom-color:var(--dr-grade-text,var(--accent))}
+.dr-group{scroll-margin-top:8px}
+.dr-group:last-child{min-height:60vh}   /* 마지막 그룹도 상단까지 스크롤되도록 여유 확보 */
 .dr-sec .h{font-size:12.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;display:flex;align-items:center;gap:7px}
 .dtypes{display:flex;gap:8px;flex-wrap:wrap}
 .dtype{display:flex;align-items:center;gap:7px;padding:9px 13px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);font-size:12.5px;font-weight:700}
@@ -2111,37 +2118,51 @@ tbody tr.blocked:hover{opacity:.72}
       </div>
     </div>
   </div>
+  <div class="dr-tabs" id="drTabs">
+    <button data-sec="status" class="on">📊 현황</button>
+    <button data-sec="manage">🏷 관리</button>
+    <button data-sec="reward">🎁 후원·혜택</button>
+    <button data-sec="activity">🧭 활동</button>
+  </div>
   <div class="dr-body">
-    <div class="gauge-box" id="drGauge"></div>
-    <div id="drMember"></div>
-    <div id="drTemp"></div>
-    <div id="drConsent"></div>
-    <div id="drBlock"></div>
-    <div class="dr-sec">
-      <div class="h">🏷 태그</div>
-      <div class="tag-edit" id="drTags"></div>
-      <div class="tag-suggest" id="drTagSuggest"></div>
+    <div class="dr-group" id="drg-status">
+      <div class="gauge-box" id="drGauge"></div>
+      <div id="drMember"></div>
+      <div id="drTemp"></div>
+      <div id="drConsent"></div>
+      <div id="drBlock"></div>
     </div>
-    <div class="dr-sec">
-      <div class="h">📝 크리에이터 메모</div>
-      <textarea class="inp memo-inp" id="drMemo" rows="3" placeholder="이 도네이터에 대한 메모… (예: 게임 좋아함, 존댓말 선호, 롤 듀오 약속)"></textarea>
+    <div class="dr-group" id="drg-manage">
+      <div class="dr-sec">
+        <div class="h">🏷 태그</div>
+        <div class="tag-edit" id="drTags"></div>
+        <div class="tag-suggest" id="drTagSuggest"></div>
+      </div>
+      <div class="dr-sec">
+        <div class="h">📝 크리에이터 메모</div>
+        <textarea class="inp memo-inp" id="drMemo" rows="3" placeholder="이 도네이터에 대한 메모… (예: 게임 좋아함, 존댓말 선호, 롤 듀오 약속)"></textarea>
+      </div>
     </div>
-    <div class="dr-sec">
-      <div class="h">💫 자주하는 후원</div>
-      <div class="dtypes" id="drTypes"></div>
+    <div class="dr-group" id="drg-reward">
+      <div class="dr-sec">
+        <div class="h">💫 자주하는 후원</div>
+        <div class="dtypes" id="drTypes"></div>
+      </div>
+      <div class="dr-sec">
+        <div class="h">🎁 전용 혜택</div>
+        <div id="drPerks"></div>
+      </div>
+      <div class="dr-sec">
+        <div class="h">🏆 획득한 칭호</div>
+        <div class="titles" id="drTitles"></div>
+        <div class="grant-row" id="drGrant"></div>
+      </div>
     </div>
-    <div class="dr-sec">
-      <div class="h">🎁 전용 혜택</div>
-      <div id="drPerks"></div>
-    </div>
-    <div class="dr-sec">
-      <div class="h">🏆 획득한 칭호</div>
-      <div class="titles" id="drTitles"></div>
-      <div class="grant-row" id="drGrant"></div>
-    </div>
-    <div class="dr-sec">
-      <div class="h">🧭 활동 타임라인</div>
-      <div class="tl" id="drTimeline"></div>
+    <div class="dr-group" id="drg-activity">
+      <div class="dr-sec">
+        <div class="h">🧭 활동 타임라인</div>
+        <div class="tl" id="drTimeline"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -3819,9 +3840,27 @@ function openDrawer(id){
   renderTimeline(d);
   byId('drawerOverlay').classList.add('show');
   byId('donDrawer').classList.add('show');
+  const _b=byId('donDrawer').querySelector('.dr-body'); if(_b)_b.scrollTop=0; setDrTab('status');
 }
 function closeDrawer(){byId('drawerOverlay').classList.remove('show');byId('donDrawer').classList.remove('show');}
 byId('drClose').onclick=closeDrawer; byId('drawerOverlay').onclick=closeDrawer;
+/* 프로필 드로어 성격별 탭 — 클릭 시 해당 그룹으로 앵커 이동 + 스크롤 스파이 */
+function setDrTab(sec){ const t=byId('drTabs'); if(t)t.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.sec===sec)); }
+byId('drTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  const g=byId('drg-'+b.dataset.sec), body=byId('donDrawer').querySelector('.dr-body'); if(!g||!body)return;
+  const top=body.scrollTop + (g.getBoundingClientRect().top - body.getBoundingClientRect().top) - 6;
+  body.scrollTop=Math.max(0,top);   // scroll-behavior:smooth(CSS)로 부드럽게, 미지원 시 즉시 이동
+  setDrTab(b.dataset.sec);
+});
+(function(){
+  const body=byId('donDrawer').querySelector('.dr-body'); if(!body)return;
+  let raf=0;
+  body.addEventListener('scroll',()=>{ if(raf)return; raf=requestAnimationFrame(()=>{ raf=0;
+    const secs=['status','manage','reward','activity'], bt=body.getBoundingClientRect().top; let cur='status';
+    secs.forEach(s=>{const g=byId('drg-'+s); if(g && (g.getBoundingClientRect().top - bt) <= 40) cur=s;});
+    setDrTab(cur);
+  }); });
+})();
 
 /* =========================================================
    Confirm + Toast
