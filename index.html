@@ -1694,6 +1694,14 @@ tbody tr.blocked:hover{opacity:.72}
         </div>
       </div>
       <div class="toolbar-row don-actions">
+        <div class="seg don-templvl hidden" id="donTempLevel" style="flex:none" title="관계 온도 레벨로 필터">
+          <button data-lv="all" class="on">전체</button>
+          <button data-lv="hot">🔥 뜨거움</button>
+          <button data-lv="warm">☀️ 따뜻함</button>
+          <button data-lv="mild">🌤 미지근</button>
+          <button data-lv="cool">🌥 식는 중</button>
+          <button data-lv="cold">❄️ 차가움</button>
+        </div>
         <div class="spacer"></div>
         <div class="limit-note">등급 지정 <b id="assignedCount">0</b> / 100명</div>
         <button class="btn ghost sm" id="exportAllBtn">
@@ -3078,10 +3086,27 @@ byId('donMember').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   function onSlide(e){
     let mn=+tsMin.value, mx=+tsMax.value;
     if(mn>mx){ if(e && e.target===tsMin){ mn=mx; tsMin.value=mn; } else { mx=mn; tsMax.value=mx; } }
-    donTempMin=mn; donTempMax=mx; updateTempUI(); donPage=1; renderDonators();
+    donTempMin=mn; donTempMax=mx; updateTempUI(); syncTempLevelChips(); donPage=1; renderDonators();
   }
   if(tsMin&&tsMax){ tsMin.addEventListener('input',onSlide); tsMax.addEventListener('input',onSlide); }
+  window._setTempRange=function(mn,mx){ donTempMin=mn; donTempMax=mx; if(tsMin)tsMin.value=mn; if(tsMax)tsMax.value=mx; updateTempUI(); };
   window._updateTempUI=updateTempUI; updateTempUI();
+})();
+/* 관계 온도 레벨 빠른 필터 (온도별 탭 · fanLevel 임계값과 동일한 구간으로 슬라이더 범위 설정) */
+const TEMP_LEVELS={all:[0,100],hot:[85,100],warm:[68,84],mild:[45,67],cool:[25,44],cold:[0,24]};
+function syncTempLevelChips(){
+  const box=byId('donTempLevel'); if(!box)return;
+  let match='';
+  Object.keys(TEMP_LEVELS).forEach(k=>{const[a,b]=TEMP_LEVELS[k];if(a===donTempMin&&b===donTempMax)match=k;});
+  box.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.lv===match));
+}
+byId('donTempLevel').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  const [mn,mx]=TEMP_LEVELS[b.dataset.lv]||[0,100];
+  window._setTempRange(mn,mx);
+  byId('donTempLevel').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  donPage=1; renderDonators();
+});
+(function(){
 })();
 /* 등급 필터 옵션 채우기(등급 변경 반영, 선택값 유지) */
 function fillGradeFilter(){
@@ -3177,6 +3202,8 @@ function renderDonators(){
   const tb=byId('donTbody'); tb.innerHTML='';
   fillGradeFilter();
   renderDonOutreach();
+  byId('donTempLevel').classList.toggle('hidden', donView!=='temp');  // 온도별 탭에서만 레벨 필터 노출
+  syncTempLevelChips();
   byId('vwChurnCnt').textContent=DB.donators.filter(isChurnTarget).length;
   byId('vwPromoteCnt').textContent=DB.donators.filter(isNudgeTarget).length;
   let rows=DB.donators.filter(d=>{
