@@ -449,8 +449,11 @@ tbody tr{cursor:pointer}
 .auto-card .ac-ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex:none;position:relative}
 .auto-card .ac-ic .act-count{position:absolute;right:-4px;top:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;border:2px solid var(--surface)}
 /* 추천 템플릿 */
-.tpl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-@media(max-width:640px){.tpl-grid{grid-template-columns:1fr}}
+.tpl-grid{display:flex;flex-direction:column;gap:18px}
+.tpl-cat-h{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text);letter-spacing:.01em;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.tpl-cat-h .cc{font-size:11px;font-weight:800;padding:1px 7px;border-radius:20px;background:var(--accent-soft);color:var(--accent)}
+.tpl-cat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:10px}
+@media(max-width:640px){.tpl-cat-grid{grid-template-columns:1fr}}
 .tpl-card{border:1px solid var(--line);border-radius:14px;padding:15px;background:var(--surface-2);display:flex;flex-direction:column;gap:12px;transition:.13s}
 .tpl-card:hover{border-color:var(--line-strong)}
 .tpl-top{display:flex;align-items:flex-start;gap:12px}
@@ -3808,21 +3811,41 @@ byId('wizNext').onclick=()=>{
 /* --- 추천 템플릿 프리셋 --- */
 function gradeIdByCls(cls){const g=DB.grades.find(x=>clsOf(x)===cls);return g?g.id:(DB.grades[0]?.id);}
 function clsIds(...cls){return [...new Set(cls.map(gradeIdByCls).filter(Boolean))];}
+const PRESET_CATS={
+  broadcast:{label:'방송 알림',icon:'📡'},
+  donation:{label:'후원 리액션',icon:'💰'},
+  milestone:{label:'관계·기념일',icon:'🎉'},
+};
 const AUTO_PRESETS=[
-  {key:'vvip_live',icon:'📡',title:'VVIP 방송 시작 알림',desc:'방송을 켜면 VVIP에게 카카오 알림톡으로 알려요.',
+  /* ── 방송 알림 ── */
+  {key:'vvip_live',cat:'broadcast',icon:'📡',title:'VVIP 방송 시작 알림',desc:'방송을 켜면 VVIP에게 카카오 알림톡으로 알려요.',
     make:()=>({situ:'login',targetMode:'class',classes:clsIds('vvip'),actions:[{type:'kakao_send',cfg:{msg:'{크리에이터} 님이 방송을 시작하였습니다! 보러 오세요 💜'}}]})},
-  {key:'prestart',icon:'⏰',title:'방송 예정 사전 알림',desc:'예정된 방송 3시간 전, VIP에게 미리 알림톡으로 예고해요.',
+  {key:'all_live',cat:'broadcast',icon:'🔔',title:'단골 전체 방송 시작 알림',desc:'방송 시작 시 모든 단골(열혈 이상)에게 알림톡.',
+    make:()=>({situ:'login',targetMode:'class',classes:clsIds('vvip','vip','yeol'),actions:[{type:'kakao_send',cfg:{msg:'{크리에이터} 님 방송이 시작됐어요! 지금 바로 보러오세요 🎬'}}]})},
+  {key:'prestart',cat:'broadcast',icon:'⏰',title:'방송 예정 사전 알림',desc:'예정된 방송 3시간 전, VIP에게 미리 예고 알림톡.',
     make:()=>({situ:'prestart',lead:3,targetMode:'class',classes:clsIds('vvip','vip'),actions:[{type:'kakao_send',cfg:{msg:'{닉네임}님, 오늘 방송 곧 시작해요! 잊지 말고 놀러오세요 ⏰'}}]})},
-  {key:'welcome',icon:'🌱',title:'신규 팬 환영 패키지',desc:'첫 후원한 팬에게 하트비 위젯 + 환영 알림톡.',
+  /* ── 후원 리액션 ── */
+  {key:'welcome',cat:'donation',icon:'🌱',title:'신규 팬 환영 패키지',desc:'첫 후원한 팬에게 하트비 위젯 + 환영 알림톡.',
     make:()=>({situ:'first',actions:[{type:'widget',cfg:{widget:'하트비'}},{type:'kakao_send',cfg:{msg:'{닉네임}님, 첫 후원 감사합니다! 앞으로 잘 부탁드려요 💕'}}]})},
-  {key:'bighand',icon:'💎',title:'큰손 축포',desc:'5만원 이상 후원 시 폭죽 위젯 + TTS 낭독.',
+  {key:'first_voice',cat:'donation',icon:'🎤',title:'첫 후원 음성 환영',desc:'첫 후원 시 TTS로 팬 이름을 불러 환영해요.',
+    make:()=>({situ:'first',actions:[{type:'tts',cfg:{voice:VOICES[0].k}}]})},
+  {key:'bighand',cat:'donation',icon:'💎',title:'큰손 축포',desc:'5만원 이상 후원 시 폭죽 위젯 + TTS 낭독.',
     make:()=>({situ:'amount',amt:{mode:'over',min:50000,max:0},actions:[{type:'widget',cfg:{widget:'폭죽'}},{type:'tts',cfg:{voice:VOICES[0].k}}]})},
-  {key:'vvip_recv',icon:'📩',title:'VVIP 후원 즉시 알림',desc:'VVIP가 후원하면 크리에이터에게 알림톡으로 바로 알려요.',
+  {key:'mega',cat:'donation',icon:'🪙',title:'초대박 후원 연출',desc:'10만원 이상 후원 시 골드러시 위젯 + TTS + 즉시 알림.',
+    make:()=>({situ:'amount',amt:{mode:'over',min:100000,max:0},actions:[{type:'widget',cfg:{widget:'골드러시'}},{type:'tts',cfg:{voice:VOICES[0].k}},{type:'kakao_recv',cfg:{phone:''}}]})},
+  {key:'vvip_recv',cat:'donation',icon:'📩',title:'VVIP 후원 즉시 알림',desc:'VVIP가 후원하면 크리에이터에게 알림톡으로 바로 알려요.',
     make:()=>({situ:'donate',targetMode:'class',classes:clsIds('vvip'),actions:[{type:'kakao_recv',cfg:{phone:''}}]})},
-  {key:'promote',icon:'🎖️',title:'등급 승급 축하',desc:'VIP·VVIP로 승급하면 팡파르 + 축하 알림톡.',
+  {key:'vvip_neon',cat:'donation',icon:'💠',title:'VVIP 후원 네온 연출',desc:'VVIP가 후원하면 방송 화면에 네온 위젯 효과.',
+    make:()=>({situ:'donate',targetMode:'class',classes:clsIds('vvip'),actions:[{type:'widget',cfg:{widget:'네온'}}]})},
+  /* ── 관계·기념일 ── */
+  {key:'promote',cat:'milestone',icon:'🎖️',title:'등급 승급 축하',desc:'VIP·VVIP로 승급하면 팡파르 + 축하 알림톡.',
     make:()=>({situ:'promote',targetMode:'class',classes:clsIds('vip','vvip'),actions:[{type:'widget',cfg:{widget:'팡파르'}},{type:'kakao_send',cfg:{msg:'{닉네임}님, {등급} 등급 승급을 축하합니다! 🎉'}}]})},
-  {key:'anniv',icon:'🎂',title:'가입 기념일 축하',desc:'VIP 기념일에 골드러시 위젯 + 축하 알림톡.',
+  {key:'vvip_promote',cat:'milestone',icon:'👑',title:'VVIP 승급 특별 축하',desc:'최고 등급 VVIP 도달 시 골드러시 + TTS + 축하 알림톡.',
+    make:()=>({situ:'promote',targetMode:'class',classes:clsIds('vvip'),actions:[{type:'widget',cfg:{widget:'골드러시'}},{type:'tts',cfg:{voice:VOICES[0].k}},{type:'kakao_send',cfg:{msg:'{닉네임}님, 최고 등급 VVIP 달성을 축하합니다! 👑'}}]})},
+  {key:'anniv',cat:'milestone',icon:'🎂',title:'가입 기념일 축하',desc:'VIP 기념일에 골드러시 위젯 + 축하 알림톡.',
     make:()=>({situ:'anniv',targetMode:'class',classes:clsIds('vvip','vip'),actions:[{type:'kakao_send',cfg:{msg:'{닉네임}님, 가입 {주년}주년을 축하해요! 늘 함께해 주셔서 감사합니다 🎂'}},{type:'widget',cfg:{widget:'골드러시'}}]})},
+  {key:'anniv_msg',cat:'milestone',icon:'💌',title:'기념일 축하 메시지',desc:'가입 기념일에 단골 전체에게 축하 알림톡만 발송.',
+    make:()=>({situ:'anniv',targetMode:'class',classes:clsIds('vvip','vip','yeol'),actions:[{type:'kakao_send',cfg:{msg:'{닉네임}님, 함께한 지 {주년}년! 진심으로 감사드려요 💌'}}]})},
 ];
 const tplOv=byId('tplOverlay');
 function openTpl(){renderTpl();tplOv.classList.add('show');}
@@ -3831,19 +3854,28 @@ byId('tplBtn').onclick=openTpl;
 byId('emptyTplBtn').onclick=openTpl;
 byId('tplClose').onclick=closeTpl;
 tplOv.onclick=e=>{if(e.target===tplOv)closeTpl();};
+function tplCardEl(p){
+  const obj=p.make(),s=SITU[obj.situ];
+  const actChips=obj.actions.map(ac=>{const A=ACTIONS[ac.type];return `<span class="flow-chip act">${A.icon} ${A.label}</span>`;}).join('<span class="flow-arrow">+</span>');
+  const card=document.createElement('div');card.className='tpl-card';
+  card.innerHTML=`
+    <div class="tpl-top"><div class="tpl-ic">${p.icon}</div><div><div class="tpl-t">${p.title}</div><div class="tpl-d">${p.desc}</div></div></div>
+    <div class="ac-flow"><span class="flow-chip trig">${s.icon} ${s.label}</span><span class="flow-arrow">→</span>${actChips}</div>
+    <div class="tpl-acts"><button class="btn ghost sm" data-edit="${p.key}">설정하며 추가</button><button class="btn primary sm" data-add="${p.key}">바로 추가</button></div>`;
+  card.querySelector('[data-add]').onclick=()=>addPreset(p.key);
+  card.querySelector('[data-edit]').onclick=()=>openPresetWizard(p.key);
+  return card;
+}
 function renderTpl(){
   const grid=byId('tplGrid');grid.innerHTML='';
-  AUTO_PRESETS.forEach(p=>{
-    const obj=p.make(),s=SITU[obj.situ];
-    const actChips=obj.actions.map(ac=>{const A=ACTIONS[ac.type];return `<span class="flow-chip act">${A.icon} ${A.label}</span>`;}).join('<span class="flow-arrow">+</span>');
-    const card=document.createElement('div');card.className='tpl-card';
-    card.innerHTML=`
-      <div class="tpl-top"><div class="tpl-ic">${p.icon}</div><div><div class="tpl-t">${p.title}</div><div class="tpl-d">${p.desc}</div></div></div>
-      <div class="ac-flow"><span class="flow-chip trig">${s.icon} ${s.label}</span><span class="flow-arrow">→</span>${actChips}</div>
-      <div class="tpl-acts"><button class="btn ghost sm" data-edit="${p.key}">설정하며 추가</button><button class="btn primary sm" data-add="${p.key}">바로 추가</button></div>`;
-    card.querySelector('[data-add]').onclick=()=>addPreset(p.key);
-    card.querySelector('[data-edit]').onclick=()=>openPresetWizard(p.key);
-    grid.appendChild(card);
+  Object.keys(PRESET_CATS).forEach(cat=>{
+    const items=AUTO_PRESETS.filter(p=>p.cat===cat); if(!items.length)return;
+    const c=PRESET_CATS[cat];
+    const h=document.createElement('div');h.className='tpl-cat-h';h.innerHTML=`${c.icon} ${c.label} <span class="cc">${items.length}</span>`;
+    grid.appendChild(h);
+    const wrap=document.createElement('div');wrap.className='tpl-cat-grid';
+    items.forEach(p=>wrap.appendChild(tplCardEl(p)));
+    grid.appendChild(wrap);
   });
 }
 function addPreset(key){
