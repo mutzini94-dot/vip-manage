@@ -160,7 +160,7 @@ input,textarea,select{font-family:inherit}
   .gnb .logo{font-size:15px;min-width:0}                      /* 로고 축소 허용 */
   .gnb .logo .sub{display:none}
   .gnb .logo>div:not(.mark){min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .gnb .gnb-chip:not(.credit-chip){display:none}   /* 리모컨 연동됨 숨김 */
+  .gnb .gnb-chip:not(.credit-chip){display:none}   /* 크레딧 칩 외 GNB 칩 숨김 */
   .gnb .avatar{display:none}                         /* 설정 톱니와 중복 → 숨김 */
   #themeToggle{display:none}                          /* 테마는 설정에서 변경 — 상단 공간 확보 */
   .credit-chip{padding:6px 9px;gap:5px;max-width:118px}
@@ -610,7 +610,6 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .drawer.show{transform:none}
 .dr-hero{flex:none;padding:24px 22px 20px;position:relative;background:linear-gradient(160deg,var(--dr-grade-soft),var(--surface));border-bottom:1px solid var(--dr-grade-soft)}
 .dr-hero .close{position:absolute;top:16px;right:16px}
-.dr-remote{position:absolute;top:16px;right:60px;font-size:11px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:5px;background:var(--surface-3);padding:5px 9px;border-radius:7px}
 .dr-avatar{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:26px;margin-bottom:14px;box-shadow:0 0 0 3px var(--dr-grade-soft),0 4px 16px rgba(0,0,0,.3)}
 .dr-name{font-size:20px;font-weight:800;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 .dr-alias{color:var(--muted);font-size:13.5px;margin-top:3px}
@@ -1388,7 +1387,6 @@ tbody tr.blocked:hover{opacity:.72}
       <span class="cr-tx"><span class="cr-lbl">알림톡 잔여 </span><b id="creditBal">300</b><span class="cr-lbl">건</span></span>
       <span class="cr-plus">＋충전</span>
     </button>
-    <div class="gnb-chip"><span class="dot"></span>리모컨 연동됨</div>
     <button class="theme-toggle" id="themeToggle" title="라이트/다크 모드 전환" aria-label="테마 전환">
       <svg class="ic-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       <svg class="ic-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -2156,7 +2154,6 @@ tbody tr.blocked:hover{opacity:.72}
 <div class="overlay" id="drawerOverlay" style="background:rgba(6,7,11,.5)"></div>
 <div class="drawer" id="donDrawer">
   <div class="dr-hero">
-    <div class="dr-remote">🎛 리모컨 연동</div>
     <button class="xbtn close" id="drClose">✕</button>
     <div class="dr-avatar" id="drAva">D</div>
     <div class="dr-name" id="drName">도네이터 명 <span id="drGrade"></span></div>
@@ -2733,10 +2730,10 @@ function seedLogs(donators){
   const gname=c=>c>=300000?'VVIP':c>=100000?'VIP':c>=30000?'열혈':'';
   const top=donators.slice().sort((a,b)=>b.cash-a.cash).slice(0,12);
   const rows=[
-    ['10-31 21:14','donate','remote',50000],['10-31 20:58','amount','widget',30000],
+    ['10-31 21:14','donate','kakao_recv',50000],['10-31 20:58','amount','widget',30000],
     ['10-31 20:41','first','kakao_send',3000],['10-31 20:22','login','kakao_send',0],
     ['10-30 22:03','promote','widget',0],['10-30 21:47','anniv','kakao_send',0],
-    ['10-30 21:20','amount','tts',100000],['10-29 19:55','donate','remote',5000],
+    ['10-30 21:20','amount','tts',100000],['10-29 19:55','donate','kakao_recv',5000],
   ];
   return rows.map((r,i)=>{const d=top[i%top.length];
     return {when:r[0],situ:r[1],name:d.alias||d.name,grade:gname(d.cash),action:r[2],amt:r[3]};});
@@ -2755,6 +2752,9 @@ function load(){ try{ const r=localStorage.getItem(LS); if(r){const db=JSON.pars
 function normalize(){
   if(!DB.titles) DB.titles=seedTitles();
   if(!DB.autoLogs) DB.autoLogs=[];
+  // 리모컨 연동 기능 제거 — 기존 데이터에서 remote 액션/로그 정리
+  (DB.autos||[]).forEach(a=>{ if(a.actions) a.actions=a.actions.filter(x=>x.type!=='remote'); });
+  (DB.autoLogs||[]).forEach(l=>{ if(l.action==='remote') l.action='kakao_recv'; });
   if(DB.annivAuto===undefined) DB.annivAuto=true;
   if(DB.milestoneNudge===undefined) DB.milestoneNudge=false;
   if(!DB.toontalks) DB.toontalks=[];
@@ -3382,7 +3382,6 @@ const SITU={
 const ACTIONS={
   kakao_send:{label:'도네이터 카카오 알림톡 발송',icon:'💬',desc:'도네이터에게 알림톡을 보냅니다',for:['login','prestart','first','donate','amount','promote','anniv']},
   kakao_recv:{label:'카카오 알림톡 받기',icon:'📩',desc:'크리에이터가 알림톡을 받습니다',for:['prestart','first','donate','amount','promote']},
-  remote:{label:'리모컨 알림 받기',icon:'🎛',desc:'리모컨 앱으로 실시간 알림',for:['prestart','first','donate','amount','promote']},
   widget:{label:'위젯 효과 추가하기',icon:'🎉',desc:'방송 화면에 위젯 효과 재생',for:['first','donate','amount','promote','anniv']},
   tts:{label:'TTS 음성 알림',icon:'🔊',desc:'음성으로 후원을 읽어줍니다',for:['login','first','donate','amount','promote','anniv']},
 };
@@ -3715,8 +3714,6 @@ function buildActionCfg(type,cfg,fields,prev){
     fields.innerHTML=`<div class="mini-lbl">알림 받을 전화번호</div><input class="inp tnum" placeholder="010-0000-0000" value="${cfg.phone||''}">
       <div class="helper">발생 시 이 번호로 카카오 알림톡이 발송됩니다.</div>`;
     fields.querySelector('input').addEventListener('input',e=>{cfg.phone=e.target.value;});
-  }else if(type==='remote'){
-    fields.innerHTML=`<div class="helper" style="margin:0">연동된 리모컨 앱으로 실시간 알림이 전송됩니다. 추가 설정이 필요 없습니다.</div>`;
   }
   actionPreview(type,cfg,prev);
 }
@@ -3749,8 +3746,6 @@ function actionPreview(type,cfg,box){
     box.innerHTML=`<div class="kakao"><div class="kt">💬 알림톡</div><div class="kb">${msg||'메시지를 입력하세요'}</div><div class="kbtn">바로 가기</div></div>`;
   }else if(type==='kakao_recv'){
     box.innerHTML=`<div class="kakao"><div class="kt">📩 알림톡</div><div class="kb">${dn} <b>(${gname})</b> 님이 ${won(amt)} 캐시 후원</div><div class="kbtn">프로필 보기</div></div>`;
-  }else if(type==='remote'){
-    box.innerHTML=`<div class="remote"><div class="ri">🎛</div><div class="rb"><b>${dn} (${gname})</b> 님이 ${won(amt)} 캐시를<br>후원해 주셨습니다.</div></div>`;
   }else if(type==='widget'){
     const w=WIDGETS.find(x=>x.k===cfg.widget)||WIDGETS[0];
     box.innerHTML=`<div class="widget-prev ${w.fx==='neon'?'neon':''}" style="background:${w.bg}">${widgetFx(w.fx)}<div class="wtxt">${w.i} ${w.k} 효과</div></div>`;
@@ -3802,8 +3797,8 @@ const AUTO_PRESETS=[
     make:()=>({situ:'first',actions:[{type:'widget',cfg:{widget:'하트비'}},{type:'kakao_send',cfg:{msg:'{닉네임}님, 첫 후원 감사합니다! 앞으로 잘 부탁드려요 💕'}}]})},
   {key:'bighand',icon:'💎',title:'큰손 축포',desc:'5만원 이상 후원 시 폭죽 위젯 + TTS 낭독.',
     make:()=>({situ:'amount',amt:{mode:'over',min:50000,max:0},actions:[{type:'widget',cfg:{widget:'폭죽'}},{type:'tts',cfg:{voice:VOICES[0].k}}]})},
-  {key:'vvip_remote',icon:'🎛',title:'VVIP 후원 즉시 알림',desc:'VVIP가 후원하면 리모컨 + 알림톡으로 바로 알려요.',
-    make:()=>({situ:'donate',targetMode:'class',classes:clsIds('vvip'),actions:[{type:'remote',cfg:{}},{type:'kakao_recv',cfg:{phone:''}}]})},
+  {key:'vvip_recv',icon:'📩',title:'VVIP 후원 즉시 알림',desc:'VVIP가 후원하면 크리에이터에게 알림톡으로 바로 알려요.',
+    make:()=>({situ:'donate',targetMode:'class',classes:clsIds('vvip'),actions:[{type:'kakao_recv',cfg:{phone:''}}]})},
   {key:'promote',icon:'🎖️',title:'등급 승급 축하',desc:'VIP·VVIP로 승급하면 팡파르 + 축하 알림톡.',
     make:()=>({situ:'promote',targetMode:'class',classes:clsIds('vip','vvip'),actions:[{type:'widget',cfg:{widget:'팡파르'}},{type:'kakao_send',cfg:{msg:'{닉네임}님, {등급} 등급 승급을 축하합니다! 🎉'}}]})},
   {key:'anniv',icon:'🎂',title:'가입 기념일 축하',desc:'VIP 기념일에 골드러시 위젯 + 축하 알림톡.',
