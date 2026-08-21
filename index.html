@@ -1116,7 +1116,28 @@ tbody tr.blocked:hover{opacity:.72}
 .recap-top .rt-row:last-child{border:none}
 .recap-top .rt-medal{width:24px;text-align:center;font-weight:800;color:var(--muted)}
 .recap-top .rt-nm{flex:1;font-weight:700;font-size:13px;display:flex;align-items:center;gap:7px}
-.recap-top .rt-amt{font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+.recap-top .rt-amt{font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.recap-top .rt-bar{flex:none;width:90px;height:6px;border-radius:4px;background:var(--surface-3);overflow:hidden}
+.recap-top .rt-bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
+@media(max-width:520px){.recap-top .rt-bar{display:none}}
+/* 리캡 확장: 하이라이트·증감·차트 */
+.recap-highlight{display:flex;gap:7px;padding:11px 14px;margin-bottom:16px;border-radius:12px;background:var(--accent-soft);border:1px solid var(--line);font-size:12.5px;font-weight:700;color:var(--text);line-height:1.5}
+.recap-highlight b{font-weight:800}
+.recap-highlight b.up{color:var(--on)} .recap-highlight b.down{color:#ff6b81}
+.rc-delta{font-size:11px;font-weight:800;padding:1px 6px;border-radius:20px;vertical-align:middle;margin-left:2px}
+.rc-delta.up{background:rgba(51,214,159,.16);color:var(--on)} .rc-delta.down{background:rgba(255,107,129,.16);color:#ff6b81}
+.recap-stat .v{display:flex;align-items:center;gap:0;flex-wrap:wrap}
+.hh-tag{font-size:11px;font-weight:800;color:var(--warn);margin-left:6px}
+.recap-chartbox{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 8px 4px;margin-bottom:18px}
+.recap-charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px;align-items:start}
+@media(max-width:560px){.recap-charts{grid-template-columns:1fr}}
+.rc-chart .section-lbl{margin-top:0}
+.rc-tbars{display:flex;flex-direction:column;gap:11px;padding-top:6px}
+.rc-tbar{display:flex;align-items:center;gap:9px;font-size:12.5px}
+.rc-tbar .tb-nm{flex:none;width:52px;font-weight:700;color:var(--muted)}
+.rc-tbar .tb-track{flex:1;height:8px;border-radius:5px;background:var(--surface-3);overflow:hidden}
+.rc-tbar .tb-track i{display:block;height:100%;border-radius:5px}
+.rc-tbar .tb-v{flex:none;width:52px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
 /* 지난 방송 성과 리스트 */
 .recap-list{display:flex;flex-direction:column;gap:10px;margin-top:18px;max-width:520px;margin-left:auto;margin-right:auto;text-align:left}
 .recap-card{display:flex;align-items:center;gap:13px;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);cursor:pointer;transition:.14s}
@@ -4680,21 +4701,71 @@ function buildRecap(){
 function fmtDur(s){const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?`${h}시간 ${m}분`:`${Math.max(1,m)}분`;}
 function gbByName(name){const g=DB.grades.find(x=>x.name===name);return g?gradeBadge(g):(name?`<span class="gb none"><span class="d"></span>${name}</span>`:'');}
 let recapId=null;
+function recapPrev(r){return DB.recaps.filter(x=>x.startedTs<r.startedTs).sort((a,b)=>b.startedTs-a.startedTs)[0]||null;}
+function recapDelta(cur,prev){ if(prev==null||!prev)return ''; const p=Math.round((cur-prev)/prev*100); if(!isFinite(p))return ''; const up=p>=0; return `<span class="rc-delta ${up?'up':'down'}">${up?'▲':'▼'}${Math.abs(p)}%</span>`; }
+function recapDerived(r){
+  const rnd=seedRand('recap_'+r.id);
+  const total=r.totalDonation||0, cnt=r.donationCount||0, durH=(r.durationSec||3600)/3600;
+  const N=12, w=[];
+  for(let i=0;i<N;i++) w.push(0.45+(i/(N-1))*0.7+rnd()*0.7);
+  const hhIdx=[];
+  if(r.happyHour){const s=Math.max(0,N-4-Math.floor(rnd()*2));for(let i=s;i<Math.min(N,s+3);i++){w[i]*=2.0;hhIdx.push(i);}}
+  const ws=w.reduce((a,b)=>a+b,0)||1, buckets=w.map(x=>Math.round(x/ws*total));
+  const labels=[];for(let i=0;i<N;i++){const t=new Date(r.startedTs+(i/(N-1))*(r.durationSec*1000));labels.push(z2(t.getHours())+':'+z2(t.getMinutes()));}
+  const hhShare=hhIdx.length?Math.round(hhIdx.reduce((s,i)=>s+buckets[i],0)/(total||1)*100):0;
+  const gp=[['VVIP','#ffcb45',0.54],['VIP','#a45bff',0.24],['열혈','#5b8cff',0.16],['미분류','#8b8fa3',0.06]].map(a=>[a[0],a[1],a[2]*(0.85+rnd()*0.3)]);
+  const gs=gp.reduce((a,x)=>a+x[2],0)||1, grades=gp.map(a=>({name:a[0],color:a[1],val:Math.round(a[2]/gs*total)}));
+  const tp=[['텍스트','#5b8cff',0.5],['시그니처','#a45bff',0.28],['음성','#33d69f',0.14],['퀘스트','#ff8a5c',0.08]].map(a=>[a[0],a[1],a[2]*(0.85+rnd()*0.3)]);
+  const tsu=tp.reduce((a,x)=>a+x[2],0)||1, types=tp.map(a=>({name:a[0],color:a[1],val:Math.round(a[2]/tsu*cnt)}));
+  return {buckets,labels,hhIdx,hhShare,grades,types,
+    avg:cnt?Math.round(total/cnt):0, perHour:Math.round(total/Math.max(0.15,durH)),
+    maxSingle:(r.top&&r.top[0]?r.top[0].amount:Math.round((cnt?total/cnt:0)*3.5)),
+    convRate:r.peakOnline?Math.min(100,Math.round(r.uniqueDonors/r.peakOnline*100)):0,
+    newRatio:Math.round(15+rnd()*32)};
+}
+function recapTimeChart(d){
+  const W=560,H=138,pl=8,pr=8,pt=12,pb=22,n=d.buckets.length,max=Math.max.apply(null,d.buckets)||1;
+  const gap=(W-pl-pr)/n, bw=gap*0.64;
+  const bars=d.buckets.map((v,i)=>{const h=Math.max(2,(v/max)*(H-pt-pb)),x=pl+i*gap+(gap-bw)/2,y=H-pb-h,hh=d.hhIdx.indexOf(i)>=0;
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="${hh?'#ffb020':'#ff3d68'}"/>`;}).join('');
+  const xl=d.labels.map((l,i)=>i%3===0?`<text x="${(pl+i*gap+gap/2).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="9" fill="#8b8fa3">${l}</text>`:'').join('');
+  return `<svg class="chart-svg" viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">${bars}${xl}</svg>`;
+}
 function openRecap(id){
   const r=DB.recaps.find(x=>x.id===id); if(!r)return; recapId=id;
   const cat=SCHED_CATS[r.category]||{icon:'📺',color:'#8b8fa3'}, dt=new Date(r.startedTs);
+  const d=recapDerived(r), prev=recapPrev(r);
+  const cnt=r.donationCount||0;
+  // 한 줄 하이라이트
+  let hl=[];
+  if(prev){const dp=Math.round((r.totalDonation-prev.totalDonation)/(prev.totalDonation||1)*100);hl.push(`지난 방송 대비 총 후원 <b class="${dp>=0?'up':'down'}">${dp>=0?'▲':'▼'}${Math.abs(dp)}%</b>`);}
+  if(d.hhShare)hl.push(`후원의 <b>${d.hhShare}%</b>가 해피아워에 집중`);
+  hl.push(`시간당 <b>${won(d.perHour)}</b>캐시 페이스`);
+  const typeBars=d.types.map(t=>`<div class="rc-tbar"><span class="tb-nm">${t.name}</span><div class="tb-track"><i style="width:${cnt?Math.round(t.val/cnt*100):0}%;background:${t.color}"></i></div><span class="tb-v">${won(t.val)}건</span></div>`).join('');
+  const topMax=r.top&&r.top[0]?r.top[0].amount:1;
   byId('recapBody').innerHTML=`
     <div class="recap-hero"><div class="rh-ic" style="background:${cat.color}22">${cat.icon}</div>
       <div><div class="rh-t">${r.title}</div><div class="rh-s">${dt.getMonth()+1}월 ${dt.getDate()}일(${WD[dt.getDay()]}) · ${fmtDur(r.durationSec)} 방송${r.happyHour?' · ⚡ 해피아워':''}</div></div>
-      <div class="rh-total"><div class="v tnum">${won(r.totalDonation)}<small> 캐시</small></div><div class="k">총 후원</div></div></div>
+      <div class="rh-total"><div class="v tnum">${won(r.totalDonation)}<small> 캐시</small> ${prev?recapDelta(r.totalDonation,prev.totalDonation):''}</div><div class="k">총 후원</div></div></div>
+    <div class="recap-highlight">💡 ${hl.join(' · ')}</div>
     <div class="recap-stats">
-      <div class="recap-stat"><div class="k">후원 건수</div><div class="v tnum">${r.donationCount}<small>건</small></div></div>
-      <div class="recap-stat"><div class="k">참여 후원자</div><div class="v tnum">${r.uniqueDonors}<small>명</small></div></div>
-      <div class="recap-stat"><div class="k">최고 동시 접속</div><div class="v tnum">${r.peakOnline}<small>명</small></div></div>
-      <div class="recap-stat"><div class="k">완료 투네톡</div><div class="v tnum">${r.toonCompleted}<small>건</small></div></div>
+      <div class="recap-stat"><div class="k">후원 건수</div><div class="v tnum">${won(cnt)}<small>건</small> ${prev?recapDelta(cnt,prev.donationCount):''}</div></div>
+      <div class="recap-stat"><div class="k">참여 후원자</div><div class="v tnum">${won(r.uniqueDonors)}<small>명</small> ${prev?recapDelta(r.uniqueDonors,prev.uniqueDonors):''}</div></div>
+      <div class="recap-stat"><div class="k">평균 후원</div><div class="v tnum">${won(d.avg)}<small>캐시</small></div></div>
+      <div class="recap-stat"><div class="k">단일 최고</div><div class="v tnum">${won(d.maxSingle)}<small>캐시</small></div></div>
+      <div class="recap-stat"><div class="k">최고 동시 접속</div><div class="v tnum">${won(r.peakOnline)}<small>명</small></div></div>
+      <div class="recap-stat"><div class="k">참여 전환율</div><div class="v tnum">${d.convRate}<small>%</small></div></div>
+      <div class="recap-stat"><div class="k">신규 후원자</div><div class="v tnum">${d.newRatio}<small>%</small></div></div>
+      <div class="recap-stat"><div class="k">완료 투네톡</div><div class="v tnum">${won(r.toonCompleted)}<small>건</small></div></div>
+    </div>
+    <div class="section-lbl">⏱ 시간대별 후원 추이 ${r.happyHour?'<span class="hh-tag">■ 해피아워</span>':''}</div>
+    <div class="recap-chartbox">${recapTimeChart(d)}</div>
+    <div class="recap-charts">
+      <div class="rc-chart"><div class="section-lbl">🏅 등급별 후원 비중</div>${donutChart(d.grades,d.grades.reduce((s,g)=>s+g.val,0)||1)}</div>
+      <div class="rc-chart"><div class="section-lbl">💫 후원 유형 분포</div><div class="rc-tbars">${typeBars}</div></div>
     </div>
     <div class="section-lbl">🏆 TOP 후원자</div>
-    <div class="recap-top">${r.top&&r.top.length?r.top.map((t,i)=>`<div class="rt-row"><div class="rt-medal">${['🥇','🥈','🥉'][i]||(i+1)}</div><div class="rt-nm">${t.name} ${gbByName(t.grade)}</div><div class="rt-amt">${won(t.amount)} 캐시</div></div>`).join(''):'<div class="helper">후원 기록이 없습니다</div>'}</div>`;
+    <div class="recap-top">${r.top&&r.top.length?r.top.map((t,i)=>`<div class="rt-row"><div class="rt-medal">${['🥇','🥈','🥉'][i]||(i+1)}</div><div class="rt-nm">${t.name} ${gbByName(t.grade)}</div><div class="rt-bar"><i style="width:${(t.amount/topMax*100).toFixed(0)}%"></i></div><div class="rt-amt">${won(t.amount)}</div></div>`).join(''):'<div class="helper">후원 기록이 없습니다</div>'}</div>`;
   byId('recapOverlay').classList.add('show');
 }
 function renderLiveRecaps(){
