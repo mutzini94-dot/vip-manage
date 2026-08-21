@@ -394,6 +394,13 @@ select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+x
 .don-actions .limit-note{white-space:nowrap}
 /* 등급 다중선택 세그먼트 — 다른 세그먼트(수신동의·멤버십)와 동일한 형태·크기·강조 사용 */
 .grade-seg button.on{background:var(--surface-3);color:var(--text)}
+/* 후원내역 날짜 범위 검색 */
+.date-range{display:flex;align-items:center;gap:6px;flex:none;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:5px 10px}
+.date-range .dr-ic{font-size:13px}
+.date-range .dr-sep{color:var(--muted-2);font-weight:700}
+.date-inp{width:auto;padding:5px 8px;font-size:12.5px;color-scheme:dark;min-width:120px}
+:root[data-theme="light"] .date-inp{color-scheme:light}
+.date-range .dr-clear{padding:4px 9px;min-width:auto}
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 thead th{text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;
@@ -1742,9 +1749,13 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="seg" id="dlType" style="flex:none">
           <button data-t="all" class="on">전체</button><button data-t="텍스트">텍스트</button><button data-t="음성">음성</button><button data-t="시그니처">시그니처</button><button data-t="퀘스트">퀘스트</button><button data-t="투네톡">투네톡</button>
         </div>
-        <select class="inp" id="dlGrade" style="width:auto;flex:none;padding:9px 32px 9px 12px"></select>
-        <div class="seg" id="dlRange" style="flex:none">
-          <button data-r="all" class="on">전체</button><button data-r="7">7일</button><button data-r="30">30일</button><button data-r="90">90일</button>
+        <div class="seg grade-seg" id="dlGrade" style="flex:none" title="등급 필터 · 복수 선택 가능"></div>
+        <div class="date-range" title="날짜 범위 검색">
+          <span class="dr-ic">📅</span>
+          <input type="date" class="inp date-inp" id="dlDateFrom" aria-label="시작일">
+          <span class="dr-sep">~</span>
+          <input type="date" class="inp date-inp" id="dlDateTo" aria-label="종료일">
+          <button class="btn ghost sm dr-clear hidden" id="dlDateClear" title="날짜 초기화">✕</button>
         </div>
       </div>
 
@@ -5580,7 +5591,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.bell-wrap'))closeAl
    TAB — 후원 내역 (통합 후원 리스트)
    ========================================================= */
 const DON_TYPES={텍스트:{icon:'📝',color:'#5b8cff'},음성:{icon:'🎤',color:'#33d69f'},시그니처:{icon:'✍️',color:'#a45bff'},퀘스트:{icon:'🎯',color:'#ff8a5c'},투네톡:{icon:'💬',color:'#ff5c7a'}};
-let dlQuery='',dlTypeF='all',dlGradeF='all',dlRangeF='all',dlSortCol='ts',dlSortDir=-1,dlPage=1;
+let dlQuery='',dlTypeF='all',dlGradeSel=new Set(),dlDateFrom='',dlDateTo='',dlSortCol='ts',dlSortDir=-1,dlPage=1;
 const DL_PER=15;
 /* ---------- 시그니처 후원 감지 ----------
    시그니처 후원은 "시그니처 메뉴명 - 개인 메시지" 형태로 찍히고, 메뉴마다 금액이 고정됨.
@@ -5616,17 +5627,28 @@ function buildDonations(){
 }
 function filteredDonations(){
   let rows=buildDonations();
-  if(dlRangeF!=='all'){const from=Date.now()-(+dlRangeF)*86400000;rows=rows.filter(r=>r.ts>=from);}
+  if(dlDateFrom){const t=new Date(dlDateFrom+'T00:00:00').getTime();rows=rows.filter(r=>r.ts>=t);}
+  if(dlDateTo){const t=new Date(dlDateTo+'T23:59:59').getTime();rows=rows.filter(r=>r.ts<=t);}
   if(dlTypeF!=='all')rows=rows.filter(r=>r.kind===dlTypeF);
-  if(dlGradeF!=='all')rows=rows.filter(r=>{const g=gradeForCash(r.d.cash);return g&&g.id===dlGradeF;});
+  if(dlGradeSel.size>0)rows=rows.filter(r=>{const g=gradeForCash(r.d.cash);const k=g?g.id:'none';return dlGradeSel.has(k);});
   if(dlQuery){const q=dlQuery.toLowerCase();rows=rows.filter(r=>r.d.name.toLowerCase().includes(q)||(r.d.alias||'').toLowerCase().includes(q)||(r.msg||'').toLowerCase().includes(q));}
   rows.sort((a,b)=>dlSortDir*((a[dlSortCol]||0)-(b[dlSortCol]||0)));
   return rows;
 }
 function fmtDT(ts){const d=new Date(ts);return `${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())} ${z2(d.getHours())}:${z2(d.getMinutes())}`;}
+function fillDlGradeFilter(){
+  const box=byId('dlGrade'); if(!box)return;
+  const valid=new Set([...DB.grades.map(g=>g.id),'none']);
+  [...dlGradeSel].forEach(k=>{ if(!valid.has(k)) dlGradeSel.delete(k); });
+  const items=[{k:'__all',name:'전체'}]
+    .concat([...DB.grades].sort((a,b)=>b.min-a.min).map(g=>({k:g.id,name:g.name})))
+    .concat([{k:'none',name:'미분류'}]);
+  box.innerHTML=items.map(it=>{const on=it.k==='__all'?dlGradeSel.size===0:dlGradeSel.has(it.k);return `<button class="${on?'on':''}" data-g="${it.k}">${it.name}</button>`;}).join('');
+  box.querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=b.dataset.g;if(k==='__all')dlGradeSel.clear();else{if(dlGradeSel.has(k))dlGradeSel.delete(k);else dlGradeSel.add(k);}dlPage=1;renderDonationList();});
+}
 function renderDonationList(){
-  // grade select (once)
-  if(byId('dlGrade').options.length===0){byId('dlGrade').innerHTML='<option value="all">전체 등급</option>'+DB.grades.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');}
+  fillDlGradeFilter();
+  if(byId('dlDateClear'))byId('dlDateClear').classList.toggle('hidden',!(dlDateFrom||dlDateTo));
   const rows=filteredDonations();
   const total=rows.reduce((s,r)=>s+r.amount,0), cnt=rows.length, avg=cnt?Math.round(total/cnt):0, max=cnt?Math.max(...rows.map(r=>r.amount)):0;
   byId('dlStats').innerHTML=`
@@ -5659,8 +5681,9 @@ function renderDonationList(){
 }
 byId('dlSearch').addEventListener('input',e=>{dlQuery=e.target.value.trim().toLowerCase();dlPage=1;renderDonationList();});
 byId('dlType').querySelectorAll('button').forEach(b=>b.onclick=()=>{dlTypeF=b.dataset.t;byId('dlType').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));dlPage=1;renderDonationList();});
-byId('dlRange').querySelectorAll('button').forEach(b=>b.onclick=()=>{dlRangeF=b.dataset.r;byId('dlRange').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));dlPage=1;renderDonationList();});
-byId('dlGrade').addEventListener('change',e=>{dlGradeF=e.target.value;dlPage=1;renderDonationList();});
+byId('dlDateFrom').addEventListener('change',e=>{dlDateFrom=e.target.value;dlPage=1;renderDonationList();});
+byId('dlDateTo').addEventListener('change',e=>{dlDateTo=e.target.value;dlPage=1;renderDonationList();});
+byId('dlDateClear').onclick=()=>{dlDateFrom='';dlDateTo='';byId('dlDateFrom').value='';byId('dlDateTo').value='';dlPage=1;renderDonationList();};
 document.querySelectorAll('#page-donations th.sortable').forEach(th=>th.onclick=()=>{const c=th.dataset.col;if(dlSortCol===c)dlSortDir*=-1;else{dlSortCol=c;dlSortDir=-1;}
   document.querySelectorAll('#page-donations th.sortable').forEach(x=>x.querySelector('.arr').textContent='');th.querySelector('.arr').textContent=dlSortDir<0?'↓':'↑';renderDonationList();});
 byId('dlExport').onclick=()=>{const rows=filteredDonations();const head=['시간','도네이터','등급','유형','금액','내용','출처'];
