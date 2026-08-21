@@ -1404,7 +1404,7 @@ tbody tr.blocked:hover{opacity:.72}
         <div id="alertList"></div>
       </div>
     </div>
-    <div class="avatar" id="gnbAvatar" title="설정" style="cursor:pointer">CR</div>
+    <div class="avatar" id="gnbAvatar" title="내 프로필" style="cursor:pointer">CR</div>
   </div>
 
   <!-- Tabs -->
@@ -2325,24 +2325,24 @@ tbody tr.blocked:hover{opacity:.72}
 <div class="overlay" id="settingsOverlay">
   <div class="modal" style="max-width:560px">
     <div class="modal-head">
-      <h2>⚙️ 설정</h2><div class="spacer"></div><button class="xbtn" id="setClose">✕</button>
+      <h2 id="setTitle">⚙️ 설정</h2><div class="spacer"></div><button class="xbtn" id="setClose">✕</button>
     </div>
     <div class="modal-body">
-      <div class="set-sec">
+      <div class="set-sec" data-setsec="profile">
         <div class="set-h">👤 크리에이터 프로필</div>
         <div class="set-row"><label>크리에이터 이름 <span class="set-hint">메시지의 {크리에이터}에 반영</span></label><input class="inp" id="setCreator" maxlength="20" placeholder="크리에이터"></div>
         <div class="set-row"><label>채널명</label><input class="inp" id="setChannel" maxlength="30" placeholder="예: 투네이션 게임채널"></div>
         <div class="set-row"><label>이니셜 <span class="set-hint">상단 프로필 아이콘</span></label><input class="inp" id="setInitials" maxlength="2" placeholder="CR" style="max-width:120px"></div>
         <div class="set-row"><label>방송 링크 <span class="set-hint">알림톡 "방송 보러가기" 목적지</span></label><input class="inp" id="setUrl" placeholder="https://..."></div>
       </div>
-      <div class="set-sec">
+      <div class="set-sec" data-setsec="theme">
         <div class="set-h">🎨 표시 · 테마</div>
         <div class="set-row"><label>테마</label><div class="seg" id="setTheme"><button data-m="light">☀️ 라이트</button><button data-m="dark">🌙 다크</button><button data-m="system">🖥 시스템</button></div></div>
         <div class="set-row"><label>기본 시작 탭</label><select class="inp" id="setDefaultTab" style="max-width:220px"></select></div>
         <div class="set-row"><label>강조 색상</label><div class="swatches" id="setAccent"></div></div>
         <div class="set-row" style="align-items:flex-start;flex-direction:column"><label>UI 스타일 <span class="set-hint">화면 톤·모서리·그림자·포인트색 프리셋 (라이트/다크와 함께 적용)</span></label><div class="skin-grid" id="setSkin"></div></div>
       </div>
-      <div class="set-sec">
+      <div class="set-sec" data-setsec="notify">
         <div class="set-h">🔔 알림 · 자동화 기본값</div>
         <label class="set-toggle"><div><div class="st-t">기념일 자동 축하</div><div class="st-s">가입 기념일에 자동으로 축하 메시지</div></div><div class="tgl" id="setAnniv"></div></label>
         <label class="set-toggle"><div><div class="st-t">마일스톤 자동 넛지</div><div class="st-s">승급 90% 도달 시 자동 넛지 발송</div></div><div class="tgl" id="setMilestone"></div></label>
@@ -2351,7 +2351,7 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="set-row"><label>승급 임박 기준</label><div class="seg" id="setNudge"><button data-n="30000">3만</button><button data-n="50000">5만</button><button data-n="100000">10만</button></div></div>
         <div class="set-row"><label>VIP 입장 화면 알림 <span class="set-hint">라이브 중 단골 팬 입장 시 화면 배너</span></label><div class="seg" id="setVipAlert"><button data-v="off">끄기</button><button data-v="vvip">VVIP만</button><button data-v="vip">VIP 이상</button><button data-v="all">전 등급</button></div></div>
       </div>
-      <div class="set-sec">
+      <div class="set-sec" data-setsec="data">
         <div class="set-h">💾 데이터 · 백업</div>
         <div class="set-row" style="align-items:flex-start"><label>저장소 사용량 <span class="set-hint" id="setStorageInfo">-</span></label>
           <div class="storage-bar"><i id="setStorageBar"></i></div></div>
@@ -2365,7 +2365,7 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="snap-head"><span>📸 스냅샷 백업 <span class="set-hint">앱 안에 저장 · 최대 8개</span></span><button class="btn ghost sm" id="setSnapNew">＋ 현재 상태 저장</button></div>
         <div class="snap-list" id="setSnapList"></div>
       </div>
-      <div class="set-sec">
+      <div class="set-sec" data-setsec="account">
         <div class="set-h">🔒 계정</div>
         <div class="set-row"><label>로그인 아이디</label><input class="inp" id="setAuthId" maxlength="24" style="max-width:220px" spellcheck="false"></div>
         <div class="set-row"><label>비밀번호 변경 <span class="set-hint">입력 후 포커스 해제 시 저장</span></label><input class="inp" id="setAuthPw" type="password" placeholder="새 비밀번호" maxlength="24" style="max-width:220px"></div>
@@ -6037,9 +6037,18 @@ byId('setSnapNew').onclick=()=>{
   while(list.length>8)list.pop();
   if(saveSnaps(list)){renderSnapshots();renderStorageInfo();toast('현재 상태를 스냅샷으로 저장했습니다 📸');}
 };
-function openSettings(){renderSettings();byId('settingsOverlay').classList.add('show');}
-byId('settingsBtn').onclick=openSettings;
-byId('gnbAvatar').onclick=openSettings;
+function openSettings(mode){
+  const prof = mode==='profile';   // 프로필 아이콘 클릭 시: 프로필·계정만 노출
+  byId('setTitle').textContent = prof ? '👤 내 프로필' : '⚙️ 설정';
+  document.querySelectorAll('#settingsOverlay .set-sec').forEach(sec=>{
+    const s=sec.dataset.setsec;
+    sec.style.display = (prof && !(s==='profile'||s==='account')) ? 'none' : '';
+  });
+  renderSettings();
+  byId('settingsOverlay').classList.add('show');
+}
+byId('settingsBtn').onclick=()=>openSettings();
+byId('gnbAvatar').onclick=()=>openSettings('profile');
 byId('setClose').onclick=byId('setDone').onclick=()=>byId('settingsOverlay').classList.remove('show');
 byId('settingsOverlay').onclick=e=>{if(e.target===byId('settingsOverlay'))byId('settingsOverlay').classList.remove('show');};
 // 프로필 입력 (즉시 반영)
