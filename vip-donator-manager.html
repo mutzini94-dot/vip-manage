@@ -1125,6 +1125,31 @@ tbody tr.blocked:hover{opacity:.72}
 .recap-card .rc-t{font-weight:800;font-size:13.5px}
 .recap-card .rc-s{font-size:12px;color:var(--muted);margin-top:2px}
 .recap-card .rc-total{margin-left:auto;font-weight:800;color:var(--accent);white-space:nowrap}
+/* 방송 성과 로그 */
+.recap-log{max-width:760px;margin:16px auto 0;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.rl-head{display:flex;align-items:center;gap:9px;padding:13px 16px;border-bottom:1px solid var(--line)}
+.rl-head .rl-h-t{font-weight:800;font-size:14px}
+.rl-head .rl-cnt{font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;background:var(--accent-soft);color:var(--accent)}
+.rl-head .rl-h-tot{font-size:12px;font-weight:700;color:var(--muted)}
+.rl-list{display:flex;flex-direction:column;max-height:60vh;overflow-y:auto}
+.rl-row{display:flex;align-items:center;gap:13px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:.12s}
+.rl-row:last-child{border-bottom:none}
+.rl-row:hover{background:var(--surface-2)}
+.rl-date{flex:none;width:42px;text-align:center;line-height:1.1}
+.rl-date b{display:block;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+.rl-date span{font-size:10.5px;color:var(--muted-2);font-weight:700}
+.rl-ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:16px;flex:none}
+.rl-main{flex:1;min-width:0}
+.rl-main .rl-t{font-weight:800;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rl-main .rl-hh{font-size:10.5px;font-weight:800;color:var(--warn);margin-left:4px}
+.rl-main .rl-sub{font-size:11.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rl-metrics{display:flex;gap:18px;flex:none}
+.rl-m{text-align:right;min-width:52px}
+.rl-m b{display:block;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+.rl-m.hl b{color:var(--accent)}
+.rl-m span{font-size:10.5px;color:var(--muted-2);font-weight:700}
+.rl-more{flex:none;color:var(--muted-2);font-size:18px;font-weight:700}
+@media(max-width:640px){.rl-metrics{gap:12px}.rl-m:not(.hl){display:none}.rl-more{display:none}}
 /* 명예의 전당 */
 .hall-tier{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:20px;white-space:nowrap;border:1px solid transparent}
 .hall-tier.king{background:rgba(255,203,69,.18);color:var(--vvip);border-color:rgba(255,203,69,.35)}
@@ -2510,7 +2535,7 @@ tbody tr.blocked:hover{opacity:.72}
   <div class="modal wide">
     <div class="modal-head"><h2>📊 방송 성과 리캡</h2><div class="spacer"></div><button class="xbtn" id="recapClose">✕</button></div>
     <div class="modal-body" id="recapBody"></div>
-    <div class="modal-foot"><div class="spacer"></div><button class="btn ghost" id="recapCloseBtn">닫기</button><button class="btn primary" id="recapAnnounce">📢 성과 공유(스토리)</button></div>
+    <div class="modal-foot"><div class="spacer"></div><button class="btn primary" id="recapCloseBtn">닫기</button></div>
   </div>
 </div>
 
@@ -2656,14 +2681,28 @@ function seedToontalks(donators){
       status:r.status,createdTs:created,respondedTs:r.status==='done'?created+2*H:null,reply:r.reply||''};});
 }
 function seedRecaps(donators){
-  const top=donators.filter(d=>!d.blocked).sort((a,b)=>b.cash-a.cash).slice(0,5);
+  const pool=donators.filter(d=>!d.blocked).sort((a,b)=>b.cash-a.cash).slice(0,20);
   const gname=c=>c>=300000?'VVIP':c>=100000?'VIP':c>=30000?'열혈':'';
   const now=Date.now();
-  return [{id:uid(),schedId:null,title:'지난 게임 방송',category:'게임',
-    startedTs:now-2*86400000,endedTs:now-2*86400000+3*3600000,durationSec:3*3600,
-    totalDonation:428000,donationCount:37,uniqueDonors:14,peakOnline:9,
-    top:top.map((d,i)=>({name:d.alias||d.name,grade:gname(d.cash),amount:[90000,70000,55000,40000,30000][i]||10000})),
-    happyHour:true,toonCompleted:3}];
+  // 지난 방송 성과 로그(최근 → 과거)
+  const specs=[
+    {title:'수요 게임 방송',   cat:'게임',   daysAgo:2,  dur:3.0*3600, total:428000, cnt:37, uniq:14, peak:9,  hh:true,  toon:3},
+    {title:'일요 저챗 & 소통', cat:'소통',   daysAgo:4,  dur:2.2*3600, total:271500, cnt:29, uniq:12, peak:7,  hh:false, toon:5},
+    {title:'금요 심야 랭크',   cat:'게임',   daysAgo:6,  dur:4.1*3600, total:612300, cnt:52, uniq:21, peak:13, hh:true,  toon:4},
+    {title:'노래 방송',        cat:'음악',   daysAgo:9,  dur:1.8*3600, total:189000, cnt:22, uniq:10, peak:6,  hh:false, toon:2},
+    {title:'주간 결산 방송',   cat:'소통',   daysAgo:12, dur:2.6*3600, total:337800, cnt:31, uniq:15, peak:8,  hh:false, toon:6},
+    {title:'신작 첫 플레이',   cat:'게임',   daysAgo:16, dur:3.5*3600, total:503400, cnt:44, uniq:18, peak:11, hh:true,  toon:3},
+  ];
+  const amtSets=[[90000,70000,55000,40000,30000],[60000,50000,42000,28000,20000],[130000,88000,60000,45000,33000],[42000,35000,28000,20000,14000],[70000,58000,44000,30000,22000],[110000,74000,52000,38000,26000]];
+  return specs.map((s,si)=>{
+    const off=si*3;  // 방송마다 상위 후원자 살짝 다르게
+    const top=pool.slice(off,off+5).map((d,i)=>({name:d.alias||d.name,grade:gname(d.cash),amount:amtSets[si%amtSets.length][i]||10000}));
+    const started=now - s.daysAgo*86400000;
+    return {id:uid(),schedId:null,title:s.title,category:s.cat,
+      startedTs:started,endedTs:started+s.dur*1000,durationSec:Math.round(s.dur),
+      totalDonation:s.total,donationCount:s.cnt,uniqueDonors:s.uniq,peakOnline:s.peak,
+      top,happyHour:s.hh,toonCompleted:s.toon};
+  });
 }
 function seedStories(){const now=Date.now();return [
   {id:uid(),text:'오늘 오전 10시에 방송 시작합니다. 많이들 와주세요! 🎮',pinned:true,ts:now-30*60000},
@@ -2702,6 +2741,7 @@ function normalize(){
   if(DB.toonUnreadAlert===undefined) DB.toonUnreadAlert=true;
   if(!DB.schedules) DB.schedules=[];
   if(!DB.recaps) DB.recaps=[];
+  if(DB.recaps.length<3 && DB.donators&&DB.donators.length) DB.recaps=seedRecaps(DB.donators);  // 방송 성과 로그가 비면 예시 이력 채움
   if(!DB.msgCredit) DB.msgCredit={balance:300,sent:0,log:[{ts:Date.now(),type:'init',amount:300,balance:300}]};
   if(!DB.outreach) DB.outreach=seedOutreach();
   if(!DB.settings) DB.settings={};
@@ -4661,17 +4701,28 @@ function renderLiveRecaps(){
   const box=byId('liveRecaps'); if(!box)return;
   box.classList.toggle('hidden',LIVE.on||!DB.recaps.length);
   if(LIVE.on||!DB.recaps.length){box.innerHTML='';return;}
-  box.innerHTML=`<div class="section-lbl" style="max-width:520px;margin:8px auto 6px;text-align:left">📊 지난 방송 성과</div>
-    <div class="recap-list">${DB.recaps.slice(0,6).map(r=>{const cat=SCHED_CATS[r.category]||{icon:'📺',color:'#8b8fa3'};const dt=new Date(r.startedTs);
-      return `<div class="recap-card" data-r="${r.id}"><div class="rc-ic" style="background:${cat.color}22">${cat.icon}</div><div style="flex:1;min-width:0"><div class="rc-t">${r.title}</div><div class="rc-s">${dt.getMonth()+1}월 ${dt.getDate()}일 · ${fmtDur(r.durationSec)} · ${r.uniqueDonors}명 참여</div></div><div class="rc-total">${won(r.totalDonation)}</div></div>`;}).join('')}</div>`;
-  box.querySelectorAll('.recap-card').forEach(el=>el.onclick=()=>openRecap(el.dataset.r));
+  const rows=[...DB.recaps].sort((a,b)=>b.startedTs-a.startedTs);
+  const tot=rows.reduce((s,r)=>s+(r.totalDonation||0),0);
+  box.innerHTML=`<div class="recap-log">
+    <div class="rl-head"><span class="rl-h-t">📊 방송 성과 로그</span><span class="rl-cnt">${won(rows.length)}회</span><div class="spacer"></div><span class="rl-h-tot">누적 ${won(tot)}캐시</span></div>
+    <div class="rl-list">${rows.map(r=>{const cat=SCHED_CATS[r.category]||{icon:'📺',color:'#8b8fa3'};const dt=new Date(r.startedTs);
+      return `<div class="rl-row" data-r="${r.id}" title="클릭하여 상세 성과 보기">
+        <div class="rl-date"><b>${dt.getMonth()+1}.${dt.getDate()}</b><span>${WD[dt.getDay()]}</span></div>
+        <div class="rl-ic" style="background:${cat.color}22">${cat.icon}</div>
+        <div class="rl-main"><div class="rl-t">${r.title}${r.happyHour?' <span class="rl-hh">⚡해피아워</span>':''}</div>
+          <div class="rl-sub">${fmtDur(r.durationSec)} · 최고 ${won(r.peakOnline)}명 접속 · 투네톡 ${won(r.toonCompleted||0)}건</div></div>
+        <div class="rl-metrics">
+          <div class="rl-m hl"><b>${won(r.totalDonation)}</b><span>총 후원</span></div>
+          <div class="rl-m"><b>${won(r.donationCount)}</b><span>건수</span></div>
+          <div class="rl-m"><b>${won(r.uniqueDonors)}</b><span>참여</span></div>
+        </div>
+        <span class="rl-more">›</span>
+      </div>`;}).join('')}</div>
+  </div>`;
+  box.querySelectorAll('.rl-row').forEach(el=>el.onclick=()=>openRecap(el.dataset.r));
 }
 byId('recapClose').onclick=byId('recapCloseBtn').onclick=()=>byId('recapOverlay').classList.remove('show');
 byId('recapOverlay').onclick=e=>{if(e.target===byId('recapOverlay'))byId('recapOverlay').classList.remove('show');};
-byId('recapAnnounce').onclick=()=>{const r=DB.recaps.find(x=>x.id===recapId);if(!r)return;
-  DB.stories.forEach(s=>s.pinned=false);
-  DB.stories.unshift({id:uid(),text:`오늘 방송 함께해주셔서 감사해요! 🙌 총 ${won(r.totalDonation)}캐시 후원, ${r.uniqueDonors}분이 함께했어요. 다음에도 놀러오세요 💛`,pinned:true,ts:Date.now()});
-  save();byId('recapOverlay').classList.remove('show');toast('성과를 스토리로 공유했습니다 📢');};
 function liveTick(){
   // 접속 시간 증가
   LIVE.online.forEach(v=>v.mins++);
