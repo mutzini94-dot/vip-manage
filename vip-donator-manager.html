@@ -401,6 +401,10 @@ select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+x
 .date-inp{width:auto;padding:5px 8px;font-size:12.5px;color-scheme:dark;min-width:120px}
 :root[data-theme="light"] .date-inp{color-scheme:light}
 .date-range .dr-clear{padding:4px 9px;min-width:auto}
+/* 한 줄 압축(도네이터 관리·후원내역 필터 공통) */
+.don-filters .date-range{gap:4px;padding:4px 8px}
+.don-filters .date-inp{min-width:0;width:118px;padding:5px 6px}
+.don-filters .date-range .dr-ic{display:none}
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 thead th{text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;
@@ -1741,10 +1745,10 @@ tbody tr.blocked:hover{opacity:.72}
 
       <div class="stats" id="dlStats"></div>
 
-      <div class="toolbar-row">
+      <div class="toolbar-row don-filters">
         <div class="searchbar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
-          <input id="dlSearch" placeholder="도네이터·내용 검색">
+          <input id="dlSearch" placeholder="검색">
         </div>
         <div class="seg" id="dlType" style="flex:none">
           <button data-t="all" class="on">전체</button><button data-t="텍스트">텍스트</button><button data-t="음성">음성</button><button data-t="시그니처">시그니처</button><button data-t="퀘스트">퀘스트</button><button data-t="투네톡">투네톡</button>
