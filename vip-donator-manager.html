@@ -124,7 +124,24 @@ input,textarea,select{font-family:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 .tnum{font-variant-numeric:tabular-nums}
 .hidden{display:none!important}
-.alim-editor{display:none!important}   /* 알림톡 메시지는 고정 템플릿 — 편집 영역 숨김(미리보기만 노출) */
+.alim-editor{display:none!important}   /* 알림톡 원본 값 홀더 — 편집 영역 숨김(선택은 msg-picker로) */
+/* 알림톡 메시지 선택(여러 템플릿 중 택1 + 추가/삭제) */
+.msg-picker{margin-bottom:14px}
+.mp-lbl{font-size:12px;font-weight:800;color:var(--muted);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.mp-cnt{font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:20px;background:var(--accent-soft);color:var(--accent)}
+.mp-list{display:flex;flex-direction:column;gap:7px}
+.mp-item{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);cursor:pointer;transition:.12s}
+.mp-item:hover{border-color:var(--line-strong)}
+.mp-item.on{border-color:var(--accent);background:var(--accent-soft)}
+.mp-radio{width:16px;height:16px;border-radius:50%;border:2px solid var(--line-strong);flex:none;margin-top:1px;position:relative;transition:.12s}
+.mp-item.on .mp-radio{border-color:var(--accent)}
+.mp-item.on .mp-radio::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--accent)}
+.mp-tx{flex:1;font-size:12.5px;line-height:1.5;color:var(--text);min-width:0}
+.mp-del{flex:none;color:var(--muted-2);font-size:12px;padding:0 2px;align-self:center;background:none}
+.mp-del:hover{color:#ff6b81}
+.mp-add{align-self:flex-start;font-size:12px;font-weight:800;color:var(--accent);padding:6px 2px;background:none}
+.mp-addbox{display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.mp-addact{display:flex;gap:8px;justify-content:flex-end}
 /* 프로필 이미지 오버레이 */
 .ava,.dr-avatar,.pod-ava{position:relative;overflow:hidden}
 .ava-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -2255,6 +2272,7 @@ tbody tr.blocked:hover{opacity:.72}
         <textarea class="inp" id="reMsg" rows="4"></textarea>
         <div class="helper">프로토타입입니다 — 실제 알림톡은 발송되지 않으며, 발송 이력만 기록됩니다.</div>
       </div>
+      <div class="msg-picker" id="reMsgPicker"></div>
       <div class="preview-box">
         <div class="preview-lbl">👁 발송 메시지 미리보기</div>
         <div id="rePreview"></div>
@@ -2433,6 +2451,7 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="thanks-summary" id="thanksSummary"></div>
       <div class="field alim-editor"><label>카카오 알림톡 메시지</label><textarea class="inp" id="thanksMsg" rows="4"></textarea>
         <div class="helper">{닉네임}·{등급}·{크리에이터} 자동 치환 · <b>수신 동의자에게만</b> 발송, 1건당 1크레딧 차감</div></div>
+      <div class="msg-picker" id="thanksMsgPicker"></div>
       <div class="preview-box"><div class="preview-lbl">👁 발송 메시지 미리보기</div><div id="thanksPreview"></div></div>
     </div>
     <div class="modal-foot"><button class="btn ghost" id="thanksCancel">취소</button><div class="spacer"></div><button class="btn primary" id="thanksSend">발송</button></div>
@@ -2486,6 +2505,7 @@ tbody tr.blocked:hover{opacity:.72}
         <textarea class="inp" id="nudgeMsg" rows="3"></textarea>
         <div class="helper">{닉네임}·{다음등급}·{남은금액} 은 자동 치환됩니다. 프로토타입 — 실제 발송 없이 이력만 기록.</div>
       </div>
+      <div class="msg-picker" id="nudgeMsgPicker"></div>
       <div class="preview-box"><div class="preview-lbl">👁 발송 메시지 미리보기</div><div id="nudgePreview"></div></div>
     </div>
     <div class="modal-foot">
@@ -2509,6 +2529,7 @@ tbody tr.blocked:hover{opacity:.72}
         <textarea class="inp" id="celebMsg" rows="4"></textarea>
         <div class="helper">프로토타입입니다 — 실제 발송은 되지 않으며, 발송 이력만 기록됩니다.</div>
       </div>
+      <div class="msg-picker" id="celebMsgPicker"></div>
       <div class="preview-box"><div class="preview-lbl">👁 발송 메시지 미리보기</div><div id="celebPreview"></div></div>
     </div>
     <div class="modal-foot">
@@ -2770,11 +2791,36 @@ function seedTitles(){return [
   {id:'t_vvip',   name:'VVIP 등극',   icon:'⭐', color:'#ff5c7a', rule:{type:'grade',grade:'g_vvip'}},
   {id:'t_bday',   name:'생일 축하',   icon:'🎂', color:'#ff3d68', rule:{type:'manual'}},
 ];}
+/* 알림톡 메시지 기본 템플릿(발송 시 선택) — normalize()에서 참조하므로 그 이전에 정의 */
+const MSG_SEED={
+  reengage:[
+    '{닉네임}님, 오랜만이에요! 요즘 잘 지내시죠? 다음 방송에서 다시 뵈면 정말 반가울 것 같아요 💜',
+    '{닉네임}님, 한동안 안 보이셔서 아쉬웠어요 🥺 곧 재밌는 방송으로 찾아뵐게요, 놀러오세요!',
+    '{닉네임}님! {크리에이터}가 기다리고 있어요 😊 이번 방송엔 특별 이벤트도 준비했으니 꼭 들러주세요.',
+  ],
+  nudge:[
+    '{닉네임}님, 다음 등급 {다음등급}까지 {남은금액}원! 코앞이에요 🎯 조금만 더 하면 승급이에요!',
+    '{닉네임}님, {다음등급}까지 {남은금액}원 남았어요. 거의 다 왔어요 ⭐ 특별 혜택이 기다려요!',
+    '{닉네임}님, {다음등급} 승급까지 마지막 한 걸음! 오늘 방송에서 함께해요 🙌',
+  ],
+  celebrate:[
+    '{닉네임}님, 저와 함께한 지 벌써 {주년}주년이에요! 늘 곁에서 응원해 주셔서 진심으로 감사합니다 🎉🎂',
+    '{닉네임}님 {주년}주년 축하드려요! 앞으로도 좋은 방송으로 보답할게요 💜',
+    '벌써 {주년}년이라니! {닉네임}님 덕분에 여기까지 왔어요, 정말 고마워요 🎂',
+  ],
+  thanks:[
+    '{닉네임}님, 항상 따뜻한 응원과 후원 정말 감사해요! {크리에이터} 방송의 큰 힘이에요 💜',
+    '{닉네임}님 덕분에 오늘도 힘내서 방송했어요, 진심으로 고맙습니다 🙏',
+    '{닉네임}님의 응원, 늘 마음에 새기고 있어요! 앞으로도 잘 부탁드려요 😊',
+  ],
+};
 let DB = load(); normalize();
 function load(){ try{ const r=localStorage.getItem(LS); if(r){const db=JSON.parse(r); if(db&&db.seedVer==='toon-real-1') return db;} }catch(e){} return seed(); }
 function normalize(){
   if(!DB.titles) DB.titles=seedTitles();
   if(!DB.autoLogs) DB.autoLogs=[];
+  if(!DB.msgTemplates) DB.msgTemplates={};
+  ['reengage','nudge','celebrate','thanks'].forEach(k=>{ if(!Array.isArray(DB.msgTemplates[k])||!DB.msgTemplates[k].length) DB.msgTemplates[k]=MSG_SEED[k].slice(); });
   // 리모컨 연동 기능 제거 — 기존 데이터에서 remote 액션/로그 정리
   (DB.autos||[]).forEach(a=>{ if(a.actions) a.actions=a.actions.filter(x=>x.type!=='remote'); });
   (DB.autoLogs||[]).forEach(l=>{ if(l.action==='remote') l.action='kakao_recv'; });
@@ -3116,8 +3162,8 @@ function openThanks(){
   const sel=selectedList().filter(d=>!d.blocked);
   if(!sel.length)return toast('도네이터를 선택하세요');
   thanksRecipients=sel; renderThanksSummary();
-  byId('thanksMsg').value='{닉네임}님, 항상 따뜻한 응원과 후원 정말 감사해요! {크리에이터} 방송의 큰 힘이에요 💜';
-  thanksPrev(); byId('thanksOverlay').classList.add('show');
+  renderMsgPicker('thanks','thanksMsgPicker','thanksMsg',thanksPrev);
+  byId('thanksOverlay').classList.add('show');
 }
 byId('bulkThanks').onclick=openThanks;
 byId('thanksMsg').addEventListener('input',thanksPrev);
@@ -3760,6 +3806,32 @@ function subMsg(msg,d){
     .replace(/{다음등급}/g,gg&&!gg.top?gg.nx.name:'최고 등급')
     .replace(/</g,'&lt;');
 }
+/* ---------- 알림톡 메시지 템플릿(여러 개 만들어 선택 발송) — MSG_SEED는 normalize보다 먼저 정의됨 ---------- */
+const msgSel={};
+function msgList(type){ return (DB.msgTemplates&&DB.msgTemplates[type])||[]; }
+function renderMsgPicker(type,pickerId,fieldId,prevFn){
+  const box=byId(pickerId); if(!box)return;
+  const list=msgList(type);
+  if(msgSel[type]==null||msgSel[type]>=list.length) msgSel[type]=0;
+  function apply(i){ msgSel[type]=i; const el=byId(fieldId); if(el)el.value=list[i]||''; if(prevFn)prevFn(); paint(); }
+  function paint(){
+    const sel=msgSel[type];
+    box.innerHTML=`<div class="mp-lbl">📨 발송 메시지 선택 <span class="mp-cnt">${list.length}</span></div>
+      <div class="mp-list">${list.map((m,i)=>`<div class="mp-item ${i===sel?'on':''}" data-i="${i}"><span class="mp-radio"></span><span class="mp-tx">${m.replace(/</g,'&lt;')}</span>${list.length>1?`<button class="mp-del" type="button" data-del="${i}" title="이 메시지 삭제">✕</button>`:''}</div>`).join('')}
+      <button class="mp-add" type="button">＋ 새 메시지 추가</button></div>`;
+    box.querySelectorAll('.mp-item').forEach(el=>el.onclick=e=>{ if(e.target.closest('.mp-del'))return; apply(+el.dataset.i); });
+    box.querySelectorAll('.mp-del').forEach(b=>b.onclick=e=>{e.stopPropagation();if(list.length<=1)return;list.splice(+b.dataset.del,1);save();if(msgSel[type]>=list.length)msgSel[type]=list.length-1;apply(msgSel[type]);});
+    box.querySelector('.mp-add').onclick=()=>{
+      const add=document.createElement('div');add.className='mp-addbox';
+      add.innerHTML=`<textarea class="inp" rows="3" placeholder="새 알림톡 메시지… {닉네임} {크리에이터} {등급} {주년} 등 사용 가능"></textarea><div class="mp-addact"><button class="btn ghost sm" type="button" data-c>취소</button><button class="btn primary sm" type="button" data-s>저장</button></div>`;
+      box.querySelector('.mp-list').appendChild(add);
+      const ta=add.querySelector('textarea'); ta.focus();
+      add.querySelector('[data-c]').onclick=()=>paint();
+      add.querySelector('[data-s]').onclick=()=>{const v=ta.value.trim();if(!v){ta.focus();return;}list.push(v);save();apply(list.length-1);toast('메시지를 추가했습니다');};
+    };
+  }
+  apply(msgSel[type]);
+}
 function actionPreview(type,cfg,box){
   const d=sampleDonator();const g=d?gradeForCash(d.cash):null;const gname=g?g.name:'VIP';const dn=d?(d.alias||d.name):'도네이터';
   const amt = W.situ==='amount' ? (W.amt.min||10000) : 10000;
@@ -4235,11 +4307,10 @@ function openReengage(id){
   const reNote=d.reengagedAt?` · <span style="color:var(--on);font-weight:700">복귀 유도 ${fmtAgo(d.reengagedAt)}</span>`:'';
   byId('reTarget').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
     <div><div class="nm">${d.alias||d.name} ${gradeBadge(g)}</div><div class="info">마지막 후원 ${daysAgo(d)}일 전 · 누적 ${won(d.cash)}캐시${reNote}</div></div>`;
-  byId('reMsg').value=`${d.alias||d.name}님, 오랜만이에요! 요즘 잘 지내시죠? 다음 방송에서 다시 뵈면 정말 반가울 것 같아요 💜`;
-  reRenderPrev();
+  renderMsgPicker('reengage','reMsgPicker','reMsg',reRenderPrev);
   byId('reOverlay').classList.add('show');
 }
-function reRenderPrev(){byId('rePreview').innerHTML=`<div class="kakao"><div class="kt">💬 알림톡</div><div class="kb">${(byId('reMsg').value||'').replace(/</g,'&lt;')}</div><div class="kbtn">방송 보러가기</div></div>`;}
+function reRenderPrev(){const d=DB.donators.find(x=>x.id===reId);byId('rePreview').innerHTML=`<div class="kakao"><div class="kt">💬 알림톡</div><div class="kb">${subMsg(byId('reMsg').value,d)}</div><div class="kbtn">방송 보러가기</div></div>`;}
 byId('reMsg').addEventListener('input',reRenderPrev);
 byId('reClose').onclick=byId('reCancel').onclick=()=>byId('reOverlay').classList.remove('show');
 byId('reOverlay').onclick=e=>{if(e.target===byId('reOverlay'))byId('reOverlay').classList.remove('show');};
@@ -4299,14 +4370,7 @@ function openNudge(id){
     <div><div class="nm">${d.alias||d.name} ${gradeBadge(cur)}</div><div class="info">누적 ${won(d.cash)}캐시</div></div>`;
   byId('nudgeGauge').innerHTML=`<div class="gauge-head"><span>다음 등급 <b class="gb ${clsOf(g.nx)}" style="padding:2px 7px">${g.nx.name}</b> 까지</span><span class="gauge-amt">${won(g.remaining)}원</span></div>
     <div class="gauge"><i style="width:${g.pct}%;background:${g.nx.color}"></i></div>`;
-  const MSG={
-    90:`{닉네임}님, 다음 등급 {다음등급}까지 {남은금액}원! 코앞이에요 🎯 조금만 더 하면 승급이에요!`,
-    80:`{닉네임}님, {다음등급}까지 {남은금액}원 남았어요. 거의 다 왔어요 ⭐ 특별 혜택이 기다려요!`,
-    50:`{닉네임}님, {다음등급}까지 절반 넘게 오셨어요 🔥 남은 {남은금액}원, 함께 달려봐요!`,
-    0:`{닉네임}님, 다음 등급 {다음등급}까지 {남은금액}원 남았어요! 조금만 더 힘내주시면 특별 혜택이 기다려요 💪`,
-  };
-  byId('nudgeMsg').value=MSG[milestoneOf(g.pct).lv];
-  nudgePrev();
+  renderMsgPicker('nudge','nudgeMsgPicker','nudgeMsg',nudgePrev);
   byId('nudgeOverlay').classList.add('show');
 }
 function nudgePrev(){const d=DB.donators.find(x=>x.id===nudgeId);byId('nudgePreview').innerHTML=`<div class="kakao"><div class="kt">🎯 승급 넛지 알림톡</div><div class="kb">${subMsg(byId('nudgeMsg').value,d)}</div><div class="kbtn">후원하러 가기</div></div>`;}
@@ -5253,17 +5317,16 @@ function renderAnniv(){
   });
 }
 byId('annivAuto').onclick=()=>{DB.annivAuto=!DB.annivAuto;save();renderAnniv();toast(DB.annivAuto?'기념일 자동 축하를 켰습니다':'기념일 자동 축하를 껐습니다');};
-let celebId=null;
+let celebId=null, celebYears=2;
 function openCeleb(id,years){
-  const d=DB.donators.find(x=>x.id===id);if(!d)return;celebId=id;
+  const d=DB.donators.find(x=>x.id===id);if(!d)return;celebId=id;celebYears=years||2;
   const g=gradeForCash(d.cash);
   byId('celebTarget').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
     <div><div class="nm">${d.alias||d.name} ${gradeBadge(g)}</div><div class="info">가입 ${years}주년 · 누적 ${won(d.cash)}캐시</div></div>`;
-  byId('celebMsg').value=`${d.alias||d.name}님, 저와 함께한 지 벌써 ${years}주년이에요! 늘 곁에서 응원해 주셔서 진심으로 감사합니다 🎉🎂`;
-  celebPrev();
+  renderMsgPicker('celebrate','celebMsgPicker','celebMsg',celebPrev);
   byId('celebOverlay').classList.add('show');
 }
-function celebPrev(){byId('celebPreview').innerHTML=`<div class="kakao"><div class="kt">🎂 기념일 알림톡</div><div class="kb">${(byId('celebMsg').value||'').replace(/</g,'&lt;')}</div><div class="kbtn">방송 보러가기</div></div>`;}
+function celebPrev(){const d=DB.donators.find(x=>x.id===celebId);byId('celebPreview').innerHTML=`<div class="kakao"><div class="kt">🎂 기념일 알림톡</div><div class="kb">${subMsg((byId('celebMsg').value||'').replace(/{주년}/g,celebYears),d)}</div><div class="kbtn">방송 보러가기</div></div>`;}
 byId('celebMsg').addEventListener('input',celebPrev);
 byId('celebClose').onclick=byId('celebCancel').onclick=()=>byId('celebOverlay').classList.remove('show');
 byId('celebOverlay').onclick=e=>{if(e.target===byId('celebOverlay'))byId('celebOverlay').classList.remove('show');};
