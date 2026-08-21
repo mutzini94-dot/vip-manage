@@ -341,11 +341,11 @@ select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+x
 .don-osum .os-more{margin-left:auto}
 @media(max-width:640px){.don-osum{padding:12px 13px;gap:10px}.don-osum .os-more{margin-left:0;width:100%}}
 /* 관계 온도 범위 슬라이더 (도네이터 관리) */
-.temp-slider{flex:none;display:flex;flex-direction:column;gap:5px;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:7px 12px 9px;min-width:186px}
-.temp-slider .ts-cap{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--muted)}
+.temp-slider{flex:none;display:flex;flex-direction:row;align-items:center;gap:9px;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:8px 13px}
+.temp-slider .ts-cap{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--muted);flex:none;white-space:nowrap}
 .temp-slider .ts-cap b{color:var(--text);font-weight:800}
 .temp-slider .ts-ic{font-size:13px}
-.ts-track{position:relative;height:18px}
+.ts-track{position:relative;height:18px;width:96px;flex:none}
 .ts-rail{position:absolute;top:7px;left:0;right:0;height:5px;border-radius:3px;
   background:linear-gradient(90deg,#5b8cff,#4fc0e8,#ffb020,#ff8a5c,#ff4d4f);opacity:.35}
 .ts-fill{position:absolute;top:7px;height:5px;border-radius:3px;background:var(--accent)}
@@ -390,7 +390,7 @@ select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+x
 .don-filters .seg{padding:3px}
 .don-filters .seg button{padding:7px 8px;font-size:12.5px}
 .don-filters .seg-cnt{margin-left:3px}
-.don-filters .temp-slider{min-width:150px;padding:6px 11px 8px}
+.don-filters .temp-slider{padding:8px 12px}
 .don-actions{margin-bottom:8px}
 .don-actions .limit-note{white-space:nowrap}
 /* 등급 다중선택 세그먼트 — 다른 세그먼트(수신동의·멤버십)와 동일한 형태·크기·강조 사용 */
