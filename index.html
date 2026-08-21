@@ -384,9 +384,11 @@ select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+x
 /* ===== Table ===== */
 .toolbar-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
 .toolbar-row .spacer{flex:1}
-/* 도네이터 관리: 필터는 한 줄로 최대한 압축, 액션(CSV·카운트)은 아래 줄 */
-.don-filters{gap:8px;margin-bottom:10px}
-.don-filters .searchbar{min-width:120px;flex:0 1 200px;max-width:220px;padding:8px 12px}
+/* 도네이터 관리/후원내역: 필터는 한 줄 유지(줄바꿈 금지, 넘치면 가로 스크롤) */
+.don-filters{gap:8px;margin-bottom:10px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.don-filters::-webkit-scrollbar{display:none}
+.don-filters>*{flex:none}
+.don-filters .searchbar{min-width:110px;flex:0 1 190px;max-width:210px;padding:8px 12px}
 .don-filters .seg{padding:3px}
 .don-filters .seg button{padding:7px 8px;font-size:12.5px}
 .don-filters .seg-cnt{margin-left:3px}
