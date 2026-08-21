@@ -406,6 +406,8 @@ select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+x
 .don-filters .date-range{gap:4px;padding:4px 8px}
 .don-filters .date-inp{min-width:0;width:118px;padding:5px 6px}
 .don-filters .date-range .dr-ic{display:none}
+.amt-inp{width:74px;min-width:0;padding:5px 7px;font-size:12.5px;-moz-appearance:textfield}
+.amt-inp::-webkit-outer-spin-button,.amt-inp::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 thead th{text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;
@@ -1812,6 +1814,13 @@ tbody tr.blocked:hover{opacity:.72}
         </div>
         <div class="seg" id="dlAmt" style="flex:none" title="후원 금액대 필터">
           <button data-a="all" class="on">전체</button><button data-a="u1">~1만</button><button data-a="1to3">1~3만</button><button data-a="3to5">3~5만</button><button data-a="5to10">5~10만</button><button data-a="o10">10만+</button>
+        </div>
+        <div class="date-range amt-range" title="금액 직접 입력(원)">
+          <span class="dr-ic">💰</span>
+          <input type="number" class="inp amt-inp" id="dlAmtMin" placeholder="최소" min="0" step="1000" aria-label="최소 금액">
+          <span class="dr-sep">~</span>
+          <input type="number" class="inp amt-inp" id="dlAmtMax" placeholder="최대" min="0" step="1000" aria-label="최대 금액">
+          <button class="btn ghost sm dr-clear hidden" id="dlAmtClear" title="금액 초기화">✕</button>
         </div>
         <div class="seg grade-seg" id="dlGrade" style="flex:none" title="등급 필터 · 복수 선택 가능"></div>
         <div class="date-range" title="날짜 범위 검색">
@@ -5788,7 +5797,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.bell-wrap'))closeAl
    TAB — 후원 내역 (통합 후원 리스트)
    ========================================================= */
 const DON_TYPES={텍스트:{icon:'📝',color:'#5b8cff'},음성:{icon:'🎤',color:'#33d69f'},시그니처:{icon:'✍️',color:'#a45bff'},퀘스트:{icon:'🎯',color:'#ff8a5c'},투네톡:{icon:'💬',color:'#ff5c7a'}};
-let dlQuery='',dlTypeF='all',dlAmtF='all',dlGradeSel=new Set(),dlDateFrom='',dlDateTo='',dlSortCol='ts',dlSortDir=-1,dlPage=1;
+let dlQuery='',dlTypeF='all',dlAmtF='all',dlAmtMin='',dlAmtMax='',dlGradeSel=new Set(),dlDateFrom='',dlDateTo='',dlSortCol='ts',dlSortDir=-1,dlPage=1;
 const DL_AMT={u1:[0,9999],'1to3':[10000,29999],'3to5':[30000,49999],'5to10':[50000,99999],o10:[100000,Infinity]};
 const DL_PER=15;
 /* ---------- 시그니처 후원 감지 ----------
@@ -5829,6 +5838,7 @@ function filteredDonations(){
   if(dlDateTo){const t=new Date(dlDateTo+'T23:59:59').getTime();rows=rows.filter(r=>r.ts<=t);}
   if(dlTypeF!=='all')rows=rows.filter(r=>r.kind===dlTypeF);
   if(dlAmtF!=='all'&&DL_AMT[dlAmtF]){const[lo,hi]=DL_AMT[dlAmtF];rows=rows.filter(r=>r.amount>=lo&&r.amount<=hi);}
+  else if(dlAmtMin!==''||dlAmtMax!==''){const lo=dlAmtMin!==''?+dlAmtMin:0, hi=dlAmtMax!==''?+dlAmtMax:Infinity;rows=rows.filter(r=>r.amount>=lo&&r.amount<=hi);}
   if(dlGradeSel.size>0)rows=rows.filter(r=>{const g=gradeForCash(r.d.cash);const k=g?g.id:'none';return dlGradeSel.has(k);});
   if(dlQuery){const q=dlQuery.toLowerCase();rows=rows.filter(r=>r.d.name.toLowerCase().includes(q)||(r.d.alias||'').toLowerCase().includes(q)||(r.msg||'').toLowerCase().includes(q));}
   rows.sort((a,b)=>dlSortDir*((a[dlSortCol]||0)-(b[dlSortCol]||0)));
@@ -5848,6 +5858,7 @@ function fillDlGradeFilter(){
 function renderDonationList(){
   fillDlGradeFilter();
   if(byId('dlDateClear'))byId('dlDateClear').classList.toggle('hidden',!(dlDateFrom||dlDateTo));
+  if(byId('dlAmtClear'))byId('dlAmtClear').classList.toggle('hidden',!(dlAmtMin||dlAmtMax));
   const rows=filteredDonations();
   const total=rows.reduce((s,r)=>s+r.amount,0), cnt=rows.length, avg=cnt?Math.round(total/cnt):0, max=cnt?Math.max(...rows.map(r=>r.amount)):0;
   byId('dlStats').innerHTML=`
@@ -5880,7 +5891,17 @@ function renderDonationList(){
 }
 byId('dlSearch').addEventListener('input',e=>{dlQuery=e.target.value.trim().toLowerCase();dlPage=1;renderDonationList();});
 byId('dlType').querySelectorAll('button').forEach(b=>b.onclick=()=>{dlTypeF=b.dataset.t;byId('dlType').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));dlPage=1;renderDonationList();});
-byId('dlAmt').querySelectorAll('button').forEach(b=>b.onclick=()=>{dlAmtF=b.dataset.a;byId('dlAmt').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));dlPage=1;renderDonationList();});
+byId('dlAmt').querySelectorAll('button').forEach(b=>b.onclick=()=>{dlAmtF=b.dataset.a;byId('dlAmt').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  dlAmtMin='';dlAmtMax='';byId('dlAmtMin').value='';byId('dlAmtMax').value='';   // 프리셋 선택 시 직접입력 해제
+  dlPage=1;renderDonationList();});
+function onDlAmtInput(){
+  dlAmtMin=byId('dlAmtMin').value.trim(); dlAmtMax=byId('dlAmtMax').value.trim();
+  if(dlAmtMin!==''||dlAmtMax!==''){dlAmtF='all';byId('dlAmt').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.a==='all'));}
+  dlPage=1;renderDonationList();
+}
+byId('dlAmtMin').addEventListener('input',onDlAmtInput);
+byId('dlAmtMax').addEventListener('input',onDlAmtInput);
+byId('dlAmtClear').onclick=()=>{dlAmtMin='';dlAmtMax='';byId('dlAmtMin').value='';byId('dlAmtMax').value='';dlPage=1;renderDonationList();};
 byId('dlDateFrom').addEventListener('change',e=>{dlDateFrom=e.target.value;dlPage=1;renderDonationList();});
 byId('dlDateTo').addEventListener('change',e=>{dlDateTo=e.target.value;dlPage=1;renderDonationList();});
 byId('dlDateClear').onclick=()=>{dlDateFrom='';dlDateTo='';byId('dlDateFrom').value='';byId('dlDateTo').value='';dlPage=1;renderDonationList();};
