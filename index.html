@@ -219,6 +219,25 @@ input,textarea,select{font-family:inherit}
 .credit-log .cl-row .cl-a{font-weight:800;color:var(--on);font-variant-numeric:tabular-nums;flex:none}
 .credit-log .cl-row .cl-a.minus{color:#ff6b81}
 .credit-log .cl-empty{font-size:12px;color:var(--muted-2);text-align:center;padding:14px 8px}
+/* 발송 내역 자세히 보기 진입 버튼 */
+.sl-open{width:100%;margin-top:10px;padding:10px;border:1px dashed var(--line-strong);border-radius:10px;background:var(--surface-2);color:var(--accent);font-weight:800;font-size:12.5px;cursor:pointer;transition:.12s}
+.sl-open:hover{background:var(--accent-soft);border-style:solid;border-color:var(--accent)}
+/* 발송 내역 팝업 */
+#sendLogOverlay{z-index:90}
+.sl-sum{font-size:12.5px;color:var(--muted);margin-bottom:12px}
+.sl-sum b{color:var(--text);font-weight:800;font-variant-numeric:tabular-nums}
+.sl-list{display:flex;flex-direction:column;gap:8px;min-height:392px}
+.sl-row{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.sl-ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:17px;flex:none;background:var(--surface-3)}
+.sl-main{flex:1;min-width:0}
+.sl-type{font-weight:800;font-size:13px}
+.sl-target{font-size:12px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sl-meta{text-align:right;flex:none}
+.sl-dt{font-size:11.5px;color:var(--muted-2);font-variant-numeric:tabular-nums}
+.sl-amt{font-size:12px;font-weight:800;color:#ff6b81;margin-top:2px;font-variant-numeric:tabular-nums}
+.sl-pager{display:flex;align-items:center;gap:14px}
+.sl-pageinfo{font-size:12.5px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.btn.sm[disabled]{opacity:.4;pointer-events:none}
 .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#5b6cff,#a45bff);flex:none;
   display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff;cursor:pointer}
 
@@ -2453,6 +2472,22 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
 </div>
 
+<!-- ============ 알림톡 발송 내역 (상세·페이징) ============ -->
+<div class="overlay" id="sendLogOverlay">
+  <div class="modal wide" style="max-width:600px">
+    <div class="modal-head"><h2>💬 알림톡 발송 내역</h2><div class="spacer"></div><button class="xbtn" id="sendLogClose">✕</button></div>
+    <div class="modal-body">
+      <div class="sl-sum" id="sendLogSum"></div>
+      <div class="sl-list" id="sendLogList"></div>
+    </div>
+    <div class="modal-foot">
+      <div class="sl-pager" id="sendLogPager"></div>
+      <div class="spacer"></div>
+      <button class="btn primary" id="sendLogCloseBtn">닫기</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ 앱 설정 ============ -->
 <div class="overlay" id="settingsOverlay">
   <div class="modal" style="max-width:560px">
@@ -4226,7 +4261,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','trendOverlay','creditOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay','perkOverlay','thanksOverlay','insightCustomOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','trendOverlay','creditOverlay','sendLogOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay','perkOverlay','thanksOverlay','insightCustomOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -4552,10 +4587,46 @@ function renderCreditModal(){
     ${log.length?log.map(l=>{const send=l.type==='send';
       const nm=send?(l.label||'💬 알림톡 발송'):(l.type==='init'?'🎁 지급':'＋ 충전');
       return `<div class="cl-row"><span class="cl-nm">${nm}</span><span class="cl-t">${fmtAgo(l.ts)}</span><span class="cl-a ${send?'minus':''}">${send?'−':'+'}${won(l.amount)}건 → ${won(l.balance)}건</span></div>`;
-    }).join(''):`<div class="cl-empty">${empty}</div>`}`;
+    }).join(''):`<div class="cl-empty">${empty}</div>`}
+    ${totSend>0?`<button class="sl-open" id="creditSendMore">🔎 발송 내역 자세히 보기 (${won(all.filter(l=>l.type==='send').length)}회) →</button>`:''}`;
   const seg=byId('creditLogSeg');
   if(seg)seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{creditLogF=b.dataset.f;renderCreditModal();});
+  const more=byId('creditSendMore'); if(more)more.onclick=openSendLog;
 }
+/* ---- 알림톡 발송 내역 (상세·페이징) ---- */
+let sendLogPage=1; const SEND_LOG_PP=8;
+function parseSend(l){
+  const label=l.label||'💬 알림톡 발송';
+  const parts=label.split(' · '); const head=parts[0]||'';
+  const sp=head.indexOf(' ');
+  const icon=sp>0?head.slice(0,sp):'💬';
+  const type=sp>0?head.slice(sp+1):head;
+  const target=parts.slice(1).join(' · ')||'-';
+  return {icon,type,target};
+}
+function renderSendLog(){
+  const rows=((DB.msgCredit&&DB.msgCredit.log)||[]).filter(l=>l.type==='send');
+  const pages=Math.max(1,Math.ceil(rows.length/SEND_LOG_PP));
+  if(sendLogPage>pages)sendLogPage=pages; if(sendLogPage<1)sendLogPage=1;
+  const start=(sendLogPage-1)*SEND_LOG_PP, page=rows.slice(start,start+SEND_LOG_PP);
+  const totSent=rows.reduce((s,l)=>s+l.amount,0);
+  byId('sendLogSum').innerHTML=`총 <b>${won(rows.length)}</b>회 발송 · <b>${won(totSent)}</b>건 차감`;
+  byId('sendLogList').innerHTML=page.length?page.map(l=>{const p=parseSend(l);
+    return `<div class="sl-row"><div class="sl-ic">${p.icon}</div>
+      <div class="sl-main"><div class="sl-type">${p.type}</div><div class="sl-target">${p.target}</div></div>
+      <div class="sl-meta"><div class="sl-dt">${fmtDT(l.ts)}</div><div class="sl-amt">−${won(l.amount)}건 · 잔여 ${won(l.balance)}건</div></div>
+    </div>`;}).join(''):`<div class="log-empty">발송 내역이 없습니다</div>`;
+  byId('sendLogPager').innerHTML=`
+    <button class="btn ghost sm" id="slPrev" ${sendLogPage<=1?'disabled':''}>◀ 이전</button>
+    <span class="sl-pageinfo">${sendLogPage} / ${pages}</span>
+    <button class="btn ghost sm" id="slNext" ${sendLogPage>=pages?'disabled':''}>다음 ▶</button>`;
+  const pv=byId('slPrev'),nx=byId('slNext');
+  if(pv)pv.onclick=()=>{if(sendLogPage>1){sendLogPage--;renderSendLog();}};
+  if(nx)nx.onclick=()=>{if(sendLogPage<pages){sendLogPage++;renderSendLog();}};
+}
+function openSendLog(){sendLogPage=1;renderSendLog();byId('sendLogOverlay').classList.add('show');}
+byId('sendLogClose').onclick=byId('sendLogCloseBtn').onclick=()=>byId('sendLogOverlay').classList.remove('show');
+byId('sendLogOverlay').onclick=e=>{if(e.target===byId('sendLogOverlay'))byId('sendLogOverlay').classList.remove('show');};
 function openRecharge(){creditSel=300;byId('creditPresets').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.amt===300));byId('creditCustom').value='';renderCreditModal();byId('creditOverlay').classList.add('show');}
 byId('creditChip').onclick=openRecharge;
 byId('creditPresets').querySelectorAll('button').forEach(b=>b.onclick=()=>{
