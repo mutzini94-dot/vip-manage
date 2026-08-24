@@ -204,12 +204,21 @@ input,textarea,select{font-family:inherit}
 .credit-custom{display:flex;gap:8px;margin-bottom:16px}
 .credit-custom input{flex:1;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;font-variant-numeric:tabular-nums}
 .credit-custom input:focus{border-color:var(--accent)}
-.credit-log{border-top:1px solid var(--line);padding-top:12px;max-height:150px;overflow-y:auto}
-.credit-log .cl-h{font-size:11.5px;font-weight:800;color:var(--muted);margin-bottom:8px}
-.credit-log .cl-row{display:flex;align-items:center;gap:8px;font-size:12px;padding:5px 0;color:var(--muted)}
-.credit-log .cl-row .cl-t{color:var(--muted-2);font-variant-numeric:tabular-nums}
-.credit-log .cl-row .cl-a{margin-left:auto;font-weight:800;color:var(--on);font-variant-numeric:tabular-nums}
-.credit-log .cl-empty{font-size:12px;color:var(--muted-2);text-align:center;padding:8px}
+.credit-log{border-top:1px solid var(--line);padding-top:12px;max-height:230px;overflow-y:auto}
+.credit-log .cl-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.credit-log .cl-h{font-size:11.5px;font-weight:800;color:var(--muted)}
+.credit-log .cl-seg{margin-left:auto;display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:2px;gap:2px}
+.credit-log .cl-seg button{font-size:11px;font-weight:700;color:var(--muted);background:none;border:none;border-radius:6px;padding:3px 9px;cursor:pointer;transition:.12s}
+.credit-log .cl-seg button.on{background:var(--accent-soft);color:var(--accent)}
+.credit-log .cl-sum{display:flex;gap:14px;font-size:11px;color:var(--muted);margin-bottom:8px;padding:6px 10px;background:var(--surface-2);border-radius:8px}
+.credit-log .cl-sum b{color:var(--text);font-weight:800;font-variant-numeric:tabular-nums}
+.credit-log .cl-row{display:flex;align-items:center;gap:8px;font-size:12px;padding:5px 0;color:var(--muted);border-bottom:1px solid var(--line)}
+.credit-log .cl-row:last-child{border-bottom:none}
+.credit-log .cl-row .cl-nm{flex:1;min-width:0;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.credit-log .cl-row .cl-t{color:var(--muted-2);font-variant-numeric:tabular-nums;flex:none}
+.credit-log .cl-row .cl-a{font-weight:800;color:var(--on);font-variant-numeric:tabular-nums;flex:none}
+.credit-log .cl-row .cl-a.minus{color:#ff6b81}
+.credit-log .cl-empty{font-size:12px;color:var(--muted-2);text-align:center;padding:14px 8px}
 .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#5b6cff,#a45bff);flex:none;
   display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff;cursor:pointer}
 
@@ -2960,8 +2969,8 @@ function normalize(){
   if(!DB.schedules) DB.schedules=[];
   if(!DB.recaps) DB.recaps=[];
   if(DB.recaps.length<3 && DB.donators&&DB.donators.length) DB.recaps=seedRecaps(DB.donators);  // 방송 성과 로그가 비면 예시 이력 채움
-  if(!DB.msgCredit) DB.msgCredit={balance:300,sent:0,log:[{ts:Date.now(),type:'init',amount:300,balance:300}]};
   if(!DB.outreach) DB.outreach=seedOutreach();
+  if(!DB.msgCredit) DB.msgCredit=seedCreditLog();
   if(!DB.settings) DB.settings={};
   const S=DB.settings;
   if(S.creatorName===undefined) S.creatorName='크리에이터';
@@ -3301,7 +3310,7 @@ byId('thanksSend').onclick=()=>{
   const recips=thanksRecipients.filter(d=>isMember(d)&&d.alimConsent);
   if(!recips.length){toast('수신 동의한 도네이터가 없습니다');return;}
   if(creditBalance()<recips.length){toast(`잔여 발송 건수 부족 (필요 ${won(recips.length)}, 잔여 ${won(creditBalance())})`);byId('thanksOverlay').classList.remove('show');openRecharge();return;}
-  DB.msgCredit.balance-=recips.length; DB.msgCredit.sent=(DB.msgCredit.sent||0)+recips.length; save(); renderCredit();
+  spendCredit(`💌 감사 메시지 · ${won(recips.length)}명`,recips.length);
   byId('thanksOverlay').classList.remove('show');
   toast(`${won(recips.length)}명에게 감사 메시지를 발송했습니다 💌`);
 };
@@ -4502,29 +4511,50 @@ function renderCredit(){
   chip.classList.toggle('low',b<=20&&b>0);
   chip.classList.toggle('empty',b<=0);
 }
-/* 발송 1건 차감. 잔여가 없으면 false 반환(발송 차단) */
-function spendCredit(){
-  if(!DB.msgCredit||DB.msgCredit.balance<=0)return false;
-  DB.msgCredit.balance--; DB.msgCredit.sent=(DB.msgCredit.sent||0)+1;
-  save(); renderCredit(); return true;
+/* 크레딧 이용 내역 기록 (충전 / 발송 공통) */
+function logCredit(type,amount,label){
+  DB.msgCredit.log=DB.msgCredit.log||[];
+  DB.msgCredit.log.unshift({ts:Date.now(),type,amount,label:label||'',balance:DB.msgCredit.balance});
+  while(DB.msgCredit.log.length>80)DB.msgCredit.log.pop();
+}
+/* 발송 차감(기본 1건). 잔여 부족 시 false 반환(발송 차단) */
+function spendCredit(label,n){
+  n=n||1;
+  if(!DB.msgCredit||DB.msgCredit.balance<n)return false;
+  DB.msgCredit.balance-=n; DB.msgCredit.sent=(DB.msgCredit.sent||0)+n;
+  logCredit('send',n,label||'💬 알림톡 발송');
+  save(); renderCredit(); renderCreditModal(); return true;
 }
 function rechargeCredit(amt){
   amt=Math.floor(+amt||0); if(amt<=0)return false;
   DB.msgCredit.balance+=amt;
-  DB.msgCredit.log=DB.msgCredit.log||[];
-  DB.msgCredit.log.unshift({ts:Date.now(),type:'recharge',amount:amt,balance:DB.msgCredit.balance});
-  while(DB.msgCredit.log.length>30)DB.msgCredit.log.pop();
+  logCredit('recharge',amt,'');
   save(); renderCredit(); renderCreditModal(); return true;
 }
-let creditSel=300;
+let creditSel=300, creditLogF='all';
 function renderCreditModal(){
   byId('creditBalBig').textContent=won(creditBalance());
   byId('creditConfirmAmt').textContent=won(creditSel);
   const box=byId('creditLog');
-  const log=(DB.msgCredit&&DB.msgCredit.log)||[];
-  box.innerHTML=`<div class="cl-h">충전 내역</div>`+(log.length
-    ? log.map(l=>`<div class="cl-row"><span>${l.type==='init'?'🎁 지급':'＋ 충전'}</span><span class="cl-t">${fmtAgo(l.ts)}</span><span class="cl-a">+${won(l.amount)}건 → ${won(l.balance)}건</span></div>`).join('')
-    : `<div class="cl-empty">충전 내역이 없습니다</div>`);
+  const all=(DB.msgCredit&&DB.msgCredit.log)||[];
+  const totCharge=all.filter(l=>l.type!=='send').reduce((s,l)=>s+l.amount,0);
+  const totSend=all.filter(l=>l.type==='send').reduce((s,l)=>s+l.amount,0);
+  const log=all.filter(l=>creditLogF==='all'?true:creditLogF==='send'?l.type==='send':l.type!=='send');
+  const empty=creditLogF==='send'?'발송 내역이 없습니다':creditLogF==='recharge'?'충전 내역이 없습니다':'이용 내역이 없습니다';
+  box.innerHTML=`
+    <div class="cl-top"><div class="cl-h">이용 내역</div>
+      <div class="cl-seg" id="creditLogSeg">
+        <button data-f="all" class="${creditLogF==='all'?'on':''}">전체</button>
+        <button data-f="recharge" class="${creditLogF==='recharge'?'on':''}">충전</button>
+        <button data-f="send" class="${creditLogF==='send'?'on':''}">발송</button>
+      </div></div>
+    <div class="cl-sum"><span>총 충전 <b>${won(totCharge)}</b>건</span><span>총 발송 <b>${won(totSend)}</b>건</span></div>
+    ${log.length?log.map(l=>{const send=l.type==='send';
+      const nm=send?(l.label||'💬 알림톡 발송'):(l.type==='init'?'🎁 지급':'＋ 충전');
+      return `<div class="cl-row"><span class="cl-nm">${nm}</span><span class="cl-t">${fmtAgo(l.ts)}</span><span class="cl-a ${send?'minus':''}">${send?'−':'+'}${won(l.amount)}건 → ${won(l.balance)}건</span></div>`;
+    }).join(''):`<div class="cl-empty">${empty}</div>`}`;
+  const seg=byId('creditLogSeg');
+  if(seg)seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{creditLogF=b.dataset.f;renderCreditModal();});
 }
 function openRecharge(){creditSel=300;byId('creditPresets').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.amt===300));byId('creditCustom').value='';renderCreditModal();byId('creditOverlay').classList.add('show');}
 byId('creditChip').onclick=openRecharge;
@@ -4560,7 +4590,7 @@ byId('reOverlay').onclick=e=>{if(e.target===byId('reOverlay'))byId('reOverlay').
 byId('reSend').onclick=()=>{
   const dc=DB.donators.find(x=>x.id===reId);
   if(dc&&!dc.alimConsent){toast('알림톡 수신에 동의하지 않은 도네이터입니다');byId('reOverlay').classList.remove('show');return;}
-  if(!spendCredit()){toast('잔여 발송 건수가 부족합니다. 충전해주세요');byId('reOverlay').classList.remove('show');openRecharge();return;}
+  if(!spendCredit(`💤 복귀 유도 · ${dc?dc.name:''}`)){toast('잔여 발송 건수가 부족합니다. 충전해주세요');byId('reOverlay').classList.remove('show');openRecharge();return;}
   const d=DB.donators.find(x=>x.id===reId);if(d){d.reengaged=true;d.reengagedAt=Date.now();logOutreach('reengage',d);save();}
   byId('reOverlay').classList.remove('show');renderChurn();renderKpis();renderDonators();renderOutreach();
   toast(`복귀 유도 알림톡을 발송했습니다 · 잔여 ${won(creditBalance())}건`);
@@ -4623,7 +4653,7 @@ byId('nudgeOverlay').onclick=e=>{if(e.target===byId('nudgeOverlay'))byId('nudgeO
 byId('nudgeSend').onclick=()=>{
   const dc=DB.donators.find(x=>x.id===nudgeId);
   if(dc&&!dc.alimConsent){toast('알림톡 수신에 동의하지 않은 도네이터입니다');byId('nudgeOverlay').classList.remove('show');return;}
-  if(!spendCredit()){toast('잔여 발송 건수가 부족합니다. 충전해주세요');byId('nudgeOverlay').classList.remove('show');openRecharge();return;}
+  if(!spendCredit(`🎯 승급 넛지 · ${dc?dc.name:''}`)){toast('잔여 발송 건수가 부족합니다. 충전해주세요');byId('nudgeOverlay').classList.remove('show');openRecharge();return;}
   const d=DB.donators.find(x=>x.id===nudgeId);if(d){d.nudged=true;logOutreach('nudge',d);save();}
   byId('nudgeOverlay').classList.remove('show');renderNudge();renderDonators();renderOutreach();
   // 프로필이 열려 있고 같은 도네이터면 목표 카드 갱신
@@ -4654,6 +4684,20 @@ function seedOutreach(){
     }
   });
   return out.sort((a,b)=>b.ts-a.ts);
+}
+/* 알림톡 크레딧 초기 이용 내역 (충전+발송) — 아웃리치 기록에서 파생 */
+function seedCreditLog(){
+  const src=(DB.outreach||[]).slice(0,26).reverse();   // 최근 26건을 시간순(오래된→최근)
+  const events=[{ts:(src[0]?src[0].ts:Date.now())-3*864e5,type:'init',amount:500}];
+  src.forEach((o,i)=>{
+    const d=(DB.donators||[]).find(x=>x.id===o.donatorId); const nm=d?d.name:'도네이터';
+    events.push({ts:o.ts,type:'send',amount:1,label:o.type==='reengage'?`💤 복귀 유도 · ${nm}`:`🎯 승급 넛지 · ${nm}`});
+    if(i===Math.floor(src.length*0.55)) events.push({ts:o.ts+36e5,type:'recharge',amount:300});
+  });
+  events.sort((a,b)=>a.ts-b.ts);
+  let bal=0; const log=[];
+  events.forEach(e=>{bal+=e.type==='send'?-e.amount:e.amount; log.push({ts:e.ts,type:e.type,amount:e.amount,label:e.label||'',balance:bal});});
+  return {balance:bal, sent:events.filter(e=>e.type==='send').length, log:log.reverse()};
 }
 /* 실제 발송 기록 (결과는 대기중) */
 function logOutreach(type,d){
