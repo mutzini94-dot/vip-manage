@@ -4280,15 +4280,29 @@ function donutChart(rows,total){
     <div class="donut-legend">${legend}</div></div>`;
 }
 
+/* 전일(가장 최근 후원일) 대비 누적 후원·도네이터 증감 */
+function dayDelta(){
+  const ds=realDonations().filter(x=>x.ts);
+  if(!ds.length)return{amt:0,newDon:0,active:0,label:'',has:false};
+  const maxTs=Math.max(...ds.map(x=>x.ts));
+  const dd=new Date(maxTs), start=new Date(dd.getFullYear(),dd.getMonth(),dd.getDate()).getTime(), end=start+86400000;
+  const first={};
+  ds.forEach(x=>{const id=x.d.id;if(first[id]==null||x.ts<first[id])first[id]=x.ts;});
+  let amt=0; const active=new Set();
+  ds.forEach(x=>{if(x.ts>=start&&x.ts<end){amt+=x.amount;active.add(x.d.id);}});
+  let newDon=0; for(const id in first){if(first[id]>=start&&first[id]<end)newDon++;}
+  return{amt,newDon,active:active.size,label:`${dd.getMonth()+1}.${dd.getDate()}`,has:true};
+}
 function renderKpis(){
   const total=totalCash();
+  const dd=dayDelta();
   const activeVip=DB.donators.filter(d=>isMember(d)&&gradeForCash(d.cash)).length;
   const trend=monthlyTrend();const thisM=trend[trend.length-1],lastM=trend[trend.length-2]||thisM;
   const delta=lastM?Math.round((thisM-lastM)/lastM*100):0;
   const churnN=churnData(churnThreshold).length;
   const arrow=delta>=0?'▲':'▼',cls=delta>=0?'up':'down';
   byId('kpiRow').innerHTML=`
-    <div class="kpi"><div class="k">💰 총 누적 후원</div><div class="v tnum">${won(total)}<small>캐시</small></div><div class="sub">전체 도네이터 ${DB.donators.length}명</div></div>
+    <div class="kpi"><div class="k">💰 총 누적 후원</div><div class="v tnum">${won(total)}<small>캐시</small></div><div class="sub">전체 도네이터 ${DB.donators.length}명</div>${dd.has?`<div class="sub"><span class="up">▲ +${won(dd.amt)}</span>캐시 · ${dd.newDon>0?`<span class="up">▲ +${won(dd.newDon)}</span>명`:`<span style="color:var(--muted)">+0명</span>`} <span style="color:var(--muted-2)">전일 대비 (${dd.label})</span></div>`:''}</div>
     <div class="kpi"><div class="k">👑 활성 VIP</div><div class="v tnum">${activeVip}<small>명</small></div><div class="sub">등급 보유 도네이터</div></div>
     <div class="kpi"><div class="k">📈 이번 달 후원</div><div class="v tnum">${won(thisM)}<small>캐시</small></div><div class="sub"><span class="${cls}">${arrow} ${Math.abs(delta)}%</span> 전월 대비</div></div>
     <div class="kpi ${churnN?'alert':''}"><div class="k">⚠️ 이탈 위험 VIP</div><div class="v tnum">${churnN}<small>명</small></div><div class="sub"><span class="${churnN?'warn':''}">${churnN?'복귀 유도 필요':'모두 최근 활동'}</span></div></div>`;
