@@ -1351,6 +1351,35 @@ tbody tr.blocked:hover{opacity:.72}
 .ta-t{font-size:12.5px;font-weight:600}
 .ta-d{font-size:11.5px;color:var(--muted);margin-top:1px}
 .ta-when{font-size:11px;color:var(--muted-2);white-space:nowrap;flex:none}
+/* 인사이트 패널 미니 버튼 */
+.mini-btn{flex:none;font-size:11.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);border:1px solid transparent;border-radius:8px;padding:5px 10px;cursor:pointer;transition:.12s;white-space:nowrap}
+.mini-btn:hover{border-color:var(--accent);transform:translateY(-1px)}
+/* 후원 추이 자세히 보기 모달 */
+.td-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+.td-kpi{background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:13px 15px}
+.td-kpi .k{font-size:11.5px;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:5px}
+.td-kpi .v{font-size:21px;font-weight:800;letter-spacing:-.02em;margin-top:5px}
+.td-kpi .v small{font-size:12px;font-weight:600;color:var(--muted);margin-left:2px}
+.td-kpi .s{font-size:11px;color:var(--muted);margin-top:3px}
+.td-kpi .s .up{color:#22c55e;font-weight:800}.td-kpi .s .down{color:var(--accent);font-weight:800}
+.td-section{margin-top:20px}
+.td-section>.section-lbl{font-size:13px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.td-section>.section-lbl .hint{font-size:11px;color:var(--muted);font-weight:600;margin-left:auto}
+.td-grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:720px){.td-grid2{grid-template-columns:1fr}}
+.td-chartbox{background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:14px 12px 8px}
+.col-chart{width:100%;height:auto;display:block;overflow:visible}
+.td-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;padding:0 4px}
+.td-legend .lg{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);font-weight:600}
+.td-legend .lg i{width:11px;height:11px;border-radius:3px;display:inline-block}
+.td-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.td-table th{text-align:right;font-size:11px;color:var(--muted);font-weight:700;padding:7px 10px;border-bottom:1px solid var(--line)}
+.td-table th:first-child{text-align:left}
+.td-table td{text-align:right;padding:8px 10px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.td-table td:first-child{text-align:left;font-weight:700}
+.td-table tr:last-child td{border-bottom:none}
+.td-table .up{color:#22c55e;font-weight:800}.td-table .down{color:var(--accent);font-weight:800}
+.td-peak{display:inline-flex;align-items:center;gap:5px;background:var(--accent-soft);color:var(--accent);border-radius:7px;padding:3px 9px;font-size:11.5px;font-weight:800;margin-top:2px}
 /* 투어 스포트라이트 */
 #tourLayer{position:fixed;inset:0;z-index:300}
 .tour-spot{position:absolute;border-radius:12px;box-shadow:0 0 0 9999px rgba(6,7,11,.72);transition:top .25s,left .25s,width .25s,height .25s;pointer-events:none;border:2px solid var(--accent)}
@@ -1552,7 +1581,7 @@ tbody tr.blocked:hover{opacity:.72}
 
       <div class="ins-masonry">
         <div class="panel" data-insec="trend">
-          <div class="panel-head"><h3>후원 추이</h3><span class="hint">최근 6개월</span><div class="spacer"></div><div id="trendDelta" class="trend-delta"></div></div>
+          <div class="panel-head"><h3>후원 추이</h3><span class="hint">최근 6개월</span><div class="spacer"></div><div id="trendDelta" class="trend-delta"></div><button class="mini-btn" id="trendMoreBtn" title="후원 추이 자세히 보기">자세히 보기 →</button></div>
           <div class="panel-body" id="trendChart"></div>
         </div>
         <div class="panel" data-insec="gradeMix">
@@ -2686,6 +2715,15 @@ tbody tr.blocked:hover{opacity:.72}
     <div class="modal-head"><h2>📊 방송 성과 리캡</h2><div class="spacer"></div><button class="xbtn" id="recapClose">✕</button></div>
     <div class="modal-body" id="recapBody"></div>
     <div class="modal-foot"><div class="spacer"></div><button class="btn primary" id="recapCloseBtn">닫기</button></div>
+  </div>
+</div>
+
+<!-- ============ 후원 추이 자세히 보기 ============ -->
+<div class="overlay" id="trendOverlay">
+  <div class="modal wide">
+    <div class="modal-head"><h2>📈 후원 추이 인사이트</h2><div class="spacer"></div><button class="xbtn" id="trendDetClose">✕</button></div>
+    <div class="modal-body" id="trendDetBody"></div>
+    <div class="modal-foot"><div class="spacer"></div><button class="btn primary" id="trendDetCloseBtn">닫기</button></div>
   </div>
 </div>
 
@@ -4179,7 +4217,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','creditOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay','perkOverlay','thanksOverlay','insightCustomOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','trendOverlay','creditOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay','perkOverlay','thanksOverlay','insightCustomOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -4261,6 +4299,107 @@ function renderTrend(){
   const d=vals[5],p=vals[4]||d,dl=p?Math.round((d-p)/p*100):0;
   const el=byId('trendDelta');el.className='trend-delta '+(dl>=0?'up':'down');el.textContent=`${dl>=0?'▲':'▼'} ${Math.abs(dl)}% 전월`;
 }
+/* ===== 후원 추이 자세히 보기 (실데이터 인사이트) ===== */
+function trendDetailData(){
+  const ds=realDonations().filter(x=>x.ts);
+  const totalCnt=ds.length, totalAmt=ds.reduce((s,x)=>s+x.amount,0);
+  const avg=totalCnt?Math.round(totalAmt/totalCnt):0;
+  // 월별(연속 축, 최대 12개월)
+  const now=new Date(refNow());
+  const minTs=ds.length?Math.min(...ds.map(x=>x.ts)):now.getTime();
+  const months=[]; let y=new Date(minTs).getFullYear(), m=new Date(minTs).getMonth();
+  const endY=now.getFullYear(), endM=now.getMonth();
+  while(y<endY||(y===endY&&m<=endM)){ months.push({key:y+'-'+String(m+1).padStart(2,'0'),y,m,label:(m+1)+'월',yr:y,amt:0,cnt:0,donors:new Set()}); m++; if(m>11){m=0;y++;} if(months.length>240)break; }
+  const monthsC=months.slice(-12);
+  const mIdx={}; monthsC.forEach((mm,i)=>mIdx[mm.key]=i);
+  const dow=Array.from({length:7},()=>({amt:0,cnt:0}));
+  const hour=Array.from({length:24},()=>({amt:0,cnt:0}));
+  const kindAgg={}; const KCLR={'시그니처':'#ff9f43','텍스트':'#5b8cff','음성':'#a45bff','퀘스트':'#22c55e','영상':'#ec4899'};
+  ds.forEach(x=>{const dt=new Date(x.ts);const k=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');const i=mIdx[k];
+    if(i!=null){monthsC[i].amt+=x.amount;monthsC[i].cnt++;monthsC[i].donors.add(x.d.id);}
+    dow[dt.getDay()].amt+=x.amount;dow[dt.getDay()].cnt++;
+    hour[dt.getHours()].amt+=x.amount;hour[dt.getHours()].cnt++;
+    const o=kindAgg[x.kind]=kindAgg[x.kind]||{name:x.kind,val:0,cnt:0,color:KCLR[x.kind]||'#8b8fa3'};o.val+=x.amount;o.cnt++;});
+  monthsC.forEach(mm=>mm.donorsN=mm.donors.size);
+  // 파생 지표
+  const active=monthsC.filter(mm=>mm.amt>0);
+  const best=active.reduce((a,b)=>b.amt>(a?a.amt:0)?b:a,null);
+  const lastN=active[active.length-1], prevN=active[active.length-2];
+  const mom=lastN&&prevN&&prevN.amt?Math.round((lastN.amt-prevN.amt)/prevN.amt*100):null;
+  const monAvg=active.length?Math.round(active.reduce((s,mm)=>s+mm.amt,0)/active.length):0;
+  const peakDow=dow.map((o,i)=>({i,...o})).reduce((a,b)=>b.amt>a.amt?b:a,{amt:-1,i:0});
+  const peakHour=hour.map((o,i)=>({i,...o})).reduce((a,b)=>b.amt>a.amt?b:a,{amt:-1,i:0});
+  return {ds,totalCnt,totalAmt,avg,months:monthsC,dow,hour,kindAgg,best,lastN,prevN,mom,monAvg,peakDow,peakHour};
+}
+let _colgN=0;
+function columnChart(rows,opt){
+  opt=opt||{}; const n=rows.length||1, unit=34, W=n*unit, H=182, pt=22, pb=26;
+  const bw=unit*0.56; const max=Math.max(1,...rows.map(r=>r.val));
+  const gid='colg'+(_colgN++);
+  const bars=rows.map((r,i)=>{const h=(r.val/max)*(H-pt-pb);const cx=i*unit+unit/2;const x=cx-bw/2;const yb=H-pb,y=yb-h;
+    const hot=opt.hot&&opt.hot(r,i);
+    return `<g>
+      <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" rx="3" fill="${hot?'var(--accent)':'url(#'+gid+')'}"/>
+      ${r.val&&opt.top?`<text x="${cx.toFixed(1)}" y="${(y-6).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="800" fill="var(--text)">${opt.top(r)}</text>`:''}
+      ${r.label?`<text x="${cx.toFixed(1)}" y="${(yb+14).toFixed(1)}" text-anchor="middle" font-size="11" fill="var(--muted)" font-weight="${hot?'800':'500'}">${r.label}</text>`:''}
+    </g>`;}).join('');
+  return `<svg class="col-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".92"/><stop offset="1" stop-color="var(--accent)" stop-opacity=".28"/></linearGradient></defs>
+    ${bars}</svg>`;
+}
+function openTrendDetail(){
+  const t=trendDetailData();
+  const HR=['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23'];
+  // 월별 표
+  const rowsTbl=t.months.map((mm,i)=>{const prev=t.months[i-1];const dl=prev&&prev.amt?Math.round((mm.amt-prev.amt)/prev.amt*100):null;
+    return `<tr><td>${mm.yr}.${mm.m+1}월</td><td>${won(mm.cnt)}</td><td>${won(mm.amt)}</td><td>${won(mm.donorsN)}</td>
+      <td>${dl==null?'<span style="color:var(--muted)">–</span>':`<span class="${dl>=0?'up':'down'}">${dl>=0?'▲':'▼'}${Math.abs(dl)}%</span>`}</td></tr>`;}).join('');
+  const kinds=Object.values(t.kindAgg).sort((a,b)=>b.val-a.val);
+  const kindTot=kinds.reduce((s,k)=>s+k.val,0)||1;
+  byId('trendDetBody').innerHTML=`
+    <div class="td-kpis">
+      <div class="td-kpi"><div class="k">💰 총 후원액</div><div class="v tnum">${won(t.totalAmt)}<small>캐시</small></div><div class="s">누적 ${won(t.totalCnt)}건</div></div>
+      <div class="td-kpi"><div class="k">📅 월 평균</div><div class="v tnum">${won(t.monAvg)}<small>캐시</small></div><div class="s">활동 ${won(t.months.filter(m=>m.amt>0).length)}개월</div></div>
+      <div class="td-kpi"><div class="k">🧾 평균 후원액</div><div class="v tnum">${won(t.avg)}<small>캐시</small></div><div class="s">건당 평균</div></div>
+      <div class="td-kpi"><div class="k">🏆 최고의 달</div><div class="v tnum">${t.best?`${t.best.yr}.${t.best.m+1}월`:'–'}</div><div class="s">${t.best?won(t.best.amt)+'캐시':''}</div></div>
+      <div class="td-kpi"><div class="k">📈 최근 월 성장</div><div class="v tnum">${t.mom==null?'–':(t.mom>=0?'+':'')+t.mom+'%'}</div><div class="s">${t.lastN&&t.prevN?`${t.prevN.yr}.${t.prevN.m+1}→${t.lastN.yr}.${t.lastN.m+1}월`:'전월 대비'}</div></div>
+    </div>
+
+    <div class="td-section">
+      <div class="section-lbl">📊 월별 후원액 추이<span class="hint">막대 위 = 후원 건수</span></div>
+      <div class="td-chartbox">${columnChart(t.months.map(mm=>({label:mm.label,val:mm.amt,cnt:mm.cnt})),{top:r=>r.cnt?won(r.cnt)+'건':'',hot:r=>t.best&&r.val===t.best.amt&&r.val>0})}</div>
+    </div>
+
+    <div class="td-grid2">
+      <div class="td-section">
+        <div class="section-lbl">📆 요일별 후원 분포</div>
+        <div class="td-chartbox">${columnChart(t.dow.map((o,i)=>({label:WD[i],val:o.amt,cnt:o.cnt})),{hot:(r,i)=>i===t.peakDow.i&&t.peakDow.amt>0})}</div>
+        <div class="td-peak">🔥 ${WD[t.peakDow.i]}요일 최다 · ${won(t.peakDow.amt)}캐시</div>
+      </div>
+      <div class="td-section">
+        <div class="section-lbl">💫 후원 유형 비중</div>
+        <div class="td-chartbox" style="padding:16px 12px">${kinds.length?donutChart(kinds,kindTot):'<div class="helper">데이터 없음</div>'}</div>
+      </div>
+    </div>
+
+    <div class="td-section">
+      <div class="section-lbl">⏱ 시간대별 후원 분포<span class="hint">0~23시</span></div>
+      <div class="td-chartbox">${columnChart(t.hour.map((o,i)=>({label:i%3===0?HR[i]:'',val:o.amt,cnt:o.cnt})),{hot:(r,i)=>i===t.peakHour.i&&t.peakHour.amt>0})}</div>
+      <div class="td-peak">🔥 ${HR[t.peakHour.i]}시대 최다 · ${won(t.peakHour.amt)}캐시 (${won(t.peakHour.cnt)}건)</div>
+    </div>
+
+    <div class="td-section">
+      <div class="section-lbl">🗂 월별 상세</div>
+      <div class="td-chartbox" style="padding:4px 6px">
+        <table class="td-table"><thead><tr><th>월</th><th>건수</th><th>후원액</th><th>후원자</th><th>전월비</th></tr></thead>
+        <tbody>${rowsTbl}</tbody></table>
+      </div>
+    </div>`;
+  byId('trendOverlay').classList.add('show');
+}
+byId('trendMoreBtn').onclick=openTrendDetail;
+byId('trendDetClose').onclick=byId('trendDetCloseBtn').onclick=()=>byId('trendOverlay').classList.remove('show');
+byId('trendOverlay').onclick=e=>{if(e.target===byId('trendOverlay'))byId('trendOverlay').classList.remove('show');};
 function renderGradeMix(){const{rows,total}=gradeMixData();byId('gradeMix').innerHTML=rows.length?donutChart(rows,total):'<div class="helper">데이터가 없습니다</div>';}
 /* --- 후원 금액 분포 --- */
 function renderAmtDist(){
