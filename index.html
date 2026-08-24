@@ -1351,6 +1351,50 @@ tbody tr.blocked:hover{opacity:.72}
 .ta-t{font-size:12.5px;font-weight:600}
 .ta-d{font-size:11.5px;color:var(--muted);margin-top:1px}
 .ta-when{font-size:11px;color:var(--muted-2);white-space:nowrap;flex:none}
+/* 온보딩 위저드 */
+.onb-body{padding:30px 28px 8px;min-height:236px}
+.onb-hero{text-align:center;padding:6px 0 2px}
+.onb-emoji{font-size:44px;line-height:1}
+.onb-h{font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:12px}
+.onb-p{font-size:13.5px;color:var(--muted);margin-top:8px;line-height:1.6}
+.onb-field{margin:14px 0}
+.onb-field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:6px}
+.onb-feats{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.onb-feat{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.onb-feat .of-ic{font-size:22px;flex:none}
+.onb-feat .of-t{font-weight:800;font-size:13.5px}
+.onb-feat .of-d{font-size:12px;color:var(--muted);margin-top:2px}
+.onb-choice{display:flex;gap:10px;margin-top:12px}
+.onb-opt{flex:1;text-align:left;padding:14px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface-2);cursor:pointer;transition:.12s}
+.onb-opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.onb-opt .oo-t{font-weight:800;font-size:13.5px}
+.onb-opt .oo-d{font-size:12px;color:var(--muted);margin-top:3px}
+.onb-foot{display:flex;align-items:center;gap:8px;padding:14px 20px;border-top:1px solid var(--line)}
+.onb-dots{display:flex;gap:6px}
+.onb-dots i{width:7px;height:7px;border-radius:50%;background:var(--surface-3);transition:.15s}
+.onb-dots i.on{background:var(--accent);width:20px;border-radius:4px}
+/* 투어 스포트라이트 */
+#tourLayer{position:fixed;inset:0;z-index:300}
+.tour-spot{position:absolute;border-radius:12px;box-shadow:0 0 0 9999px rgba(6,7,11,.72);transition:top .25s,left .25s,width .25s,height .25s;pointer-events:none;border:2px solid var(--accent)}
+.tour-pop{position:absolute;width:284px;max-width:90vw;background:var(--surface);border:1px solid var(--line-strong);border-radius:14px;padding:15px 16px;box-shadow:0 18px 50px rgba(0,0,0,.5);transition:top .25s,left .25s}
+.tour-step{font-size:11px;font-weight:800;color:var(--accent)}
+.tour-t{font-size:15px;font-weight:800;margin-top:4px}
+.tour-d{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.55}
+.tour-act{display:flex;align-items:center;gap:8px;margin-top:14px}
+/* 도움말 센터 */
+.help-quick{display:flex;flex-direction:column;gap:9px}
+.help-card{display:flex;align-items:center;gap:13px;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);cursor:pointer;transition:.12s;text-align:left;color:var(--text)}
+.help-card:hover{border-color:var(--accent)}
+.help-card .hc-ic{font-size:22px;flex:none}
+.help-card .hc-t{font-weight:800;font-size:13.5px}
+.help-card .hc-d{font-size:12px;color:var(--muted);margin-top:2px}
+.faq{display:flex;flex-direction:column;gap:7px}
+.faq-item{border:1px solid var(--line);border-radius:10px;background:var(--surface-2);overflow:hidden}
+.faq-q{display:flex;align-items:center;gap:8px;padding:11px 13px;font-weight:700;font-size:13px;cursor:pointer}
+.faq-q .fq-ar{margin-left:auto;color:var(--muted-2);transition:.15s;font-weight:800}
+.faq-item.open .fq-ar{transform:rotate(90deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .2s;font-size:12.5px;color:var(--muted);line-height:1.6}
+.faq-item.open .faq-a{max-height:240px;padding:0 13px 12px}
 .storage-bar{flex:1;min-width:160px;max-width:280px;height:8px;border-radius:5px;background:var(--surface-3);overflow:hidden;margin-top:5px}
 .storage-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--on),var(--accent));border-radius:5px;transition:width .4s}
 .set-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0 16px}
@@ -1438,6 +1482,9 @@ tbody tr.blocked:hover{opacity:.72}
       <span class="cr-ic">✉️</span>
       <span class="cr-tx"><span class="cr-lbl">알림톡 잔여 </span><b id="creditBal">300</b><span class="cr-lbl">건</span></span>
       <span class="cr-plus">＋충전</span>
+    </button>
+    <button class="theme-toggle" id="helpBtn" title="도움말 · 가이드" aria-label="도움말">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4"/><circle cx="12" cy="17.5" r="0.6" fill="currentColor" stroke="none"/></svg>
     </button>
     <button class="theme-toggle" id="themeToggle" title="라이트/다크 모드 전환" aria-label="테마 전환">
       <svg class="ic-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -2422,6 +2469,7 @@ tbody tr.blocked:hover{opacity:.72}
       </div>
       <div class="set-sec" data-setsec="data">
         <div class="set-h">💾 데이터 · 백업</div>
+        <label class="set-toggle"><div><div class="st-t">샘플(데모) 데이터</div><div class="st-s">예시 도네이터·성과 표시 · 끄면 빈 상태로 전환(새로고침)</div></div><div class="tgl" id="setSample"></div></label>
         <div class="set-row" style="align-items:flex-start"><label>저장소 사용량 <span class="set-hint" id="setStorageInfo">-</span></label>
           <div class="storage-bar"><i id="setStorageBar"></i></div></div>
         <div class="set-actions">
@@ -2462,6 +2510,48 @@ tbody tr.blocked:hover{opacity:.72}
       <div id="icList" class="ic-list"></div>
     </div>
     <div class="modal-foot"><button class="btn ghost sm" id="icAll">모두 표시</button><div class="spacer"></div><button class="btn primary" id="icDone">완료</button></div>
+  </div>
+</div>
+
+<!-- ============ 첫 실행 온보딩 위저드 ============ -->
+<div class="overlay" id="onbOverlay">
+  <div class="modal onb-modal" style="max-width:520px">
+    <div class="onb-body" id="onbBody"></div>
+    <div class="onb-foot">
+      <div class="onb-dots" id="onbDots"></div>
+      <div class="spacer"></div>
+      <button class="btn ghost sm" id="onbSkip">건너뛰기</button>
+      <button class="btn ghost sm hidden" id="onbPrev">이전</button>
+      <button class="btn primary" id="onbNext">다음</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 기능 둘러보기 투어(스포트라이트) ============ -->
+<div id="tourLayer" class="hidden">
+  <div class="tour-spot" id="tourSpot"></div>
+  <div class="tour-pop" id="tourPop">
+    <div class="tour-step" id="tourStepNo"></div>
+    <div class="tour-t" id="tourTitle"></div>
+    <div class="tour-d" id="tourDesc"></div>
+    <div class="tour-act"><button class="btn ghost sm" id="tourEnd">종료</button><div class="spacer"></div><button class="btn ghost sm" id="tourPrev">이전</button><button class="btn primary sm" id="tourNext">다음</button></div>
+  </div>
+</div>
+
+<!-- ============ 도움말 센터 ============ -->
+<div class="overlay" id="helpOverlay">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head"><h2>❓ 도움말 센터</h2><div class="spacer"></div><button class="xbtn" id="helpClose">✕</button></div>
+    <div class="modal-body">
+      <div class="help-quick">
+        <button class="help-card" id="helpTour"><span class="hc-ic">🧭</span><div><div class="hc-t">기능 둘러보기</div><div class="hc-d">주요 메뉴를 투어로 안내</div></div></button>
+        <button class="help-card" id="helpOnb"><span class="hc-ic">🚀</span><div><div class="hc-t">시작 가이드 다시 보기</div><div class="hc-d">첫 실행 온보딩 재실행</div></div></button>
+        <a class="help-card" href="manual.html" target="_blank" rel="noopener"><span class="hc-ic">📖</span><div><div class="hc-t">사용 매뉴얼</div><div class="hc-d">전체 기능 상세 설명</div></div></a>
+      </div>
+      <div class="set-h" style="margin:18px 0 6px">자주 묻는 질문</div>
+      <div class="faq" id="faqList"></div>
+    </div>
+    <div class="modal-foot"><div class="spacer"></div><button class="btn primary" id="helpDone">완료</button></div>
   </div>
 </div>
 
@@ -6189,6 +6279,7 @@ function renderSettings(){
   byId('setAnniv').classList.toggle('on',!!DB.annivAuto);
   byId('setMilestone').classList.toggle('on',!!DB.milestoneNudge);
   byId('setToonAlert').classList.toggle('on',!!DB.toonUnreadAlert);
+  if(byId('setSample'))byId('setSample').classList.toggle('on',DB.settings.sampleData!==false);
   byId('setChurn').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.d===churnThreshold));
   byId('setNudge').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.n===nudgeThreshold));
   byId('setVipAlert').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v===vipAlertTier()));
@@ -6264,6 +6355,8 @@ byId('setDefaultTab').onchange=e=>{DB.settings.defaultTab=e.target.value;save();
 byId('setAnniv').onclick=()=>{DB.annivAuto=!DB.annivAuto;save();byId('setAnniv').classList.toggle('on',DB.annivAuto);if(byId('annivAuto'))byId('annivAuto').classList.toggle('on',DB.annivAuto);renderInsights();};
 byId('setMilestone').onclick=()=>{DB.milestoneNudge=!DB.milestoneNudge;save();byId('setMilestone').classList.toggle('on',DB.milestoneNudge);renderNudge();};
 byId('setToonAlert').onclick=()=>{DB.toonUnreadAlert=!DB.toonUnreadAlert;save();byId('setToonAlert').classList.toggle('on',DB.toonUnreadAlert);if(byId('toonAlert'))byId('toonAlert').classList.toggle('on',DB.toonUnreadAlert);};
+byId('setSample').onclick=()=>{const cur=DB.settings.sampleData!==false,next=!cur;
+  askConfirm(next?'샘플 데이터 켜기':'샘플 데이터 끄기', next?'예시 도네이터·성과를 다시 불러옵니다. 현재 데이터는 예시로 교체됩니다.':'모든 예시 데이터를 비워 빈 상태로 전환합니다. 페이지가 새로고침됩니다.', ()=>setSampleData(next));};
 byId('setChurn').querySelectorAll('button').forEach(b=>b.onclick=()=>{churnThreshold=+b.dataset.d;DB.settings.churnDays=churnThreshold;save();
   byId('setChurn').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
   if(byId('churnThresh'))byId('churnThresh').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.d===churnThreshold));renderInsights();});
@@ -6276,6 +6369,105 @@ byId('setVipAlert').querySelectorAll('button').forEach(b=>b.onclick=()=>{DB.sett
   toast(`VIP 입장 알림: ${lbl}`); });
 
 /* ---------- 로그인 / 계정 ---------- */
+/* ================= 온보딩 · 투어 · 도움말 ================= */
+/* 샘플(데모) 데이터 토글 */
+function setSampleData(on){
+  DB.settings.sampleData=on;
+  const keys=['donators','autos','recaps','autoLogs','autoRuns','toontalks'];
+  if(on){ const s=seed(); keys.forEach(k=>{ DB[k]=s[k]; }); }
+  else { keys.forEach(k=>{ DB[k]=[]; }); }
+  save(); location.reload();
+}
+/* 첫 실행 위저드 */
+let onbStep=0, onbSample=true;
+const ONB=[
+  {render:()=>`<div class="onb-hero"><div class="onb-emoji">👋</div><div class="onb-h">열혈네이션에 오신 걸 환영해요</div><div class="onb-p">단골·VIP 도네이터를 한곳에서 관리하고,<br>관계를 이어가는 크리에이터 도구예요. 잠깐만 둘러볼까요?</div></div>`},
+  {render:()=>`<div class="onb-hero" style="padding-bottom:0"><div class="onb-emoji">🎨</div><div class="onb-h">프로필을 알려주세요</div><div class="onb-p">메시지와 상단바에 표시돼요. 나중에 설정에서 바꿀 수 있어요.</div></div>
+    <div class="onb-field"><label>크리에이터 이름</label><input class="inp" id="onbName" maxlength="20" placeholder="크리에이터" value="${(DB.settings.creatorName||'').replace(/"/g,'&quot;')}"></div>
+    <div class="onb-field"><label>채널명</label><input class="inp" id="onbChannel" maxlength="30" placeholder="예: 투네이션 게임채널" value="${(DB.settings.channelName||'').replace(/"/g,'&quot;')}"></div>`},
+  {render:()=>`<div class="onb-hero" style="padding-bottom:0"><div class="onb-emoji">✨</div><div class="onb-h">이렇게 활용해요</div></div>
+    <div class="onb-feats">
+      <div class="onb-feat"><span class="of-ic">📊</span><div><div class="of-t">인사이트</div><div class="of-d">후원 흐름·이탈 위험·관계 온도를 한눈에</div></div></div>
+      <div class="onb-feat"><span class="of-ic">👑</span><div><div class="of-t">도네이터 관리</div><div class="of-d">순위·온도·이탈위험별로 팬을 관리하고 메시지 발송</div></div></div>
+      <div class="onb-feat"><span class="of-ic">⚡</span><div><div class="of-t">자동화</div><div class="of-d">방송 시작·후원·승급 시 자동으로 알림·위젯 발동</div></div></div>
+    </div>`},
+  {render:()=>`<div class="onb-hero" style="padding-bottom:0"><div class="onb-emoji">🗂</div><div class="onb-h">어떻게 시작할까요?</div><div class="onb-p">둘러보기용 샘플 데이터로 시작하거나, 빈 상태에서 직접 채울 수 있어요.</div></div>
+    <div class="onb-choice">
+      <button class="onb-opt ${onbSample?'on':''}" data-s="1"><div class="oo-t">🎬 샘플 데이터로 둘러보기</div><div class="oo-d">예시 도네이터·성과로 기능을 바로 체험</div></button>
+      <button class="onb-opt ${onbSample?'':'on'}" data-s="0"><div class="oo-t">🆕 빈 상태로 시작</div><div class="oo-d">실제 데이터가 연동될 때까지 비워둠</div></button>
+    </div>`},
+];
+function renderOnb(){
+  byId('onbBody').innerHTML=ONB[onbStep].render();
+  byId('onbDots').innerHTML=ONB.map((_,i)=>`<i class="${i===onbStep?'on':''}"></i>`).join('');
+  byId('onbPrev').classList.toggle('hidden',onbStep===0);
+  byId('onbNext').textContent = onbStep===ONB.length-1 ? '시작하기' : '다음';
+  if(onbStep===3) byId('onbBody').querySelectorAll('.onb-opt').forEach(b=>b.onclick=()=>{onbSample=b.dataset.s==='1';renderOnb();});
+}
+function openOnb(){ onbStep=0; onbSample=DB.settings.sampleData!==false; renderOnb(); byId('onbOverlay').classList.add('show'); }
+function onbSaveStep(){ if(onbStep===1){ const nm=byId('onbName'),ch=byId('onbChannel'); if(nm)DB.settings.creatorName=nm.value.trim(); if(ch)DB.settings.channelName=ch.value.trim(); save(); if(typeof applyCreatorUI==='function')applyCreatorUI(); } }
+function finishOnb(){
+  DB.settings.onboarded=true;
+  const want=onbSample, cur=DB.settings.sampleData!==false;
+  if(want!==cur){ setSampleData(want); return; }   // 플래그 저장 + 새로고침
+  DB.settings.sampleData=want; save();
+  byId('onbOverlay').classList.remove('show');
+  toast('설정 완료! 둘러보기를 시작할게요 🧭'); setTimeout(startTour,300);
+}
+byId('onbNext').onclick=()=>{ onbSaveStep(); if(onbStep<ONB.length-1){onbStep++;renderOnb();} else finishOnb(); };
+byId('onbPrev').onclick=()=>{ if(onbStep>0){onbStep--;renderOnb();} };
+byId('onbSkip').onclick=()=>{ DB.settings.onboarded=true; save(); byId('onbOverlay').classList.remove('show'); };
+function maybeOnboard(){ if(!DB.settings.onboarded) setTimeout(openOnb,450); }
+
+/* 기능 둘러보기 투어(스포트라이트) */
+const TOUR=[
+  {tab:'insight',sel:'#helpBtn',t:'도움말은 여기',d:'언제든 이 버튼으로 투어를 다시 보거나 매뉴얼을 열 수 있어요.'},
+  {tab:'insight',sel:'.tab[data-tab="insight"]',t:'인사이트',d:'후원 흐름·이탈 위험·관계 온도·시그니처 분석을 한눈에 봅니다.'},
+  {tab:'donator',sel:'#donView',t:'도네이터 관리',d:'순위·온도·이탈위험·승급임박 탭으로 팬을 관리하고 메시지를 보내요.'},
+  {tab:'auto',sel:'#tplBtn',t:'자동화 템플릿',d:'추천 템플릿으로 방송 시작·후원·승급 자동 알림을 클릭 몇 번으로 시작하세요.'},
+  {tab:'live',sel:'.tab[data-tab="live"]',t:'라이브',d:'방송 중 접속한 VIP를 실시간으로 보고 바로 인사할 수 있어요.'},
+];
+let tourIdx=0;
+function positionTour(){
+  const st=TOUR[tourIdx], el=document.querySelector(st.sel), spot=byId('tourSpot'), pop=byId('tourPop');
+  byId('tourStepNo').textContent=`${tourIdx+1} / ${TOUR.length}`;
+  byId('tourTitle').textContent=st.t; byId('tourDesc').textContent=st.d;
+  byId('tourPrev').classList.toggle('hidden',tourIdx===0);
+  byId('tourNext').textContent = tourIdx===TOUR.length-1 ? '완료' : '다음';
+  if(!el||el.getBoundingClientRect().width===0){ spot.style.display='none'; pop.style.left='50%'; pop.style.top='90px'; pop.style.transform='translateX(-50%)'; return; }
+  spot.style.display='block'; pop.style.transform='none';
+  const r=el.getBoundingClientRect(), pad=6;
+  spot.style.left=(r.left-pad)+'px'; spot.style.top=(r.top-pad)+'px'; spot.style.width=(r.width+pad*2)+'px'; spot.style.height=(r.height+pad*2)+'px';
+  const popW=284; const left=Math.min(Math.max(8,r.left), innerWidth-popW-8);
+  let top=(r.bottom+12+180<innerHeight)?(r.bottom+12):(r.top-172);
+  if(top<8)top=r.bottom+12;
+  pop.style.left=left+'px'; pop.style.top=top+'px';
+}
+function showTourStep(){ goTab(TOUR[tourIdx].tab); requestAnimationFrame(()=>requestAnimationFrame(positionTour)); }
+function startTour(){ tourIdx=0; byId('tourLayer').classList.remove('hidden'); showTourStep(); }
+function endTour(){ byId('tourLayer').classList.add('hidden'); }
+byId('tourNext').onclick=()=>{ if(tourIdx<TOUR.length-1){tourIdx++;showTourStep();} else endTour(); };
+byId('tourPrev').onclick=()=>{ if(tourIdx>0){tourIdx--;showTourStep();} };
+byId('tourEnd').onclick=endTour;
+window.addEventListener('resize',()=>{ if(!byId('tourLayer').classList.contains('hidden')) positionTour(); });
+
+/* 도움말 센터 */
+const FAQ=[
+  ['도네이터는 어떻게 등록되나요?','투네이션 후원·로그인 이벤트가 연동되면 자동 집계됩니다. 지금은 예시(샘플) 데이터로 표시돼요.'],
+  ['관계 온도는 무엇인가요?','최근성·후원 빈도·금액을 종합한 팬 관계 건강도(0~100°)예요. 식어가는 단골을 빠르게 찾을 수 있어요.'],
+  ['알림톡은 실제로 발송되나요?','프로토타입에서는 발송 이력만 기록됩니다. 상용 연동 시 승인된 카카오 알림톡 템플릿으로 실제 발송돼요.'],
+  ['자동화는 어떻게 시작하나요?','자동화 설정 탭의 “추천 템플릿”에서 원하는 걸 골라 “바로 추가”하면 됩니다. 최대 6개까지 설정할 수 있어요.'],
+  ['샘플 데이터를 지우려면?','설정 ▸ 데이터·백업의 “샘플 데이터” 스위치를 끄거나, 도움말에서 온보딩을 다시 열어 “빈 상태로 시작”을 선택하세요.'],
+];
+function renderFaq(){ byId('faqList').innerHTML=FAQ.map(f=>`<div class="faq-item"><div class="faq-q">${f[0]}<span class="fq-ar">›</span></div><div class="faq-a">${f[1]}</div></div>`).join('');
+  byId('faqList').querySelectorAll('.faq-item').forEach(it=>it.querySelector('.faq-q').onclick=()=>it.classList.toggle('open')); }
+function openHelp(){ renderFaq(); byId('helpOverlay').classList.add('show'); }
+byId('helpBtn').onclick=openHelp;
+byId('helpClose').onclick=byId('helpDone').onclick=()=>byId('helpOverlay').classList.remove('show');
+byId('helpOverlay').onclick=e=>{if(e.target===byId('helpOverlay'))byId('helpOverlay').classList.remove('show');};
+byId('helpTour').onclick=()=>{ byId('helpOverlay').classList.remove('show'); setTimeout(startTour,200); };
+byId('helpOnb').onclick=()=>{ byId('helpOverlay').classList.remove('show'); DB.settings.onboarded=false; save(); openOnb(); };
+
 byId('loginForm').onsubmit=e=>{
   e.preventDefault();
   const id=byId('loginId').value.trim(), pw=byId('loginPw').value;
@@ -6284,6 +6476,7 @@ byId('loginForm').onsubmit=e=>{
     document.documentElement.setAttribute('data-auth','1');
     byId('loginErr').classList.add('hidden'); byId('loginPw').value='';
     toast('로그인되었습니다 👋');
+    maybeOnboard();
   }else{
     byId('loginErr').classList.remove('hidden');
     byId('loginPw').value=''; byId('loginPw').focus();
@@ -6319,6 +6512,14 @@ if(byId('churnThresh'))byId('churnThresh').querySelectorAll('button').forEach(x=
 if(byId('nudgeThresh'))byId('nudgeThresh').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.n===nudgeThreshold));
 // 기본 시작 탭
 if(DB.settings.defaultTab&&DB.settings.defaultTab!=='insight'){const _t=document.querySelector(`.tab[data-tab="${DB.settings.defaultTab}"]`);if(_t)_t.click();}
+// 이미 로그인 상태면 첫 실행 온보딩 확인
+if(document.documentElement.getAttribute('data-auth')==='1') maybeOnboard();
+// 온보딩·투어·도움말 Escape 처리
+document.addEventListener('keydown',e=>{ if(e.key!=='Escape')return;
+  if(!byId('tourLayer').classList.contains('hidden')){endTour();return;}
+  if(byId('onbOverlay').classList.contains('show')){DB.settings.onboarded=true;save();byId('onbOverlay').classList.remove('show');return;}
+  if(byId('helpOverlay').classList.contains('show'))byId('helpOverlay').classList.remove('show');
+});
 </script>
 </body>
 </html>
