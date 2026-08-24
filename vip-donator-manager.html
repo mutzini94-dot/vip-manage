@@ -946,6 +946,7 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .title-item .acts{display:flex;gap:4px}
 .mtag{font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px;background:var(--surface-3);color:var(--muted)}
 .mtag.manual{background:rgba(255,61,104,.14);color:#ff8aa2}
+.tthresh{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:5px;background:var(--accent-soft);color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
 /* 프로필 칭호 행 확장 */
 .title-row .tr{font-size:11.5px;color:var(--muted);margin-top:2px}
 .title-row .tflag{font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px;background:var(--surface-3);color:var(--muted);white-space:nowrap}
@@ -1775,14 +1776,18 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="page-head">
         <div>
           <h1>칭호 관리</h1>
-          <p>조건을 정하면 도네이터에게 칭호가 <b>자동 지급</b>됩니다. 수동 지급 칭호도 만들 수 있어요.</p>
+          <p>누적 후원 금액 기준을 정하면 도달한 도네이터에게 칭호가 <b>자동 지급</b>됩니다. 아이콘·설명을 넣고 CSV로 관리할 수 있어요.</p>
         </div>
         <div class="spacer"></div>
       </div>
 
       <div class="cols">
         <div class="panel">
-          <div class="panel-head"><h3>칭호 목록</h3><span class="hint">조건 충족 시 자동 부여</span><div class="spacer"></div></div>
+          <div class="panel-head"><h3>칭호 목록</h3><span class="hint">누적 후원 금액 이상 시 자동 부여</span><div class="spacer"></div>
+            <button class="btn ghost sm" id="titleCsvDl" title="칭호 목록 CSV 내보내기">⬇ CSV</button>
+            <button class="btn ghost sm" id="titleCsvUp" title="CSV로 칭호 목록 가져오기">⬆ CSV</button>
+            <input type="file" id="titleCsvFile" accept=".csv,text/csv" class="hidden">
+          </div>
           <div class="panel-body"><div id="titleList"></div></div>
         </div>
 
@@ -1802,19 +1807,16 @@ tbody tr.blocked:hover{opacity:.72}
               <div class="swatches" id="tfSwatches"></div>
             </div>
             <div class="field">
-              <label>지급 조건 <span class="req">*</span></label>
-              <select class="inp" id="tfType"></select>
+              <label>칭호 설명</label>
+              <input class="inp" id="tfDesc" placeholder="예: 꾸준히 응원해 주는 든든한 열혈팬" maxlength="40">
             </div>
-            <div class="field" id="tfValueWrap">
+            <div class="field">
+              <label>지급 조건 · 누적 후원 금액 <span class="req">*</span></label>
               <div class="amt-wrap">
                 <input class="inp tnum" id="tfValue" inputmode="numeric" placeholder="100,000">
-                <span class="to" id="tfUnit">원</span>
+                <span class="to">원 이상</span>
               </div>
-              <div class="helper" id="tfHelper"></div>
-            </div>
-            <div class="field hidden" id="tfGradeWrap">
-              <select class="inp" id="tfGrade"></select>
-              <div class="helper">선택한 등급에 도달하면 칭호가 자동 지급됩니다.</div>
+              <div class="helper">누적 후원 금액이 이 금액 <b>이상</b>이면 칭호가 자동으로 지급됩니다.</div>
             </div>
             <div class="field">
               <label>미리보기</label>
@@ -2957,13 +2959,12 @@ function seedLogs(donators){
     return {when:r[0],situ:r[1],name:d.alias||d.name,grade:gname(d.cash),action:r[2],amt:r[3]};});
 }
 function seedTitles(){return [
-  {id:'t_first',  name:'첫 후원',     icon:'🌱', color:'#33d69f', rule:{type:'count',n:1}},
-  {id:'t_yeol',   name:'열혈팬',      icon:'💜', color:'#a45bff', rule:{type:'cumulative',n:100000}},
-  {id:'t_gold',   name:'골드 서포터', icon:'👑', color:'#ffcb45', rule:{type:'cumulative',n:300000}},
-  {id:'t_regular',name:'단골',        icon:'🔥', color:'#ff8a5c', rule:{type:'count',n:50}},
-  {id:'t_big',    name:'큰손',        icon:'💎', color:'#4fc0e8', rule:{type:'single',n:50000}},
-  {id:'t_vvip',   name:'VVIP 등극',   icon:'⭐', color:'#ff5c7a', rule:{type:'grade',grade:'g_vvip'}},
-  {id:'t_bday',   name:'생일 축하',   icon:'🎂', color:'#ff3d68', rule:{type:'manual'}},
+  {id:'t_sprout', name:'새싹 팬',       icon:'🌱', color:'#33d69f', desc:'이제 막 함께하기 시작한 새싹 팬',    rule:{type:'cumulative',n:10000}},
+  {id:'t_yeol',   name:'열혈팬',        icon:'💜', color:'#a45bff', desc:'꾸준히 응원해 주는 든든한 열혈팬',   rule:{type:'cumulative',n:100000}},
+  {id:'t_regular',name:'단골',          icon:'🔥', color:'#ff8a5c', desc:'자주 찾아주는 진성 단골',          rule:{type:'cumulative',n:300000}},
+  {id:'t_gold',   name:'골드 서포터',   icon:'👑', color:'#ffcb45', desc:'방송을 든든히 받쳐주는 큰 후원자',  rule:{type:'cumulative',n:1000000}},
+  {id:'t_dia',    name:'다이아 후원자', icon:'💎', color:'#4fc0e8', desc:'최상위 후원 등급의 VIP',          rule:{type:'cumulative',n:3000000}},
+  {id:'t_legend', name:'레전드',        icon:'⭐', color:'#ff5c7a', desc:'명예의 전당에 오른 최고의 후원자',  rule:{type:'cumulative',n:10000000}},
 ];}
 /* 알림톡 메시지 기본 템플릿(발송 시 선택) — normalize()에서 참조하므로 그 이전에 정의 */
 const MSG_SEED={
@@ -2992,6 +2993,23 @@ let DB = load(); normalize();
 function load(){ try{ const r=localStorage.getItem(LS); if(r){const db=JSON.parse(r); if(db&&db.seedVer==='toon-real-1') return db;} }catch(e){} return seed(); }
 function normalize(){
   if(!DB.titles) DB.titles=seedTitles();
+  // 칭호를 누적 후원 금액 기준으로 일원화(레거시 조건 변환) + 설명 필드 보강
+  if(!DB.titlesV){
+    const descMap={t_first:'첫 후원을 시작한 새싹 팬',t_yeol:'꾸준히 응원해 주는 든든한 열혈팬',t_gold:'방송을 든든히 받쳐주는 큰 후원자',t_regular:'자주 찾아주는 진성 단골',t_big:'한 번에 크게 쏘는 큰손',t_vvip:'최고 등급에 오른 VVIP',t_bday:'특별한 날을 함께한 팬'};
+    (DB.titles||[]).forEach(t=>{
+      if(t.desc==null) t.desc=descMap[t.id]||'';
+      if(!t.rule||t.rule.type!=='cumulative'){
+        let n=0;
+        if(t.rule){
+          if(t.rule.type==='single') n=t.rule.n||0;
+          else if(t.rule.type==='count') n=(t.rule.n||0)*10000;
+          else if(t.rule.type==='grade'){const g=(DB.grades||[]).find(x=>x.id===t.rule.grade);n=g?g.min:0;}
+        }
+        t.rule={type:'cumulative',n};
+      }
+    });
+    DB.titlesV=1;
+  }
   if(!DB.autoLogs) DB.autoLogs=[];
   if(!DB.team||!DB.team.length) DB.team=seedTeam();
   if(!DB.activityLog) DB.activityLog=seedActivity();
@@ -4959,7 +4977,7 @@ byId('insightRefresh').onclick=()=>{
 /* =========================================================
    TAB — 칭호 관리 (규칙 엔진)
    ========================================================= */
-let tfState={id:null,icon:TITLE_ICONS[1],color:'#a45bff',type:'cumulative'};
+let tfState={id:null,icon:TITLE_ICONS[1],color:'#a45bff'};
 
 function renderTfIcons(){
   const box=byId('tfIcons');box.innerHTML='';
@@ -4971,73 +4989,56 @@ function renderTfSwatches(){
   SWATCH_COLORS.forEach(c=>{const s=document.createElement('div');s.className='swatch'+(c===tfState.color?' on':'');s.style.background=c;
     s.onclick=()=>{tfState.color=c;renderTfSwatches();renderTfPreview();};box.appendChild(s);});
 }
-function renderTfType(){
-  const sel=byId('tfType');sel.innerHTML=Object.entries(RULE_TYPES).map(([k,v])=>`<option value="${k}" ${k===tfState.type?'selected':''}>${v.label}</option>`).join('');
-  syncTfFields();
-}
-function syncTfFields(){
-  const rt=RULE_TYPES[tfState.type];
-  byId('tfValueWrap').classList.toggle('hidden',!(tfState.type==='cumulative'||tfState.type==='count'||tfState.type==='single'));
-  byId('tfGradeWrap').classList.toggle('hidden',tfState.type!=='grade');
-  if(rt.unit){byId('tfUnit').textContent=rt.unit;byId('tfValue').placeholder=rt.ph;}
-  byId('tfHelper').textContent = tfState.type==='count'
-    ? '지정한 후원 건수 이상이면 칭호가 자동 지급됩니다.'
-    : (tfState.type==='single' ? '한 번의 후원 금액이 기준 이상이면 자동 지급됩니다.' : '누적 후원 금액이 기준 이상이면 자동 지급됩니다.');
-  // grade select
-  byId('tfGrade').innerHTML=DB.grades.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
-}
-byId('tfType').onchange=e=>{tfState.type=e.target.value;syncTfFields();renderTfPreview();};
-byId('tfValue').addEventListener('input',e=>{const v=e.target.value.replace(/[^\d]/g,'');e.target.value=v?won(+v):'';});
+byId('tfValue').addEventListener('input',e=>{const v=e.target.value.replace(/[^\d]/g,'');e.target.value=v?won(+v):'';renderTfPreview();});
 byId('tfName').addEventListener('input',renderTfPreview);
-byId('tfGrade').addEventListener('change',renderTfPreview);
-function currentTfRule(){
-  const t=tfState.type;
-  if(t==='grade') return {type:'grade',grade:byId('tfGrade').value||DB.grades[0]?.id};
-  if(t==='manual') return {type:'manual'};
-  return {type:t,n:+byId('tfValue').value.replace(/[^\d]/g,'')||0};
-}
+byId('tfDesc').addEventListener('input',renderTfPreview);
+function currentTfRule(){ return {type:'cumulative',n:+byId('tfValue').value.replace(/[^\d]/g,'')||0}; }
 function renderTfPreview(){
   const name=byId('tfName').value.trim()||'칭호 명';
+  const desc=byId('tfDesc').value.trim();
   const t={name,icon:tfState.icon,color:tfState.color,rule:currentTfRule()};
-  byId('tfPreview').innerHTML=`${titleBadge(t)} <span class="helper" style="display:inline;margin-left:8px">${titleRuleText(t)}</span>`;
+  byId('tfPreview').innerHTML=`${titleBadge(t)} <span class="helper" style="display:inline;margin-left:8px">${titleRuleText(t)}</span>`
+    +(desc?`<div class="helper" style="margin-top:6px">${desc}</div>`:'');
 }
 byId('tfSave').onclick=()=>{
   const name=byId('tfName').value.trim();
   if(!name) return toast('칭호 명을 입력하세요','!');
   const rule=currentTfRule();
-  if((rule.type==='cumulative'||rule.type==='count'||rule.type==='single') && !rule.n) return toast('지급 기준 값을 입력하세요','!');
-  if(tfState.id){const t=DB.titles.find(x=>x.id===tfState.id);Object.assign(t,{name,icon:tfState.icon,color:tfState.color,rule});}
-  else DB.titles.push({id:uid(),name,icon:tfState.icon,color:tfState.color,rule});
-  save();resetTitleForm();renderTitles();toast(tfState.id?'칭호가 수정되었습니다':'칭호가 생성되었습니다');
+  if(!rule.n) return toast('누적 후원 금액 기준을 입력하세요','!');
+  const desc=byId('tfDesc').value.trim();
+  if(tfState.id){const t=DB.titles.find(x=>x.id===tfState.id);Object.assign(t,{name,icon:tfState.icon,color:tfState.color,desc,rule});}
+  else DB.titles.push({id:uid(),name,icon:tfState.icon,color:tfState.color,desc,rule});
+  const wasEdit=!!tfState.id;
+  save();resetTitleForm();renderTitles();toast(wasEdit?'칭호가 수정되었습니다':'칭호가 생성되었습니다');
 };
 byId('tfCancel').onclick=resetTitleForm;
 function resetTitleForm(){
-  tfState={id:null,icon:TITLE_ICONS[1],color:'#a45bff',type:'cumulative'};
-  byId('tfName').value='';byId('tfValue').value='';
+  tfState={id:null,icon:TITLE_ICONS[1],color:'#a45bff'};
+  byId('tfName').value='';byId('tfValue').value='';byId('tfDesc').value='';
   byId('tfTitle').textContent='새 칭호 만들기';byId('tfSave').textContent='저장';
-  renderTfIcons();renderTfSwatches();renderTfType();renderTfPreview();
+  renderTfIcons();renderTfSwatches();renderTfPreview();
 }
 function editTitle(id){
   const t=DB.titles.find(x=>x.id===id);if(!t)return;
-  tfState={id:t.id,icon:t.icon,color:t.color,type:t.rule.type};
+  tfState={id:t.id,icon:t.icon,color:t.color};
   byId('tfName').value=t.name;
+  byId('tfDesc').value=t.desc||'';
   byId('tfTitle').textContent='칭호 수정';byId('tfSave').textContent='수정 저장';
-  renderTfIcons();renderTfSwatches();renderTfType();
-  if(t.rule.n) byId('tfValue').value=won(t.rule.n);
-  if(t.rule.grade) byId('tfGrade').value=t.rule.grade;
+  renderTfIcons();renderTfSwatches();
+  byId('tfValue').value=t.rule&&t.rule.n?won(t.rule.n):'';
   renderTfPreview();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function renderTitles(){
   const list=byId('titleList');list.innerHTML='';
-  DB.titles.forEach(t=>{
+  const sorted=DB.titles.slice().sort((a,b)=>(a.rule&&a.rule.n||0)-(b.rule&&b.rule.n||0));
+  sorted.forEach(t=>{
     const holders=titleHolders(t).length;
-    const manual=t.rule.type==='manual';
     const row=document.createElement('div');row.className='title-item';
     row.innerHTML=`
       <div class="tic" style="background:${t.color}22;color:${t.color}">${t.icon}</div>
-      <div class="meta"><div class="nm">${t.name} <span class="mtag ${manual?'manual':''}">${manual?'수동':'자동'}</span></div>
-        <div class="rl">${titleRuleText(t)}</div></div>
+      <div class="meta"><div class="nm">${t.name} <span class="tthresh">${won(t.rule&&t.rule.n||0)}원↑</span></div>
+        <div class="rl">${t.desc?t.desc:titleRuleText(t)}</div></div>
       <div class="cntpill">${holders}명 보유</div>
       <div class="acts">
         <button class="icobtn" title="수정" data-e="${t.id}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
@@ -5053,6 +5054,55 @@ function renderTitles(){
   });
   byId('tabCntTitle').textContent=DB.titles.length;
 }
+/* --- 칭호 목록 CSV 내보내기 / 가져오기 --- */
+function titlesToCSV(){
+  const head=['칭호명','아이콘','설명','색상','누적후원금액'];
+  const lines=[head.join(',')];
+  DB.titles.slice().sort((a,b)=>(a.rule&&a.rule.n||0)-(b.rule&&b.rule.n||0))
+    .forEach(t=>lines.push([t.name,t.icon,t.desc||'',t.color,(t.rule&&t.rule.n)||0].map(csvEscape).join(',')));
+  return '﻿'+lines.join('\r\n');
+}
+function parseCSVLine(line){
+  const out=[];let cur='',q=false;
+  for(let i=0;i<line.length;i++){const c=line[i];
+    if(q){ if(c==='"'){ if(line[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+    else { if(c==='"')q=true; else if(c===','){out.push(cur);cur='';} else cur+=c; }
+  }
+  out.push(cur);return out;
+}
+function importTitlesCSV(text){
+  const rows=text.replace(/^﻿/,'').split(/\r?\n/).filter(l=>l.trim().length);
+  if(rows.length<2) throw new Error('빈 파일');
+  const out=[];
+  for(let i=1;i<rows.length;i++){
+    const c=parseCSVLine(rows[i]);
+    const name=(c[0]||'').trim(); if(!name)continue;
+    const icon=(c[1]||'').trim()||'🏅';
+    const desc=(c[2]||'').trim();
+    const color=(c[3]||'').trim()||'#a45bff';
+    const n=parseInt(String(c[4]||'').replace(/[^\d]/g,''),10)||0;
+    out.push({id:uid(),name:name.slice(0,14),icon,desc:desc.slice(0,40),color,rule:{type:'cumulative',n}});
+  }
+  if(!out.length) throw new Error('유효한 행이 없습니다');
+  return out;
+}
+byId('titleCsvDl').onclick=()=>{
+  const blob=new Blob([titlesToCSV()],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download=`칭호목록_${DB.titles.length}개.csv`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  toast(`칭호 ${DB.titles.length}개를 CSV로 내보냈습니다`);
+};
+byId('titleCsvUp').onclick=()=>byId('titleCsvFile').click();
+byId('titleCsvFile').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{ let parsed;
+    try{ parsed=importTitlesCSV(String(rd.result)); }catch(err){ return toast('CSV 파싱 실패: '+err.message,'!'); }
+    askConfirm('칭호 목록 가져오기',`CSV의 칭호 ${parsed.length}개로 현재 목록을 교체합니다. 계속할까요?`,()=>{
+      DB.titles=parsed;save();renderTitles();resetTitleForm();toast(`칭호 ${parsed.length}개를 가져왔습니다`);
+    });
+  };
+  rd.readAsText(f,'utf-8');e.target.value='';
+};
 
 /* --- 프로필: 획득한 칭호 + 수동 수여 --- */
 function renderDrTitles(d){
