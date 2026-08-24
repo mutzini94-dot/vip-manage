@@ -1323,6 +1323,34 @@ tbody tr.blocked:hover{opacity:.72}
 .set-toggle:last-of-type{border-bottom:none}
 .set-toggle .st-t{font-size:13.5px;font-weight:700}
 .set-toggle .st-s{font-size:12px;color:var(--muted);margin-top:2px}
+/* 팀 협업 */
+.team-members{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.tm-row{display:flex;align-items:center;gap:11px;padding:9px 11px;border:1px solid var(--line);border-radius:11px;background:var(--surface-2)}
+.tm-row .ava{width:36px;height:36px;font-size:13px;flex:none}
+.tm-meta{flex:1;min-width:0}
+.tm-nm{font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:6px}
+.tm-you{font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;background:var(--accent-soft);color:var(--accent)}
+.tm-em{font-size:12px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tm-role{font-size:12px;font-weight:800;white-space:nowrap;flex:none}
+.tm-role.sm{font-size:11px}
+.tm-sel{width:auto;padding:6px 26px 6px 10px;font-size:12.5px;flex:none}
+.tm-del{padding:5px 9px;min-width:auto;flex:none}
+.tm-invite{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.tm-invite .inp{flex:1;min-width:88px;padding:8px 10px;font-size:12.5px}
+.tm-invite #tmRole{flex:none;width:auto}
+.tm-invite #tmAdd{flex:none}
+.team-roles{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:12px 14px}
+.tm-roles-h{font-size:11px;font-weight:800;color:var(--muted-2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em}
+.tm-perm{display:flex;align-items:baseline;gap:10px;padding:4px 0}
+.tm-perm .tm-perm-d{font-size:12px;color:var(--muted)}
+.team-activity{display:flex;flex-direction:column;gap:2px}
+.ta-row{display:flex;align-items:flex-start;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line)}
+.ta-row:last-child{border-bottom:none}
+.ta-ic{font-size:14px;flex:none;margin-top:1px}
+.ta-meta{flex:1;min-width:0}
+.ta-t{font-size:12.5px;font-weight:600}
+.ta-d{font-size:11.5px;color:var(--muted);margin-top:1px}
+.ta-when{font-size:11px;color:var(--muted-2);white-space:nowrap;flex:none}
 .storage-bar{flex:1;min-width:160px;max-width:280px;height:8px;border-radius:5px;background:var(--surface-3);overflow:hidden;margin-top:5px}
 .storage-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--on),var(--accent));border-radius:5px;transition:width .4s}
 .set-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0 16px}
@@ -2406,6 +2434,14 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="snap-head"><span>📸 스냅샷 백업 <span class="set-hint">앱 안에 저장 · 최대 8개</span></span><button class="btn ghost sm" id="setSnapNew">＋ 현재 상태 저장</button></div>
         <div class="snap-list" id="setSnapList"></div>
       </div>
+      <div class="set-sec" data-setsec="team">
+        <div class="set-h">👥 팀 · 권한</div>
+        <div class="team-members" id="teamMembers"></div>
+        <div id="teamInvite"></div>
+        <div class="team-roles" id="teamRoles"></div>
+        <div class="set-h" style="margin-top:20px">🧾 팀 활동 로그</div>
+        <div class="team-activity" id="teamActivity"></div>
+      </div>
       <div class="set-sec" data-setsec="account">
         <div class="set-h">🔒 계정</div>
         <div class="set-row"><label>로그인 아이디</label><input class="inp" id="setAuthId" maxlength="24" style="max-width:220px" spellcheck="false"></div>
@@ -2819,6 +2855,8 @@ function load(){ try{ const r=localStorage.getItem(LS); if(r){const db=JSON.pars
 function normalize(){
   if(!DB.titles) DB.titles=seedTitles();
   if(!DB.autoLogs) DB.autoLogs=[];
+  if(!DB.team||!DB.team.length) DB.team=seedTeam();
+  if(!DB.activityLog) DB.activityLog=seedActivity();
   if(!DB.msgTemplates) DB.msgTemplates={};
   ['reengage','nudge','celebrate','thanks'].forEach(k=>{ if(!Array.isArray(DB.msgTemplates[k])||!DB.msgTemplates[k].length) DB.msgTemplates[k]=MSG_SEED[k].slice(); });
   // 리모컨 연동 기능 제거 — 기존 데이터에서 remote 액션/로그 정리
@@ -6088,6 +6126,41 @@ function setSkin(s){ skin=s; try{localStorage.setItem(SKIN_KEY,s);}catch(e){} ap
 applySkin(skin);
 
 /* ---------- 강조 색상 · 크리에이터 UI ---------- */
+/* ---------- 팀 협업 (매니저 계정 · 역할/권한 · 활동 로그) ---------- */
+const ROLES={
+  owner:{label:'소유자',ic:'👑',color:'#ffcb45',perms:'모든 권한 · 결제·구독 · 팀 관리 · 설정'},
+  manager:{label:'매니저',ic:'🛠',color:'#a45bff',perms:'도네이터 관리 · 메시지 발송 · 자동화 · 인사이트'},
+  viewer:{label:'뷰어',ic:'👁',color:'#5b8cff',perms:'조회 전용 (발송·수정 불가)'},
+};
+function seedTeam(){return [
+  {id:'owner',name:creatorName()||'크리에이터',email:(DB.settings&&DB.settings.authId)||'owner@toonation',role:'owner',init:(DB.settings&&DB.settings.initials)||'CR',ts:Date.now()},
+  {id:uid(),name:'김매니저',email:'manager@toonation',role:'manager',init:'김',ts:Date.now()-9*86400000},
+  {id:uid(),name:'이서포터',email:'support@toonation',role:'viewer',init:'이',ts:Date.now()-3*86400000},
+];}
+function seedActivity(){const n=Date.now();return [
+  {ts:n-3200000,actor:'김매니저',role:'manager',action:'복귀 유도 발송',detail:'이탈 위험 12명'},
+  {ts:n-6*3600000,actor:'크리에이터',role:'owner',action:'자동화 추가',detail:'큰손 축포'},
+  {ts:n-26*3600000,actor:'이서포터',role:'viewer',action:'인사이트 조회',detail:'주간 성과'},
+  {ts:n-2*86400000,actor:'김매니저',role:'manager',action:'등급 지정',detail:'VVIP 3명'},
+];}
+function logActivity(action,detail){ (DB.activityLog=DB.activityLog||[]).unshift({ts:Date.now(),actor:creatorName()||'크리에이터',role:'owner',action:action,detail:detail||''}); while(DB.activityLog.length>100)DB.activityLog.pop(); save(); }
+function renderTeam(){
+  const mbox=byId('teamMembers'); if(!mbox)return;
+  mbox.innerHTML=DB.team.map(m=>{const r=ROLES[m.role]||ROLES.viewer;
+    return `<div class="tm-row"><div class="ava" style="background:${avaColor(m.name)}">${(m.init||m.name.slice(0,2))}</div>
+      <div class="tm-meta"><div class="tm-nm">${m.name}${m.role==='owner'?' <span class="tm-you">나</span>':''}</div><div class="tm-em">${m.email}</div></div>
+      ${m.role==='owner'
+        ? `<span class="tm-role" style="color:${r.color}">${r.ic} ${r.label}</span>`
+        : `<select class="inp tm-sel" data-mid="${m.id}"><option value="manager"${m.role==='manager'?' selected':''}>🛠 매니저</option><option value="viewer"${m.role==='viewer'?' selected':''}>👁 뷰어</option></select><button class="btn ghost sm danger tm-del" data-mid="${m.id}" title="팀에서 제거">✕</button>`}
+    </div>`;}).join('');
+  mbox.querySelectorAll('.tm-sel').forEach(s=>s.onchange=()=>{const m=DB.team.find(x=>x.id===s.dataset.mid);if(!m)return;const old=m.role;m.role=s.value;save();logActivity('역할 변경',`${m.name}: ${ROLES[old].label} → ${ROLES[m.role].label}`);renderTeam();toast('역할을 변경했습니다');});
+  mbox.querySelectorAll('.tm-del').forEach(b=>b.onclick=()=>{const m=DB.team.find(x=>x.id===b.dataset.mid);if(!m)return;askConfirm('팀원 제거',`'${m.name}'님을 팀에서 제거할까요?`,()=>{DB.team=DB.team.filter(x=>x.id!==b.dataset.mid);save();logActivity('팀원 제거',m.name);renderTeam();toast('팀원을 제거했습니다');});});
+  byId('teamInvite').innerHTML=`<div class="tm-invite"><input class="inp" id="tmName" placeholder="이름" maxlength="16"><input class="inp" id="tmEmail" placeholder="이메일" spellcheck="false"><select class="inp" id="tmRole"><option value="manager">🛠 매니저</option><option value="viewer">👁 뷰어</option></select><button class="btn primary sm" id="tmAdd">＋ 초대</button></div>`;
+  byId('tmAdd').onclick=()=>{const nm=byId('tmName').value.trim(),em=byId('tmEmail').value.trim(),rl=byId('tmRole').value;if(!nm){byId('tmName').focus();return;}DB.team.push({id:uid(),name:nm,email:em||(nm+'@team'),role:rl,init:nm.slice(0,2),ts:Date.now()});save();logActivity('팀원 초대',`${nm} (${ROLES[rl].label})`);renderTeam();toast('팀원을 초대했습니다');};
+  byId('teamRoles').innerHTML=`<div class="tm-roles-h">역할별 권한</div>`+Object.keys(ROLES).map(k=>`<div class="tm-perm"><span class="tm-role" style="color:${ROLES[k].color}">${ROLES[k].ic} ${ROLES[k].label}</span><span class="tm-perm-d">${ROLES[k].perms}</span></div>`).join('');
+  const box=byId('teamActivity');const logs=(DB.activityLog||[]).slice(0,10);
+  box.innerHTML=logs.length?logs.map(l=>{const r=ROLES[l.role]||ROLES.viewer;return `<div class="ta-row"><div class="ta-ic">🧾</div><div class="ta-meta"><div class="ta-t"><b>${l.actor}</b> <span class="tm-role sm" style="color:${r.color}">${r.label}</span> · ${l.action}</div>${l.detail?`<div class="ta-d">${l.detail}</div>`:''}</div><div class="ta-when">${fmtAgo(l.ts)}</div></div>`;}).join(''):'<div class="helper">활동 기록이 없습니다</div>';
+}
 function darken(hex,f){const h=(hex||'').replace('#','');const n=h.length===3?h.split('').map(c=>c+c).join(''):h;
   const s=[0,2,4].map(i=>Math.max(0,Math.round(parseInt(n.slice(i,i+2),16)*f)).toString(16).padStart(2,'0'));return '#'+s.join('');}
 function applyAccent(hex){const r=document.documentElement.style;
@@ -6120,7 +6193,7 @@ function renderSettings(){
   byId('setNudge').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.n===nudgeThreshold));
   byId('setVipAlert').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v===vipAlertTier()));
   byId('setAuthId').value=S.authId||''; byId('setAuthPw').value='';
-  renderStorageInfo(); renderSnapshots();
+  renderStorageInfo(); renderSnapshots(); renderTeam();
 }
 /* ---------- 데이터 · 백업 ---------- */
 const SNAP_KEY='toon_vip_snapshots';
