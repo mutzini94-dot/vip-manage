@@ -1419,6 +1419,59 @@ tbody tr.blocked:hover{opacity:.72}
 .ta-t{font-size:12.5px;font-weight:600}
 .ta-d{font-size:11.5px;color:var(--muted);margin-top:1px}
 .ta-when{font-size:11px;color:var(--muted-2);white-space:nowrap;flex:none}
+/* 워크스페이스 스위처 (GNB) */
+.ws-chip{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);cursor:pointer;transition:.12s;max-width:230px}
+.ws-chip:hover{border-color:var(--line-strong);background:var(--surface-3)}
+.ws-chip .ws-ic{font-size:15px;flex:none}
+.ws-chip .ws-tx{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.ws-chip .ws-tx b{font-size:12.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ws-chip .ws-role{font-size:10px;font-weight:700;color:var(--muted)}
+.ws-chip .ws-caret{color:var(--muted);flex:none}
+@media(max-width:760px){.ws-chip .ws-tx,.ws-chip .ws-caret{display:none}.ws-chip{padding:7px 9px}}
+/* 워크스페이스 선택 목록 */
+.wsp-role-note{font-size:12.5px;color:var(--muted);margin:0 0 14px}
+.wsp-sec-h{font-size:11px;font-weight:800;color:var(--muted-2);text-transform:uppercase;letter-spacing:.03em;margin:16px 0 8px}
+.wsp-sec-h:first-child{margin-top:0}
+.wsp-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);cursor:pointer;transition:.12s;margin-bottom:8px}
+.wsp-row:hover{border-color:var(--accent);background:var(--accent-soft)}
+.wsp-row.active{border-color:var(--accent)}
+.wsp-ava{width:40px;height:40px;border-radius:11px;flex:none;display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px}
+.wsp-meta{flex:1;min-width:0}
+.wsp-nm{font-weight:800;font-size:14px;display:flex;align-items:center;gap:7px}
+.wsp-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.wsp-rolebadge{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.wsp-rolebadge.owner{background:rgba(255,203,69,.16);color:var(--vvip)}
+.wsp-rolebadge.manager{background:rgba(91,140,255,.16);color:#7ea2ff}
+.wsp-rolebadge.viewer{background:var(--surface-3);color:var(--muted)}
+.wsp-pend-acts{display:flex;gap:6px;flex:none}
+.wsp-cur{font-size:10.5px;font-weight:800;color:var(--accent)}
+/* 역할 배너 + 뷰어 읽기전용 게이팅 */
+.role-banner{display:none;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#ffb020;background:rgba(255,176,32,.1);border:1px solid rgba(255,176,32,.28);border-radius:10px;padding:8px 12px;margin-bottom:14px}
+:root[data-role="viewer"] .role-banner{display:flex}
+:root[data-role="viewer"] .write-only,
+:root[data-role="viewer"] #bulkBar,
+:root[data-role="viewer"] .act-re,
+:root[data-role="viewer"] .act-nudge,
+:root[data-role="viewer"] .rowcbx,
+:root[data-role="viewer"] #selAll,
+:root[data-role="viewer"] .block-btn,
+:root[data-role="viewer"] .blocked-chip,
+:root[data-role="viewer"] .al-edit,
+:root[data-role="viewer"] #tfSave,
+:root[data-role="viewer"] #titleCsvUp,
+:root[data-role="viewer"] .form-actions{display:none !important}
+.ws-chip .ws-role.viewer{color:#ffb020}
+/* 초대 아이디 조회 */
+.inv-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.inv-row .inp{flex:1;min-width:120px}
+.inv-resolve{font-size:12px;font-weight:700;margin-top:8px;display:flex;align-items:center;gap:7px;min-height:20px}
+.inv-resolve.ok{color:var(--on)}
+.inv-resolve.bad{color:#ff6b81}
+.inv-resolve .ir-ava{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:10px}
+.invc-card{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);margin-bottom:12px}
+.invc-card .ir-ava{width:44px;height:44px;border-radius:12px;font-size:16px}
+.tm-status{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.tm-status.pending{background:rgba(255,176,32,.14);color:#ffb020}
 /* 인사이트 패널 미니 버튼 */
 .mini-btn{flex:none;font-size:11.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);border:1px solid transparent;border-radius:8px;padding:5px 10px;cursor:pointer;transition:.12s;white-space:nowrap}
 .mini-btn:hover{border-color:var(--accent);transform:translateY(-1px)}
@@ -1552,6 +1605,11 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="mark"><svg viewBox="0 0 210 78" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="투네이션"><rect x="22" y="6" width="22" height="66" rx="11" fill="#4d8bff"/><rect x="0" y="28" width="66" height="22" rx="11" fill="#4d8bff"/><circle cx="101" cy="39" r="26" fill="none" stroke="#c1d9fd" stroke-width="20"/><circle cx="169" cy="39" r="26" fill="none" stroke="#4d8bff" stroke-width="20"/></svg></div>
       <div>열혈네이션<div class="sub">투네이션 VIP 도네이터 관리</div></div>
     </div>
+    <button class="ws-chip" id="wsChip" title="워크스페이스 전환">
+      <span class="ws-ic" id="wsChipIc">🏠</span>
+      <span class="ws-tx"><b id="wsChipName">내 채널</b><span class="ws-role" id="wsChipRole"></span></span>
+      <svg class="ws-caret" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
     <div class="spacer"></div>
     <button class="gnb-chip credit-chip" id="creditChip" title="복귀 유도·넛지 알림톡 잔여 발송 건수 · 클릭하여 충전">
       <span class="cr-ic">✉️</span>
@@ -1627,6 +1685,7 @@ tbody tr.blocked:hover{opacity:.72}
   <div class="nav-backdrop" id="navBackdrop"></div>
 
   <div class="wrap">
+    <div class="role-banner" id="roleBanner">👁 뷰어(읽기 전용) 모드입니다 · 발송·수정·초대 권한이 없습니다</div>
     <!-- ============ TAB: 인사이트 ============ -->
     <section id="page-insight">
       <div class="page-head">
@@ -2875,12 +2934,29 @@ tbody tr.blocked:hover{opacity:.72}
     <div class="login-logo"><div class="mark"><svg viewBox="0 0 210 78" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="투네이션"><rect x="22" y="6" width="22" height="66" rx="11" fill="#4d8bff"/><rect x="0" y="28" width="66" height="22" rx="11" fill="#4d8bff"/><circle cx="101" cy="39" r="26" fill="none" stroke="#c1d9fd" stroke-width="20"/><circle cx="169" cy="39" r="26" fill="none" stroke="#4d8bff" stroke-width="20"/></svg></div><div>열혈네이션<div class="sub">투네이션 VIP 도네이터 관리</div></div></div>
     <div class="login-title">로그인</div>
     <div class="login-desc">시스템에 접근하려면 로그인이 필요합니다.</div>
-    <div class="login-field"><label>아이디</label><input class="inp" id="loginId" autocomplete="username" placeholder="아이디" spellcheck="false"></div>
+    <div class="login-field"><label>투네이션 아이디</label><input class="inp" id="loginId" autocomplete="username" placeholder="예: toonation" spellcheck="false"></div>
     <div class="login-field"><label>비밀번호</label><input class="inp" id="loginPw" type="password" autocomplete="current-password" placeholder="비밀번호"></div>
     <div class="login-err hidden" id="loginErr">아이디 또는 비밀번호가 올바르지 않습니다.</div>
     <button type="submit" class="login-btn">로그인</button>
-    <div class="login-hint">기본 계정 · <b>toonation</b> / <b>1234</b> · <a href="manual.html" target="_blank" rel="noopener" style="color:var(--accent)">📖 사용 매뉴얼</a></div>
+    <div class="login-hint">데모 계정(비번 <b>1234</b>) · 호스트 <b>toonation</b> · 게스트 <b>toon_kim</b>/<b>toon_lee</b> · <a href="manual.html" target="_blank" rel="noopener" style="color:var(--accent)">📖 매뉴얼</a></div>
   </form>
+</div>
+
+<!-- ============ 워크스페이스 선택/전환 ============ -->
+<div class="overlay" id="wsPickerOverlay">
+  <div class="modal" style="max-width:470px">
+    <div class="modal-head"><h2 id="wsPickerTitle">🗂 워크스페이스 선택</h2><div class="spacer"></div><button class="xbtn hidden" id="wsPickerClose">✕</button></div>
+    <div class="modal-body"><div id="wsPickerBody"></div></div>
+  </div>
+</div>
+
+<!-- ============ 팀원 초대 확인 ============ -->
+<div class="overlay" id="inviteConfirmOverlay">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head"><h2>팀원 초대 확인</h2><div class="spacer"></div><button class="xbtn" id="invcClose">✕</button></div>
+    <div class="modal-body" id="invcBody"></div>
+    <div class="modal-foot"><button class="btn ghost" id="invcCancel">취소</button><div class="spacer"></div><button class="btn primary" id="invcOk">초대 보내기</button></div>
+  </div>
 </div>
 
 <div class="toast-wrap" id="toastWrap"></div>
@@ -2890,7 +2966,7 @@ tbody tr.blocked:hover{opacity:.72}
    VIP 도네이터 관리 — 열혈시스템 (프로토타입)
    데이터는 localStorage에 저장됩니다.
    ========================================================= */
-const LS = 'toon_vip_v1';
+let LS = 'toon_vip_v1';   // 활성 워크스페이스의 데이터 키(팀 협업: 전환 시 교체)
 const won = n => (n||0).toLocaleString('ko-KR');
 const uid = () => 'id'+Math.random().toString(36).slice(2,9);
 const avaColor = s => { let h=0; for(const c of s) h=(h*31+c.charCodeAt(0))%360; return `linear-gradient(135deg,hsl(${h},62%,55%),hsl(${(h+40)%360},62%,48%))`; };
@@ -6615,20 +6691,32 @@ function seedActivity(){const n=Date.now();return [
   {ts:n-26*3600000,actor:'이서포터',role:'viewer',action:'인사이트 조회',detail:'주간 성과'},
   {ts:n-2*86400000,actor:'김매니저',role:'manager',action:'등급 지정',detail:'VVIP 3명'},
 ];}
-function logActivity(action,detail){ (DB.activityLog=DB.activityLog||[]).unshift({ts:Date.now(),actor:creatorName()||'크리에이터',role:'owner',action:action,detail:detail||''}); while(DB.activityLog.length>100)DB.activityLog.pop(); save(); }
+function logActivity(action,detail){ const me=(typeof SESSION!=='undefined'&&SESSION.myId&&acct(SESSION.myId))||null; (DB.activityLog=DB.activityLog||[]).unshift({ts:Date.now(),actor:me?me.nickname:(creatorName()||'크리에이터'),role:(typeof SESSION!=='undefined'&&SESSION.role)||'owner',action:action,detail:detail||''}); while(DB.activityLog.length>100)DB.activityLog.pop(); save(); }
 function renderTeam(){
   const mbox=byId('teamMembers'); if(!mbox)return;
-  mbox.innerHTML=DB.team.map(m=>{const r=ROLES[m.role]||ROLES.viewer;
-    return `<div class="tm-row"><div class="ava" style="background:${avaColor(m.name)}">${(m.init||m.name.slice(0,2))}</div>
-      <div class="tm-meta"><div class="tm-nm">${m.name}${m.role==='owner'?' <span class="tm-you">나</span>':''}</div><div class="tm-em">${m.email}</div></div>
-      ${m.role==='owner'
-        ? `<span class="tm-role" style="color:${r.color}">${r.ic} ${r.label}</span>`
-        : `<select class="inp tm-sel" data-mid="${m.id}"><option value="manager"${m.role==='manager'?' selected':''}>🛠 매니저</option><option value="viewer"${m.role==='viewer'?' selected':''}>👁 뷰어</option></select><button class="btn ghost sm danger tm-del" data-mid="${m.id}" title="팀에서 제거">✕</button>`}
-    </div>`;}).join('');
-  mbox.querySelectorAll('.tm-sel').forEach(s=>s.onchange=()=>{const m=DB.team.find(x=>x.id===s.dataset.mid);if(!m)return;const old=m.role;m.role=s.value;save();logActivity('역할 변경',`${m.name}: ${ROLES[old].label} → ${ROLES[m.role].label}`);renderTeam();toast('역할을 변경했습니다');});
-  mbox.querySelectorAll('.tm-del').forEach(b=>b.onclick=()=>{const m=DB.team.find(x=>x.id===b.dataset.mid);if(!m)return;askConfirm('팀원 제거',`'${m.name}'님을 팀에서 제거할까요?`,()=>{DB.team=DB.team.filter(x=>x.id!==b.dataset.mid);save();logActivity('팀원 제거',m.name);renderTeam();toast('팀원을 제거했습니다');});});
-  byId('teamInvite').innerHTML=`<div class="tm-invite"><input class="inp" id="tmName" placeholder="이름" maxlength="16"><input class="inp" id="tmEmail" placeholder="이메일" spellcheck="false"><select class="inp" id="tmRole"><option value="manager">🛠 매니저</option><option value="viewer">👁 뷰어</option></select><button class="btn primary sm" id="tmAdd">＋ 초대</button></div>`;
-  byId('tmAdd').onclick=()=>{const nm=byId('tmName').value.trim(),em=byId('tmEmail').value.trim(),rl=byId('tmRole').value;if(!nm){byId('tmName').focus();return;}DB.team.push({id:uid(),name:nm,email:em||(nm+'@team'),role:rl,init:nm.slice(0,2),ts:Date.now()});save();logActivity('팀원 초대',`${nm} (${ROLES[rl].label})`);renderTeam();toast('팀원을 초대했습니다');};
+  const wsId=SESSION.wsId; const canManage=SESSION.role==='owner';
+  const mems=NET.memberships.filter(m=>m.wsId===wsId);
+  const active=mems.filter(m=>m.status==='active').sort((a,b)=>(b.role==='owner'?1:0)-(a.role==='owner'?1:0));
+  const pending=mems.filter(m=>m.status==='pending');
+  mbox.innerHTML=active.concat(pending).map(m=>{
+    const a=acct(m.toonId)||{nickname:m.toonId,initial:m.toonId.slice(0,2).toUpperCase(),color:'#888'};
+    const r=ROLES[m.role]||ROLES.viewer; const isMe=m.toonId===SESSION.myId; const pend=m.status==='pending';
+    let right;
+    if(m.role==='owner') right=`<span class="tm-role" style="color:${r.color}">${r.ic} ${r.label}</span>`;
+    else if(pend) right=`<span class="tm-status pending">⏳ 대기중</span>${canManage?`<button class="btn ghost sm danger tm-cancel" data-mid="${m.toonId}" title="초대 취소">✕</button>`:''}`;
+    else if(canManage && !isMe) right=`<select class="inp tm-sel" data-mid="${m.toonId}"><option value="manager"${m.role==='manager'?' selected':''}>🛠 매니저</option><option value="viewer"${m.role==='viewer'?' selected':''}>👁 뷰어</option></select><button class="btn ghost sm danger tm-del" data-mid="${m.toonId}" title="팀에서 제거">✕</button>`;
+    else right=`<span class="tm-role" style="color:${r.color}">${r.ic} ${r.label}</span>`;
+    return `<div class="tm-row" style="${pend?'opacity:.72':''}"><div class="ava" style="background:${a.color}">${a.initial}</div>
+      <div class="tm-meta"><div class="tm-nm">${a.nickname}${isMe?' <span class="tm-you">나</span>':''}</div><div class="tm-em">${m.toonId}</div></div>
+      ${right}</div>`;
+  }).join('');
+  mbox.querySelectorAll('.tm-sel').forEach(s=>s.onchange=()=>{const m=NET.memberships.find(x=>x.wsId===wsId&&x.toonId===s.dataset.mid);if(!m)return;const old=m.role;m.role=s.value;saveNet();logActivity('역할 변경',`${acct(m.toonId)?.nickname||m.toonId}: ${ROLES[old].label} → ${ROLES[m.role].label}`);renderTeam();toast('역할을 변경했습니다');});
+  mbox.querySelectorAll('.tm-del').forEach(b=>b.onclick=()=>{const nm=acct(b.dataset.mid)?.nickname||b.dataset.mid;askConfirm('팀원 제거',`'${nm}'님을 팀에서 제거할까요?`,()=>{NET.memberships=NET.memberships.filter(x=>!(x.wsId===wsId&&x.toonId===b.dataset.mid));saveNet();logActivity('팀원 제거',nm);renderTeam();toast('팀원을 제거했습니다');});});
+  mbox.querySelectorAll('.tm-cancel').forEach(b=>b.onclick=()=>{const nm=acct(b.dataset.mid)?.nickname||b.dataset.mid;NET.memberships=NET.memberships.filter(x=>!(x.wsId===wsId&&x.toonId===b.dataset.mid&&x.status==='pending'));saveNet();logActivity('초대 취소',nm);renderTeam();toast('초대를 취소했습니다');});
+  byId('teamInvite').innerHTML = canManage
+    ? `<div class="inv-row"><input class="inp" id="tmToon" placeholder="투네이션 아이디 (예: toon_kim)" spellcheck="false" autocomplete="off"><select class="inp" id="tmRole" style="flex:none;width:auto"><option value="manager">🛠 매니저</option><option value="viewer">👁 뷰어</option></select><button class="btn primary sm" id="tmAdd" disabled>＋ 초대</button></div><div class="inv-resolve" id="tmResolve"></div>`
+    : `<div class="helper">팀 초대·관리는 소유자만 가능합니다.</div>`;
+  if(canManage) wireInvite(wsId);
   byId('teamRoles').innerHTML=`<div class="tm-roles-h">역할별 권한</div>`+Object.keys(ROLES).map(k=>`<div class="tm-perm"><span class="tm-role" style="color:${ROLES[k].color}">${ROLES[k].ic} ${ROLES[k].label}</span><span class="tm-perm-d">${ROLES[k].perms}</span></div>`).join('');
   const box=byId('teamActivity');const logs=(DB.activityLog||[]).slice(0,10);
   box.innerHTML=logs.length?logs.map(l=>{const r=ROLES[l.role]||ROLES.viewer;return `<div class="ta-row"><div class="ta-ic">🧾</div><div class="ta-meta"><div class="ta-t"><b>${l.actor}</b> <span class="tm-role sm" style="color:${r.color}">${r.label}</span> · ${l.action}</div>${l.detail?`<div class="ta-d">${l.detail}</div>`:''}</div><div class="ta-when">${fmtAgo(l.ts)}</div></div>`;}).join(''):'<div class="helper">활동 기록이 없습니다</div>';
@@ -6804,47 +6892,197 @@ byId('helpClose').onclick=byId('helpDone').onclick=()=>byId('helpOverlay').class
 byId('helpOverlay').onclick=e=>{if(e.target===byId('helpOverlay'))byId('helpOverlay').classList.remove('show');};
 byId('helpTour').onclick=()=>{ byId('helpOverlay').classList.remove('show'); setTimeout(startTour,200); };
 
+/* =========================================================
+   팀 협업 — 투네이션 아이디 기반 인증 · 워크스페이스 (프로토타입 모의 백엔드)
+   ========================================================= */
+const NET_KEY='toon_net_v1';
+function seedNet(){
+  const N=Date.now();
+  return {
+    accounts:{
+      toonation:{nickname:'크리에이터',  initial:'CR',color:'linear-gradient(135deg,#7c6cff,#a45bff)',channel:'열혈네이션'},
+      toon_kim :{nickname:'김매니저',    initial:'김',color:'linear-gradient(135deg,#ff6b6b,#ff9e6b)',channel:''},
+      toon_lee :{nickname:'이서포터',    initial:'이',color:'linear-gradient(135deg,#33d69f,#5bd0ff)',channel:''},
+      toon_park:{nickname:'박크리에이터',initial:'박',color:'linear-gradient(135deg,#4fc0e8,#5b8cff)',channel:'박PD 게임방송'},
+      toon_choi:{nickname:'최스트리머',  initial:'최',color:'linear-gradient(135deg,#f59e0b,#ef4444)',channel:'최스트리머 채널'},
+      toon_new :{nickname:'정신입',      initial:'정',color:'linear-gradient(135deg,#8b5cf6,#6366f1)',channel:''},
+    },
+    workspaces:{
+      ws_mine:{ownerToonId:'toonation', name:'내 채널 · 열혈네이션', icon:'🏠', dataKey:'toon_vip_v1'},
+      ws_park:{ownerToonId:'toon_park', name:'박PD 게임방송',        icon:'🎮', dataKey:'toon_vip_v1__park'},
+    },
+    memberships:[
+      {wsId:'ws_mine',toonId:'toonation',role:'owner',  status:'active', ts:N},
+      {wsId:'ws_mine',toonId:'toon_kim', role:'manager',status:'active', ts:N-9*864e5},
+      {wsId:'ws_mine',toonId:'toon_lee', role:'viewer', status:'active', ts:N-3*864e5},
+      {wsId:'ws_park',toonId:'toon_park',role:'owner',  status:'active', ts:N-40*864e5},
+      {wsId:'ws_park',toonId:'toonation',role:'viewer', status:'active', ts:N-5*864e5},
+    ],
+  };
+}
+let NET=(()=>{ try{const r=localStorage.getItem(NET_KEY); if(r)return JSON.parse(r);}catch(e){} const s=seedNet(); try{localStorage.setItem(NET_KEY,JSON.stringify(s));}catch(_){} return s; })();
+function saveNet(){ try{localStorage.setItem(NET_KEY,JSON.stringify(NET));}catch(e){} }
+function acct(id){ return NET.accounts[id]||null; }
+function myWorkspaces(id){ return NET.memberships.filter(m=>m.toonId===id&&m.status==='active').map(m=>({...NET.workspaces[m.wsId],wsId:m.wsId,role:m.role})).filter(w=>w.name); }
+function myPending(id){ return NET.memberships.filter(m=>m.toonId===id&&m.status==='pending').map(m=>({...NET.workspaces[m.wsId],wsId:m.wsId,role:m.role})).filter(w=>w.name); }
+
+let SESSION={ myId:null, wsId:null, role:'viewer' };
+function saveSession(){ try{localStorage.setItem('toon_session',JSON.stringify({myId:SESSION.myId,wsId:SESSION.wsId}));}catch(e){} }
+function clearSession(){ SESSION={myId:null,wsId:null,role:'viewer'}; try{localStorage.removeItem('toon_session');localStorage.removeItem('toon_auth');}catch(e){} }
+
+function activateWorkspace(wsId){
+  const ws=NET.workspaces[wsId]; if(!ws)return false;
+  const m=NET.memberships.find(x=>x.wsId===wsId&&x.toonId===SESSION.myId&&x.status==='active'); if(!m)return false;
+  SESSION.wsId=wsId; SESSION.role=m.role;
+  LS=ws.dataKey;
+  DB=load();
+  if(ws.dataKey!=='toon_vip_v1'){ // 게스트 워크스페이스는 경량 데모 데이터
+    if(DB.donators&&DB.donators.length>80) DB.donators=DB.donators.slice(0,60);
+    DB.settings=DB.settings||{}; if(!DB.settings.creatorName) DB.settings.creatorName=acct(ws.ownerToonId)?.nickname||'';
+  }
+  normalize(); save();
+  document.documentElement.setAttribute('data-role',SESSION.role);
+  saveSession(); renderAll(); updateWsBar();
+  byId('wsPickerOverlay').classList.remove('show');
+  return true;
+}
+function updateWsBar(){
+  const ws=SESSION.wsId?NET.workspaces[SESSION.wsId]:null;
+  byId('wsChipName').textContent = ws?ws.name.split('·').pop().trim():'워크스페이스';
+  byId('wsChipIc').textContent = ws?(ws.icon||'🗂'):'🗂';
+  const rr=ROLES[SESSION.role]||ROLES.viewer;
+  const rel=byId('wsChipRole'); rel.textContent=rr.ic+' '+rr.label; rel.className='ws-role'+(SESSION.role==='viewer'?' viewer':'');
+}
+function routeAfterLogin(){
+  const wss=myWorkspaces(SESSION.myId), pend=myPending(SESSION.myId);
+  if(wss.length===1 && !pend.length) activateWorkspace(wss[0].wsId);
+  else openWsPicker(true);
+}
+/* 워크스페이스 선택/전환 */
+function openWsPicker(mustPick){
+  byId('wsPickerClose').classList.toggle('hidden', !!mustPick && !SESSION.wsId);
+  renderWsPicker(); byId('wsPickerOverlay').classList.add('show');
+}
+function renderWsPicker(){
+  const wss=myWorkspaces(SESSION.myId), pend=myPending(SESSION.myId);
+  let html=`<p class="wsp-role-note">${acct(SESSION.myId)?.nickname||SESSION.myId} 님이 접근할 수 있는 워크스페이스예요.</p>`;
+  html+=`<div class="wsp-sec-h">내 워크스페이스 / 참여 중</div>`;
+  html+=wss.map(w=>{const a=acct(w.ownerToonId)||{}; const cur=w.wsId===SESSION.wsId;
+    return `<div class="wsp-row ${cur?'active':''}" data-ws="${w.wsId}">
+      <div class="wsp-ava" style="background:${a.color||'#888'}">${w.icon||a.initial||'🗂'}</div>
+      <div class="wsp-meta"><div class="wsp-nm">${w.name} ${cur?'<span class="wsp-cur">● 현재</span>':''}</div>
+        <div class="wsp-sub">소유자 ${a.nickname||w.ownerToonId}</div></div>
+      <span class="wsp-rolebadge ${w.role}">${ROLES[w.role].ic} ${ROLES[w.role].label}</span></div>`;}).join('')||'<div class="helper" style="padding:8px">참여 중인 워크스페이스가 없습니다</div>';
+  if(pend.length){
+    html+=`<div class="wsp-sec-h">받은 초대 (수락 대기)</div>`;
+    html+=pend.map(w=>{const a=acct(w.ownerToonId)||{};
+      return `<div class="wsp-row" style="cursor:default">
+        <div class="wsp-ava" style="background:${a.color||'#888'}">${w.icon||a.initial||'🗂'}</div>
+        <div class="wsp-meta"><div class="wsp-nm">${w.name}</div><div class="wsp-sub">${a.nickname||w.ownerToonId} 님이 ${ROLES[w.role].label}로 초대</div></div>
+        <div class="wsp-pend-acts"><button class="btn primary sm inv-accept" data-ws="${w.wsId}">수락</button><button class="btn ghost sm inv-decline" data-ws="${w.wsId}">거절</button></div></div>`;}).join('');
+  }
+  const body=byId('wsPickerBody'); body.innerHTML=html;
+  body.querySelectorAll('.wsp-row[data-ws]').forEach(el=>el.onclick=e=>{ if(e.target.closest('.wsp-pend-acts'))return; activateWorkspace(el.dataset.ws); });
+  body.querySelectorAll('.inv-accept').forEach(b=>b.onclick=()=>{const m=NET.memberships.find(x=>x.wsId===b.dataset.ws&&x.toonId===SESSION.myId&&x.status==='pending');if(m){m.status='active';m.ts=Date.now();saveNet();toast('초대를 수락했습니다 🎉');renderWsPicker();}});
+  body.querySelectorAll('.inv-decline').forEach(b=>b.onclick=()=>{NET.memberships=NET.memberships.filter(x=>!(x.wsId===b.dataset.ws&&x.toonId===SESSION.myId&&x.status==='pending'));saveNet();toast('초대를 거절했습니다');renderWsPicker();});
+}
+byId('wsChip').onclick=()=>{ if(SESSION.myId) openWsPicker(false); };
+byId('wsPickerClose').onclick=()=>byId('wsPickerOverlay').classList.remove('show');
+byId('wsPickerOverlay').onclick=e=>{ if(e.target===byId('wsPickerOverlay') && SESSION.wsId) byId('wsPickerOverlay').classList.remove('show'); };
+
+/* 초대 아이디 실시간 조회 + 확인 */
+let inviteState={toonId:null};
+function wireInvite(wsId){
+  const inp=byId('tmToon'), out=byId('tmResolve'), btn=byId('tmAdd'); if(!inp)return; let t=0;
+  function resolve(){
+    const id=inp.value.trim(); inviteState.toonId=null; btn.disabled=true;
+    if(!id){ out.className='inv-resolve'; out.innerHTML=''; return; }
+    const a=acct(id);
+    if(!a){ out.className='inv-resolve bad'; out.innerHTML='✗ 존재하지 않는 투네이션 아이디입니다'; return; }
+    const ex=NET.memberships.find(m=>m.wsId===wsId&&m.toonId===id);
+    if(ex){ out.className='inv-resolve bad'; out.innerHTML=`이미 ${ex.status==='pending'?'초대 대기중인':'팀에 있는'} 계정입니다`; return; }
+    out.className='inv-resolve ok'; out.innerHTML=`<span class="ir-ava" style="background:${a.color}">${a.initial}</span> ✓ ${a.nickname} · ${id}`;
+    inviteState.toonId=id; btn.disabled=false;
+  }
+  inp.oninput=()=>{ clearTimeout(t); t=setTimeout(resolve,220); };
+  inp.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); resolve(); if(inviteState.toonId) openInviteConfirm(wsId,inviteState.toonId,byId('tmRole').value); } };
+  btn.onclick=()=>{ if(inviteState.toonId) openInviteConfirm(wsId,inviteState.toonId,byId('tmRole').value); };
+}
+let invcData=null;
+function openInviteConfirm(wsId,toonId,role){
+  const a=acct(toonId); if(!a)return; invcData={wsId,toonId,role};
+  byId('invcBody').innerHTML=`<p class="helper" style="margin:0 0 12px">이 계정을 <b>${ROLES[role].label}</b>로 초대합니다. 아이디와 프로필이 맞는지 확인하세요.</p>
+    <div class="invc-card"><div class="ir-ava" style="background:${a.color}">${a.initial}</div>
+      <div><div style="font-weight:800;font-size:15px">${a.nickname}</div><div style="font-size:12.5px;color:var(--muted)">${toonId}${a.channel?' · '+a.channel:''}</div></div></div>`;
+  byId('inviteConfirmOverlay').classList.add('show');
+}
+byId('invcClose').onclick=byId('invcCancel').onclick=()=>byId('inviteConfirmOverlay').classList.remove('show');
+byId('inviteConfirmOverlay').onclick=e=>{ if(e.target===byId('inviteConfirmOverlay')) byId('inviteConfirmOverlay').classList.remove('show'); };
+byId('invcOk').onclick=()=>{ if(!invcData)return;
+  NET.memberships.push({wsId:invcData.wsId,toonId:invcData.toonId,role:invcData.role,status:'pending',ts:Date.now()}); saveNet();
+  logActivity('팀원 초대',`${acct(invcData.toonId)?.nickname||invcData.toonId} (${ROLES[invcData.role].label}) · 수락 대기`);
+  byId('inviteConfirmOverlay').classList.remove('show'); renderTeam(); toast('초대를 보냈습니다 · 상대 수락 대기중 ⏳'); invcData=null;
+};
+
+/* 로그인 (투네이션 아이디) */
 byId('loginForm').onsubmit=e=>{
   e.preventDefault();
   const id=byId('loginId').value.trim(), pw=byId('loginPw').value;
-  if(id===(DB.settings.authId||'toonation') && pw===(DB.settings.authPw||'1234')){
-    try{localStorage.setItem('toon_auth','1');}catch(_){}
-    document.documentElement.setAttribute('data-auth','1');
-    byId('loginErr').classList.add('hidden'); byId('loginPw').value='';
-    toast('로그인되었습니다 👋');
-  }else{
-    byId('loginErr').classList.remove('hidden');
-    byId('loginPw').value=''; byId('loginPw').focus();
-  }
+  const a=acct(id);
+  const fail=msg=>{ byId('loginErr').textContent=msg; byId('loginErr').classList.remove('hidden'); byId('loginPw').value=''; };
+  if(!a){ return fail('존재하지 않는 투네이션 아이디입니다.'); }
+  if(pw!=='1234'){ return fail('비밀번호가 올바르지 않습니다. (데모: 1234)'); }
+  if(!myWorkspaces(id).length && !myPending(id).length){ return fail('접근 가능한 워크스페이스가 없습니다.'); }
+  SESSION.myId=id;
+  try{localStorage.setItem('toon_auth','1');}catch(_){}
+  document.documentElement.setAttribute('data-auth','1');
+  byId('loginErr').classList.add('hidden'); byId('loginPw').value='';
+  toast(`${a.nickname}님 환영합니다 👋`);
+  routeAfterLogin();
 };
 byId('setAuthId').onchange=e=>{const v=e.target.value.trim();if(v){DB.settings.authId=v;save();toast('로그인 아이디를 변경했습니다');}else{e.target.value=DB.settings.authId||'';}};
 byId('setAuthPw').onchange=e=>{const v=e.target.value;if(v){DB.settings.authPw=v;save();e.target.value='';toast('비밀번호를 변경했습니다');}};
 byId('setLogout').onclick=()=>{
-  try{localStorage.removeItem('toon_auth');}catch(_){}
-  document.documentElement.removeAttribute('data-auth');
-  byId('settingsOverlay').classList.remove('show');
+  clearSession();
+  document.documentElement.removeAttribute('data-auth'); document.documentElement.removeAttribute('data-role');
+  byId('settingsOverlay').classList.remove('show'); byId('wsPickerOverlay').classList.remove('show');
   byId('loginId').value=''; byId('loginPw').value=''; byId('loginErr').classList.add('hidden');
   byId('loginId').focus();
 };
+/* 세션 복원 */
+function bootSession(){
+  let s=null; try{ s=JSON.parse(localStorage.getItem('toon_session')||'null'); }catch(e){}
+  if(s&&s.myId&&acct(s.myId)&&myWorkspaces(s.myId).length){
+    SESSION.myId=s.myId;
+    document.documentElement.setAttribute('data-auth','1');
+    if(s.wsId&&NET.memberships.find(m=>m.wsId===s.wsId&&m.toonId===s.myId&&m.status==='active')) activateWorkspace(s.wsId);
+    else routeAfterLogin();
+  }else{
+    clearSession(); document.documentElement.removeAttribute('data-auth');
+  }
+}
 
 /* ---------- init ---------- */
-applyAccent(DB.settings.accent); applyCreatorUI();
+function renderAll(){
+  applyAccent(DB.settings.accent); applyCreatorUI();
+  renderSwatches();
+  renderGrades();
+  renderDonators();
+  renderAutos();
+  renderInsights();
+  resetTitleForm();
+  renderTitles();
+  renderLive();
+  renderToonStats();
+  renderScheduleCount();
+  renderAlerts();
+  renderCredit();
+  if(byId('churnThresh'))byId('churnThresh').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.d===churnThreshold));
+  if(byId('nudgeThresh'))byId('nudgeThresh').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.n===nudgeThreshold));
+}
+renderAll();
+bootSession();
 if(document.documentElement.getAttribute('data-auth')!=='1'){const _li=byId('loginId'); if(_li)setTimeout(()=>_li.focus(),50);}
-renderSwatches();
-renderGrades();
-renderDonators();
-renderAutos();
-renderInsights();
-resetTitleForm();
-renderTitles();
-renderLive();
-renderToonStats();
-renderScheduleCount();
-renderAlerts();
-renderCredit();
-// 설정값 → 인탭 세그먼트 동기화
-if(byId('churnThresh'))byId('churnThresh').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.d===churnThreshold));
-if(byId('nudgeThresh'))byId('nudgeThresh').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.n===nudgeThreshold));
 // 기본 시작 탭
 if(DB.settings.defaultTab&&DB.settings.defaultTab!=='insight'){const _t=document.querySelector(`.tab[data-tab="${DB.settings.defaultTab}"]`);if(_t)_t.click();}
 // 투어·도움말 Escape 처리
