@@ -1509,6 +1509,41 @@ tbody tr.blocked:hover{opacity:.72}
 .invc-card .ir-ava{width:44px;height:44px;border-radius:12px;font-size:16px}
 .tm-status{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:20px;white-space:nowrap}
 .tm-status.pending{background:rgba(255,176,32,.14);color:#ffb020}
+/* 투네톡 받기 시뮬 — 팬 후원 화면 재현 */
+.tsim-modal{max-width:420px;overflow:hidden}
+.tsim-head{background:#4d8bff;color:#fff;display:flex;align-items:center;padding:15px 20px;flex:none}
+.tsim-head h2{margin:0;font-size:16px;font-weight:800;color:#fff}
+.tsim-x{margin-left:auto;background:none;border:none;color:#fff;font-size:18px;line-height:1;cursor:pointer;opacity:.9;padding:2px 4px}
+.tsim-x:hover{opacity:1}
+.tsim-body{padding:18px 20px}
+.tsim-sender{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.tsim-sender label{font-size:12px;font-weight:700;color:var(--muted);flex:none}
+.tsim-sender select{flex:1}
+.tsim-to{display:flex;align-items:center;gap:11px;margin-bottom:18px}
+.tsim-to-ava{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px;flex:none;overflow:hidden}
+.tsim-to-lbl{font-size:12px;color:var(--muted);font-weight:600}
+.tsim-to-nm{font-size:15px;font-weight:800;margin-top:1px}
+.tsim-sec-lbl{font-size:13px;font-weight:800;margin:0 0 9px}
+.tsim-amt-box{background:var(--surface-2);border-radius:12px;padding:20px;text-align:center}
+.tsim-amt-box b{font-size:30px;font-weight:800;color:#4d8bff;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.tsim-amt-box span{font-size:13px;color:var(--muted);font-weight:600;margin-left:5px}
+.tsim-slider{width:100%;margin:14px 0 12px;accent-color:#4d8bff;cursor:pointer}
+.tsim-presets{display:flex;gap:6px;flex-wrap:wrap}
+.tsim-presets button{flex:1;min-width:50px;padding:8px 4px;border-radius:20px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-weight:700;font-size:12.5px;cursor:pointer;transition:.12s;font-variant-numeric:tabular-nums}
+.tsim-presets button:hover{border-color:var(--line-strong)}
+.tsim-presets button.on{background:#4d8bff;border-color:#4d8bff;color:#fff}
+.tsim-bal{text-align:right;font-size:12px;color:#4d8bff;font-weight:700;margin-top:10px}
+.tsim-msg-wrap{position:relative}
+.tsim-msg-wrap textarea{width:100%;min-height:110px;resize:vertical;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 13px 26px;color:var(--text);font-size:13px;font-family:inherit;outline:none;line-height:1.55}
+.tsim-msg-wrap textarea:focus{border-color:#4d8bff}
+.tsim-msg-count{position:absolute;right:12px;bottom:9px;font-size:11px;color:var(--muted-2);font-variant-numeric:tabular-nums}
+.tsim-tools{display:flex;gap:8px;margin-top:12px}
+.tsim-tool{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;font-size:16px;transition:.12s}
+.tsim-tool:hover{border-color:var(--line-strong)}
+.tsim-foot{padding:14px 20px 18px;flex:none}
+.tsim-send{width:100%;padding:14px;border-radius:12px;border:none;background:#4d8bff;color:#fff;font-weight:800;font-size:15px;cursor:pointer;transition:.12s;font-variant-numeric:tabular-nums}
+.tsim-send:hover{background:#3f7bee}
+.tsim-send b{font-weight:800}
 /* 인사이트 패널 미니 버튼 */
 .mini-btn{flex:none;font-size:11.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);border:1px solid transparent;border-radius:8px;padding:5px 10px;cursor:pointer;transition:.12s;white-space:nowrap}
 .mini-btn:hover{border-color:var(--accent);transform:translateY(-1px)}
@@ -2871,19 +2906,28 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
 </div>
 
-<!-- ============ 투네톡 받기(시뮬레이션) ============ -->
+<!-- ============ 투네톡 받기(시뮬레이션) — 팬 후원 화면 재현 ============ -->
 <div class="overlay" id="tsimOverlay">
-  <div class="modal" style="max-width:460px">
-    <div class="modal-head"><h2>＋ 투네톡 받기 (시뮬레이션)</h2><div class="spacer"></div><button class="xbtn" id="tsimClose">✕</button></div>
-    <div class="modal-body">
-      <div class="helper" style="margin:0 0 16px">팬이 <b>댓글과 함께 후원</b>을 보내는 상황을 재현합니다. 실제 도네이터 화면의 ‘투네톡 보내기’에 해당합니다.</div>
-      <div class="field"><label>보내는 팬 (도네이터)</label><select class="inp" id="tsimDonator"></select></div>
-      <div class="field"><label>후원 금액 <span class="helper" style="display:inline;font-weight:500">· 1,000 ~ 100,000 캐시</span></label>
-        <div class="amt-wrap"><input class="inp tnum" id="tsimAmt" inputmode="numeric" placeholder="5,000"><span class="to">캐시</span></div></div>
-      <div class="field"><label>댓글 메시지</label><textarea class="inp" id="tsimMsg" rows="3" maxlength="200" placeholder="오늘 방송 너무 재밌었어요! 응원합니다 💪"></textarea></div>
-      <div class="preview-box"><div class="preview-lbl">👁 미리보기</div><div id="tsimPrev"></div></div>
+  <div class="modal tsim-modal">
+    <div class="tsim-head"><h2>투네톡 보내기</h2><button class="tsim-x" id="tsimClose">✕</button></div>
+    <div class="modal-body tsim-body">
+      <div class="tsim-sender"><label>보내는 팬 (시뮬)</label><select class="inp" id="tsimDonator"></select></div>
+      <div class="tsim-to"><div class="tsim-to-ava" id="tsimToAva">CR</div><div><div class="tsim-to-lbl">To.</div><div class="tsim-to-nm" id="tsimToNm">크리에이터</div></div></div>
+      <div class="tsim-sec-lbl">후원 캐시</div>
+      <div class="tsim-amt-box"><b id="tsimAmtBig">1,000</b><span>캐시</span></div>
+      <input type="range" class="tsim-slider" id="tsimSlider" min="1000" max="100000" step="1000" value="1000">
+      <div class="tsim-presets" id="tsimPresets">
+        <button data-a="1000" class="on">1,000</button><button data-a="5000">5,000</button><button data-a="10000">1만</button><button data-a="30000">3만</button><button data-a="50000">5만</button><button data-a="100000">10만</button>
+      </div>
+      <div class="tsim-bal">보유 캐시: <b id="tsimBal">1,000,000</b></div>
+      <div class="tsim-sec-lbl" style="margin-top:16px">메시지</div>
+      <div class="tsim-msg-wrap">
+        <textarea id="tsimMsg" maxlength="500" placeholder="크리에이터에게 응원의 메시지를 남겨보세요! (500자 이내)"></textarea>
+        <span class="tsim-msg-count" id="tsimMsgCount">0 / 500</span>
+      </div>
+      <div class="tsim-tools"><button class="tsim-tool" id="tsimImg" title="이미지 첨부">🖼️</button><button class="tsim-tool" id="tsimEmoji" title="이모지">🙂</button></div>
     </div>
-    <div class="modal-foot"><button class="btn ghost" id="tsimCancel">취소</button><div class="spacer"></div><button class="btn primary" id="tsimSend">투네톡 보내기</button></div>
+    <div class="tsim-foot"><button class="tsim-send" id="tsimSend"><b id="tsimSendAmt">1,000</b> 캐시 후원하기</button></div>
   </div>
 </div>
 
@@ -6097,22 +6141,39 @@ byId('replySend').onclick=()=>{
 
 /* 투네톡 받기(시뮬레이션) — 도네이터의 '댓글 후원' 재현 */
 function tsimFill(){byId('tsimDonator').innerHTML=DB.donators.filter(d=>!d.blocked).sort((a,b)=>b.cash-a.cash).map(d=>`<option value="${d.id}">${d.name}${d.alias?' ('+d.alias+')':''}</option>`).join('');}
-byId('toonReceiveBtn').onclick=()=>{tsimFill();byId('tsimAmt').value='5,000';byId('tsimMsg').value='';tsimPrev();byId('tsimOverlay').classList.add('show');};
-byId('tsimAmt').addEventListener('input',e=>{const v=e.target.value.replace(/[^\d]/g,'');e.target.value=v?won(+v):'';tsimPrev();});
-byId('tsimMsg').addEventListener('input',tsimPrev);
-byId('tsimDonator').addEventListener('change',tsimPrev);
-function tsimPrev(){const d=DB.donators.find(x=>x.id===byId('tsimDonator').value),amt=+byId('tsimAmt').value.replace(/[^\d]/g,'')||0;
-  byId('tsimPrev').innerHTML=`<div class="toon-item" style="margin:0"><div class="ti-top"><div class="ava" style="background:${d?avaColor(d.name):'#555'}">${d?d.name.slice(0,2):'?'}</div><div class="who"><div class="nm">${d?(d.alias||d.name):'도네이터'} <span class="toon-badge pending">답장 대기</span></div><div class="sub">TO. ${CREATOR_NAME} · 방금 전</div></div><div class="ti-amt">${won(amt)} C</div></div><div class="toon-msg">${(byId('tsimMsg').value||'오늘 방송 너무 재밌었어요! 응원합니다 💪').replace(/</g,'&lt;')}</div></div>`;}
-byId('tsimClose').onclick=byId('tsimCancel').onclick=()=>byId('tsimOverlay').classList.remove('show');
+function tsimSetAmt(v){
+  v=Math.max(1000,Math.min(100000,Math.round((+v||0)/1000)*1000));
+  byId('tsimSlider').value=v;
+  byId('tsimAmtBig').textContent=won(v);
+  byId('tsimSendAmt').textContent=won(v);
+  byId('tsimPresets').querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.a===v));
+}
+function tsimRenderTo(){
+  const nm=creatorName()||'크리에이터', ini=(DB.settings.initials||nm.slice(0,2)||'CR').slice(0,2);
+  byId('tsimToNm').textContent=nm;
+  const av=byId('tsimToAva'); av.textContent=ini; av.style.background=avaColor(nm);
+}
+byId('toonReceiveBtn').onclick=()=>{
+  if(typeof viewerGuard==='function'&&viewerGuard())return;
+  tsimFill(); tsimRenderTo(); tsimSetAmt(1000);
+  byId('tsimMsg').value=''; byId('tsimMsgCount').textContent='0 / 500';
+  byId('tsimOverlay').classList.add('show');
+};
+byId('tsimSlider').addEventListener('input',e=>tsimSetAmt(e.target.value));
+byId('tsimPresets').querySelectorAll('button').forEach(b=>b.onclick=()=>tsimSetAmt(+b.dataset.a));
+byId('tsimMsg').addEventListener('input',e=>byId('tsimMsgCount').textContent=`${e.target.value.length} / 500`);
+byId('tsimEmoji').onclick=()=>{const em=['💪','🔥','❤️','🎉','👍','😊','🙌','✨'][Math.floor((Date.now()/137)%8)];const t=byId('tsimMsg');t.value=(t.value+em).slice(0,500);byId('tsimMsgCount').textContent=`${t.value.length} / 500`;t.focus();};
+byId('tsimImg').onclick=()=>toast('데모에서는 이미지 첨부를 지원하지 않습니다','!');
+byId('tsimClose').onclick=()=>byId('tsimOverlay').classList.remove('show');
 byId('tsimOverlay').onclick=e=>{if(e.target===byId('tsimOverlay'))byId('tsimOverlay').classList.remove('show');};
 byId('tsimSend').onclick=()=>{
   const d=DB.donators.find(x=>x.id===byId('tsimDonator').value); if(!d)return;
-  let amt=Math.max(1000,Math.min(100000,+byId('tsimAmt').value.replace(/[^\d]/g,'')||0));
+  const amt=Math.max(1000,Math.min(100000,+byId('tsimSlider').value||1000));
   const msg=byId('tsimMsg').value.trim()||'오늘 방송 너무 재밌었어요! 응원합니다 💪';
   DB.toontalks.unshift({id:uid(),donatorId:d.id,amount:amt,message:msg,status:'pending',createdTs:Date.now(),respondedTs:null,reply:''});
   save(); byId('tsimOverlay').classList.remove('show'); toonFilter='pending';
   byId('toonFilter').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.f==='pending'));
-  renderToon(); toast(`${d.alias||d.name}님이 투네톡 후원을 보냈습니다 💬`);
+  renderToon(); toast(`${d.alias||d.name}님이 ${won(amt)}캐시 투네톡 후원을 보냈습니다 💬`);
 };
 
 /* 스토리 */
