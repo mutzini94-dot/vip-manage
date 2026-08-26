@@ -1419,6 +1419,9 @@ tbody tr.blocked:hover{opacity:.72}
 .ta-t{font-size:12.5px;font-weight:600}
 .ta-d{font-size:11.5px;color:var(--muted);margin-top:1px}
 .ta-when{font-size:11px;color:var(--muted-2);white-space:nowrap;flex:none}
+/* '외 N명 더 있습니다' 링크 */
+.more-link{display:block;width:100%;text-align:center;background:none;border:none;padding:11px 8px;margin-top:4px;color:var(--muted);font-size:12.5px;font-weight:700;cursor:pointer;border-radius:9px;transition:.12s}
+.more-link:hover{color:var(--accent);background:var(--accent-soft)}
 /* 워크스페이스 스위처 (GNB) */
 .ws-chip{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);cursor:pointer;transition:.12s;max-width:230px}
 .ws-chip:hover{border-color:var(--line-strong);background:var(--surface-3)}
@@ -4795,7 +4798,7 @@ function renderChurn(){
     const btn=row.querySelector('.re-btn');if(btn)btn.onclick=()=>openReengage(d.id);
     box.appendChild(row);
   });
-  if(rows.length>8){const m=document.createElement('div');m.className='helper';m.style.textAlign='center';m.textContent=`외 ${rows.length-8}명 더 있습니다`;box.appendChild(m);}
+  if(rows.length>8){const m=document.createElement('button');m.className='more-link';m.textContent=`외 ${rows.length-8}명 더 있습니다 →`;m.onclick=()=>goDonView('churn');box.appendChild(m);}
 }
 byId('churnThresh').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   churnThreshold=+b.dataset.d;
@@ -4971,7 +4974,7 @@ function renderNudge(){
     const btn=row.querySelector('.nudge-btn'); if(btn)btn.onclick=()=>openNudge(d.id);
     box.appendChild(row);
   });
-  if(rows.length>8){const m=document.createElement('div');m.className='helper';m.style.textAlign='center';m.textContent=`외 ${rows.length-8}명 더 있습니다`;box.appendChild(m);}
+  if(rows.length>8){const m=document.createElement('button');m.className='more-link';m.textContent=`외 ${rows.length-8}명 더 있습니다 →`;m.onclick=()=>goDonView('promote');box.appendChild(m);}
 }
 byId('msNudge').onclick=()=>{DB.milestoneNudge=!DB.milestoneNudge;save();renderNudge();toast(DB.milestoneNudge?'마일스톤 자동 넛지를 켰습니다 (90% 도달 시 자동 발송)':'마일스톤 자동 넛지를 껐습니다');};
 byId('nudgeThresh').querySelectorAll('button').forEach(b=>b.onclick=()=>{
@@ -6573,6 +6576,7 @@ function renderTimeline(d){
    알림 센터 (할 일 허브)
    ========================================================= */
 function goTab(t){document.querySelector(`.tab[data-tab="${t}"]`).click();}
+function goDonView(view){ goTab('donator'); const b=byId('donView')&&byId('donView').querySelector(`[data-view="${view}"]`); if(b)b.click(); const p=document.querySelector('#page-donator .panel'); if(p)p.scrollIntoView({behavior:'smooth',block:'start'}); }
 /* 특정 탭의 섹션으로 이동 + 스크롤 + 하이라이트 */
 function focusSection(tab,id){
   goTab(tab);
