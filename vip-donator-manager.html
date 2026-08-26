@@ -749,6 +749,13 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .kpi .k{font-size:12px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px}
 .kpi .v{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-top:8px}
 .kpi .v small{font-size:13px;color:var(--muted);font-weight:600;margin-left:2px}
+/* 숫자 플립 애니메이션 */
+.flip-num{display:inline-flex;align-items:baseline}
+.flip-num .flip-digit{display:inline-block;transform-origin:50% 50%;backface-visibility:hidden}
+.flip-num .flip-sep{display:inline-block}
+.flip-num .flip-digit.flip{animation:digitFlip .34s cubic-bezier(.4,0,.2,1)}
+@keyframes digitFlip{0%{transform:rotateX(0)}45%{transform:rotateX(-90deg);opacity:.35}55%{transform:rotateX(90deg);opacity:.35}100%{transform:rotateX(0);opacity:1}}
+@media(prefers-reduced-motion:reduce){.flip-num .flip-digit.flip{animation:none}}
 .kpi .sub{font-size:11.5px;margin-top:5px;font-weight:700;color:var(--muted)}
 .kpi .sub .up{color:var(--on)} .kpi .sub .down{color:#ff6b81} .kpi .sub .warn{color:var(--warn)}
 .kpi.alert{border-color:rgba(255,70,70,.35);background:linear-gradient(180deg,rgba(255,70,70,.06),var(--surface))}
@@ -4635,10 +4642,34 @@ function renderKpis(){
   const churnN=churnData(churnThreshold).length;
   const arrow=delta>=0?'▲':'▼',cls=delta>=0?'up':'down';
   byId('kpiRow').innerHTML=`
-    <div class="kpi"><div class="k">💰 총 누적 후원</div><div class="v tnum">${won(total)}<small>캐시</small></div><div class="sub">전체 도네이터 ${DB.donators.length}명</div>${dd.has?`<div class="sub"><span class="up">▲ +${won(dd.amt)}</span>캐시 · ${dd.newDon>0?`<span class="up">▲ +${won(dd.newDon)}</span>명`:`<span style="color:var(--muted)">+0명</span>`} <span style="color:var(--muted-2)">전일 대비 (${dd.label})</span></div>`:''}</div>
+    <div class="kpi"><div class="k">💰 총 누적 후원</div><div class="v tnum"><span class="flip-num" id="kpiTotalNum">${won(total)}</span><small>캐시</small></div><div class="sub">전체 도네이터 ${DB.donators.length}명</div>${dd.has?`<div class="sub"><span class="up">▲ +${won(dd.amt)}</span>캐시 · ${dd.newDon>0?`<span class="up">▲ +${won(dd.newDon)}</span>명`:`<span style="color:var(--muted)">+0명</span>`} <span style="color:var(--muted-2)">전일 대비 (${dd.label})</span></div>`:''}</div>
     <div class="kpi"><div class="k">👑 활성 VIP</div><div class="v tnum">${activeVip}<small>명</small></div><div class="sub">등급 보유 도네이터</div></div>
-    <div class="kpi"><div class="k">📈 이번 달 후원</div><div class="v tnum">${won(thisM)}<small>캐시</small></div><div class="sub"><span class="${cls}">${arrow} ${Math.abs(delta)}%</span> 전월 대비</div></div>
+    <div class="kpi"><div class="k">📈 이번 달 후원</div><div class="v tnum"><span class="flip-num" id="kpiMonthNum">${won(thisM)}</span><small>캐시</small></div><div class="sub"><span class="${cls}">${arrow} ${Math.abs(delta)}%</span> 전월 대비</div></div>
     <div class="kpi ${churnN?'alert':''}"><div class="k">⚠️ 이탈 위험 VIP</div><div class="v tnum">${churnN}<small>명</small></div><div class="sub"><span class="${churnN?'warn':''}">${churnN?'복귀 유도 필요':'모두 최근 활동'}</span></div></div>`;
+  flipMaybe('kpiTotalNum',total);
+  flipMaybe('kpiMonthNum',thisM);
+}
+/* 숫자 플립(자릿수 롤) 카운트업 — 값이 바뀔 때만 재생 */
+const _kpiLast={};
+function flipMaybe(id,val){ const el=byId(id); if(!el)return; if(_kpiLast[id]===val){el.textContent=won(val);return;} _kpiLast[id]=val; flipCount(el,val); }
+function renderFlipDigits(el,str){
+  if(el.childElementCount!==str.length){
+    el.innerHTML=[...str].map(c=>/\d/.test(c)?`<span class="flip-digit">${c}</span>`:`<span class="flip-sep">${c}</span>`).join('');
+  }
+  const spans=el.children;
+  for(let i=0;i<str.length;i++){const sp=spans[i],c=str[i]; if(!sp)continue;
+    if(sp.textContent!==c){ sp.textContent=c; if(/\d/.test(c)){ sp.classList.remove('flip'); void sp.offsetWidth; sp.classList.add('flip'); } }
+  }
+}
+function flipCount(el,to){
+  to=Math.round(to||0); const from=0, dur=1050, ease=t=>1-Math.pow(1-t,3);
+  let start=0;
+  function frame(now){
+    if(!start)start=now; const p=Math.min(1,(now-start)/dur);
+    renderFlipDigits(el,won(Math.round(from+(to-from)*ease(p))));
+    if(p<1) requestAnimationFrame(frame); else renderFlipDigits(el,won(to));
+  }
+  requestAnimationFrame(frame);
 }
 function renderTrend(){
   const vals=monthlyTrend(),labs=monthLabels(6);
