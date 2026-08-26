@@ -6553,7 +6553,7 @@ function renderHall(){
     return `<div class="pod ${cls}" data-don="${e.d.id}" style="cursor:pointer">${idx===0?'<div class="crown">👑</div>':''}
       <div class="medal">${medals[idx]}</div>
       <div class="pod-ava" style="background:${avaColor(e.d.name)}">${e.d.name.slice(0,2)}${avaImg(e.d.name)}</div>
-      <div class="pod-nm">${e.d.alias||e.d.name} ${hallTierBadge(idx+1)}</div>
+      <div class="pod-nm">${e.d.name} ${hallTierBadge(idx+1)}</div>
       <div class="pod-amt">${won(e.amount)}<small style="font-size:12px;color:var(--muted)"> 캐시</small></div>
       <div class="pod-sub">${g?g.name:'미분류'} · ${idx+1}위</div></div>`;}).join('');
   // 리스트 (전체 TOP 15)
@@ -6562,7 +6562,7 @@ function renderHall(){
     return `<div class="hall-row" data-don="${e.d.id}">
       <div class="hr-rank" ${rk<=3?`style="color:var(--vvip)"`:''}>${rk}</div>
       <div class="ava" style="background:${avaColor(e.d.name)}">${e.d.name.slice(0,2)}${avaImg(e.d.name)}</div>
-      <div class="hr-nm">${e.d.alias||e.d.name} ${g?gradeBadge(g):''} ${hallTierBadge(rk)}</div>
+      <div class="hr-nm">${e.d.name} ${g?gradeBadge(g):''} ${hallTierBadge(rk)}</div>
       <div class="hr-amt">${won(e.amount)}<small>캐시</small></div></div>`;}).join('')||'<div class="empty" style="padding:40px"><div class="t">아직 후원 기록이 없습니다</div></div>';
   pod.querySelectorAll('[data-don]').forEach(el=>el.onclick=()=>openDrawer(el.dataset.don));
   box.querySelectorAll('[data-don]').forEach(el=>el.onclick=()=>openDrawer(el.dataset.don));
