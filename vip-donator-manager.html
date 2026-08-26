@@ -791,7 +791,7 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .seg-cnt{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;margin-left:4px;border-radius:8px;background:var(--surface-3);color:var(--muted);font-size:10px;font-weight:800;vertical-align:middle}
 .btn.xs{padding:4px 9px;font-size:11.5px;border-radius:7px;font-weight:700}
 .act-cell{white-space:nowrap}
-.act-cell .act-wrap{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.act-cell .act-wrap{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
 .act-done{font-size:11px;font-weight:800;color:var(--on);white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
 .act-none{font-size:11px;color:var(--muted-2)}
 .act-blocked{font-size:11px;font-weight:800;color:#ff8a5c;background:rgba(255,138,92,.13);padding:4px 9px;border-radius:7px;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
@@ -1943,8 +1943,7 @@ tbody tr.blocked:hover{opacity:.72}
                 <th class="sortable" data-col="cash">누적 후원 캐시 <span class="arr">↓</span></th>
                 <th class="sortable" data-col="count">누적 후원 건수 <span class="arr"></span></th>
                 <th>등급</th>
-                <th>별칭</th>
-                <th style="width:158px">액션</th>
+                <th style="width:210px">액션</th>
               </tr>
             </thead>
             <tbody id="donTbody"></tbody>
@@ -3640,7 +3639,6 @@ function renderDonators(){
       <td><div class="cash">${won(d.cash)}<small> 캐시</small></div></td>
       <td class="tnum">${won(d.count)}건</td>
       <td>${gradeBadge(g)}${d.blocked?'':`<span class="temp-badge" style="background:${hexA(tScore.level.color,.15)};color:${tScore.level.color};margin-left:5px" title="관계 온도 ${tScore.temp}°">${tScore.level.icon} ${tScore.temp}°</span>`}${gaugeHtml}</td>
-      <td></td>
       <td class="act-cell">${actHtml}</td>`;
     // 액션 버튼 (행 클릭=프로필 열기와 분리)
     const reBtn=tr.querySelector('.act-re'); if(reBtn)reBtn.onclick=e=>{e.stopPropagation();openReengage(d.id);};
@@ -3649,18 +3647,11 @@ function renderDonators(){
     const cb=tr.querySelector('.rowcbx');
     cb.onclick=e=>e.stopPropagation();
     cb.onchange=()=>{cb.checked?donSelected.add(d.id):donSelected.delete(d.id);updateBulkBar();};
-    // alias input
-    const aliasTd=tr.lastElementChild;
-    const inp=document.createElement('input');
-    inp.className='alias-inp'; inp.placeholder='별칭 입력'; inp.value=d.alias||'';
-    inp.onclick=e=>e.stopPropagation();
-    inp.onchange=()=>{d.alias=inp.value.trim();save();toast('별칭이 저장되었습니다');};
-    aliasTd.appendChild(inp);
     tr.onclick=()=>openDrawer(d.id);
     tb.appendChild(tr);
   });
   if(!rows.length){
-    tb.innerHTML=`<tr><td colspan="8"><div class="empty" style="padding:40px"><div class="t">${donView==='churn'?'이탈 위험 도네이터가 없습니다 🎉':donView==='promote'?'승급 임박 도네이터가 없습니다':'검색 결과가 없습니다'}</div></div></td></tr>`;
+    tb.innerHTML=`<tr><td colspan="7"><div class="empty" style="padding:40px"><div class="t">${donView==='churn'?'이탈 위험 도네이터가 없습니다 🎉':donView==='promote'?'승급 임박 도네이터가 없습니다':'검색 결과가 없습니다'}</div></div></td></tr>`;
   }
   renderDonPager(totalPages, rows.length);
   updateBulkBar();
