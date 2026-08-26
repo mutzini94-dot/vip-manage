@@ -1459,6 +1459,7 @@ tbody tr.blocked:hover{opacity:.72}
 :root[data-role="viewer"] .al-edit,
 :root[data-role="viewer"] #tfSave,
 :root[data-role="viewer"] #titleCsvUp,
+:root[data-role="viewer"] #goLiveBtn,
 :root[data-role="viewer"] .form-actions{display:none !important}
 .ws-chip .ws-role.viewer{color:#ffb020}
 /* 초대 아이디 조회 */
@@ -5369,6 +5370,7 @@ byId('goLiveBtn').onclick=()=>{ LIVE.on?stopLive():goLive(); };
 byId('stopLiveBtn').onclick=stopLive;
 
 function goLive(){
+  if(typeof SESSION!=='undefined' && SESSION.role==='viewer'){ toast('뷰어는 방송을 시작할 수 없습니다','!'); return; }
   clearInterval(LIVE.tick); clearInterval(LIVE.clock);   // 중복 타이머 방지
   LIVE.on=true; LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0; LIVE.rank=new Map(); LIVE.happy={on:false,mult:2,ends:0};
   LIVE.donCount=0; LIVE.peakOnline=0; LIVE.hadHappy=false; LIVE.startTs=Date.now(); LIVE.schedId=null; LIVE.title=''; LIVE.category='';
@@ -5386,6 +5388,12 @@ function stopLive(){
   LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0; LIVE.rank=new Map(); LIVE.happy={on:false,mult:2,ends:0};
   if(recap){ DB.recaps.unshift(recap); if(DB.recaps.length>50)DB.recaps.pop(); save(); renderLive(); openRecap(recap.id); toast('방송 성과 리캡이 저장되었습니다 📊'); }
   else renderLive();
+}
+/* 워크스페이스 전환·로그아웃 시 라이브 시뮬레이션을 조용히 중단(리캡 없이) */
+function haltLive(){
+  if(!LIVE.on && !LIVE.tick && !LIVE.clock) return;
+  LIVE.on=false; clearInterval(LIVE.tick); clearInterval(LIVE.clock); LIVE.tick=null; LIVE.clock=null;
+  LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0; LIVE.rank=new Map(); LIVE.happy={on:false,mult:2,ends:0};
 }
 function buildRecap(){
   if(LIVE.elapsed<2 && LIVE.donation===0) return null;
@@ -5719,6 +5727,7 @@ function autoAllowed(a,d,now){
   return true;
 }
 function fireAutos(kind,d,amt){
+  if(typeof SESSION!=='undefined' && SESSION.role==='viewer') return;   // 뷰어는 자동 발송 트리거 금지
   if(d.blocked) return;
   DB.autos.filter(a=>a.on).forEach(a=>{
     let match=false;
@@ -6933,6 +6942,7 @@ function clearSession(){ SESSION={myId:null,wsId:null,role:'viewer'}; try{localS
 function activateWorkspace(wsId){
   const ws=NET.workspaces[wsId]; if(!ws)return false;
   const m=NET.memberships.find(x=>x.wsId===wsId&&x.toonId===SESSION.myId&&x.status==='active'); if(!m)return false;
+  if(typeof haltLive==='function') haltLive();   // 이전 워크스페이스의 라이브 시뮬레이션 중단(자동 발송 방지)
   SESSION.wsId=wsId; SESSION.role=m.role;
   LS=ws.dataKey;
   DB=load();
@@ -7043,6 +7053,7 @@ byId('loginForm').onsubmit=e=>{
 byId('setAuthId').onchange=e=>{const v=e.target.value.trim();if(v){DB.settings.authId=v;save();toast('로그인 아이디를 변경했습니다');}else{e.target.value=DB.settings.authId||'';}};
 byId('setAuthPw').onchange=e=>{const v=e.target.value;if(v){DB.settings.authPw=v;save();e.target.value='';toast('비밀번호를 변경했습니다');}};
 byId('setLogout').onclick=()=>{
+  if(typeof haltLive==='function') haltLive();
   clearSession();
   document.documentElement.removeAttribute('data-auth'); document.documentElement.removeAttribute('data-role');
   byId('settingsOverlay').classList.remove('show'); byId('wsPickerOverlay').classList.remove('show');
