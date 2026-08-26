@@ -668,7 +668,14 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .dr-hero .close{position:absolute;top:16px;right:16px}
 .dr-avatar{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:26px;margin-bottom:14px;box-shadow:0 0 0 3px var(--dr-grade-soft),0 4px 16px rgba(0,0,0,.3)}
 .dr-name{font-size:20px;font-weight:800;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-.dr-alias{color:var(--muted);font-size:13.5px;margin-top:3px}
+.dr-alias{color:var(--muted);font-size:13.5px;margin-top:3px;display:flex;align-items:center;gap:5px}
+.dr-alias .al-txt{cursor:pointer;border-radius:6px;padding:2px 6px;transition:.12s}
+.dr-alias .al-txt:hover{background:var(--surface-2);color:var(--text)}
+.dr-alias.empty .al-txt{color:var(--muted-2)}
+.dr-alias .al-edit{background:none;border:none;color:var(--muted-2);cursor:pointer;font-size:13px;padding:2px 5px;border-radius:6px;opacity:.65;transition:.12s;line-height:1}
+.dr-alias .al-edit:hover{opacity:1;color:var(--accent);background:var(--surface-2)}
+.dr-alias .al-at{color:var(--muted);font-weight:700}
+.dr-alias .al-input{background:var(--surface-2);border:1px solid var(--accent);border-radius:7px;padding:4px 9px;color:var(--text);font-size:13.5px;outline:none;width:170px;font-family:inherit}
 .dr-meta{display:flex;gap:20px;margin-top:16px}
 .dr-meta .m .k{font-size:11px;color:var(--muted);font-weight:600}
 .dr-meta .m .v{font-size:14px;font-weight:800;margin-top:3px}
@@ -4225,6 +4232,28 @@ function addTag(d,val){
 }
 function hexA(hex,a){const h=(hex||'').replace('#','');const n=h.length===3?h.split('').map(c=>c+c).join(''):h;
   const r=parseInt(n.slice(0,2),16)||0,g=parseInt(n.slice(2,4),16)||0,b=parseInt(n.slice(4,6),16)||0;return `rgba(${r},${g},${b},${a})`;}
+/* 프로필 별칭 인라인 편집 */
+function renderDrAlias(d){
+  const box=byId('drAlias');
+  const has=!!(d.alias&&d.alias.trim());
+  box.classList.toggle('empty',!has);
+  box.innerHTML=`<span class="al-txt">${has?'@'+String(d.alias).replace(/</g,'&lt;'):'＋ 별칭 추가'}</span><button class="al-edit" title="별칭 수정">✎</button>`;
+  function enter(){
+    box.classList.remove('empty');
+    box.innerHTML=`<span class="al-at">@</span><input class="al-input" maxlength="30" placeholder="별칭 입력">`;
+    const inp=box.querySelector('.al-input'); inp.value=d.alias||''; inp.focus(); inp.select();
+    let done=false;
+    const finish=save_=>{ if(done)return; done=true;
+      if(save_){ d.alias=inp.value.trim(); save(); renderDonators(); toast('별칭이 저장되었습니다'); }
+      renderDrAlias(d);
+    };
+    inp.onkeydown=e=>{ e.stopPropagation(); if(e.key==='Enter'){e.preventDefault();finish(true);} else if(e.key==='Escape'){e.preventDefault();finish(false);} };
+    inp.onclick=e=>e.stopPropagation();
+    inp.onblur=()=>finish(true);
+  }
+  box.querySelector('.al-txt').onclick=enter;
+  box.querySelector('.al-edit').onclick=enter;
+}
 function openDrawer(id){
   const d=DB.donators.find(x=>x.id===id); if(!d)return;
   const g=gradeForCash(d.cash);
@@ -4239,7 +4268,7 @@ function openDrawer(id){
   }else{['--dr-grade','--dr-grade-soft','--dr-grade-wash','--dr-grade-text'].forEach(p=>dr.style.removeProperty(p));dr.style.borderLeftColor='';}
   byId('drAva').innerHTML=d.name.slice(0,2)+avaImg(d.name); byId('drAva').style.background=avaColor(d.name);
   byId('drName').innerHTML=`${d.name} ${gradeBadge(g)} ${hallTierBadge(donatorRank(d.id))}`;
-  byId('drAlias').textContent=d.alias?'@'+d.alias:'별칭 없음';
+  renderDrAlias(d);
   byId('drLast').textContent=d.last; byId('drJoin').textContent=d.join; byId('drCount').textContent=won(d.count)+'건';
   byId('drCash').innerHTML=`${won(d.cash)}<small>캐시</small>`;
   // 개인 목표 카드
