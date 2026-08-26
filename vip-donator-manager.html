@@ -1464,7 +1464,39 @@ tbody tr.blocked:hover{opacity:.72}
 :root[data-role="viewer"] .nudge-btn,
 :root[data-role="viewer"] .goal-nudge,
 :root[data-role="viewer"] .bulk-bar,
+:root[data-role="viewer"] .acts,
+:root[data-role="viewer"] [data-del],
+:root[data-role="viewer"] [data-edit],
+:root[data-role="viewer"] [data-add],
+:root[data-role="viewer"] .mp-add,
+:root[data-role="viewer"] .mp-del,
+:root[data-role="viewer"] #addAutoBtn,
+:root[data-role="viewer"] #setImport,
+:root[data-role="viewer"] #setReset,
+:root[data-role="viewer"] #setSnapNew,
+:root[data-role="viewer"] #creditConfirm,
+:root[data-role="viewer"] #clearLogs,
+:root[data-role="viewer"] #perkDelete,
+:root[data-role="viewer"] #schedDelete,
 :root[data-role="viewer"] .form-actions{display:none !important}
+/* 뷰어: 토글·입력·편집 컨트롤 비활성(상태는 보이되 변경 불가) */
+:root[data-role="viewer"] .tgl,
+:root[data-role="viewer"] .auto-card [data-t],
+:root[data-role="viewer"] .auto-toggle,
+:root[data-role="viewer"] #settingsOverlay input,
+:root[data-role="viewer"] #settingsOverlay select,
+:root[data-role="viewer"] #settingsOverlay textarea,
+:root[data-role="viewer"] #donDrawer .memo-inp,
+:root[data-role="viewer"] #donDrawer .tag-edit,
+:root[data-role="viewer"] #donDrawer .tag-suggest,
+:root[data-role="viewer"] #creditPresets,
+:root[data-role="viewer"] #creditCustom,
+:root[data-role="viewer"] #creditCustomBtn,
+:root[data-role="viewer"] #setAccent,
+:root[data-role="viewer"] #setSkin,
+:root[data-role="viewer"] #setSnapList{pointer-events:none !important;opacity:.5 !important}
+:root[data-role="viewer"] #settingsOverlay #teamInvite,
+:root[data-role="viewer"] #settingsOverlay .set-nav{pointer-events:auto !important;opacity:1 !important}
 .ws-chip .ws-role.viewer{color:#ffb020}
 /* 초대 아이디 조회 */
 .inv-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
@@ -3183,7 +3215,15 @@ function normalize(){
   (DB.autos||[]).forEach(a=>{ if(!a.actions){a.actions=a.action?[{type:a.action,cfg:a.cfg||{}}]:[];delete a.action;delete a.cfg;} });
   (DB.autoLogs||[]).forEach(l=>{ if(!l.situ&&l.type) l.situ=l.type; });
 }
-function save(){ bumpData(); try{ localStorage.setItem(LS, JSON.stringify(DB)); }catch(e){} }
+function save(){
+  // 뷰어(읽기 전용)는 어떤 변경도 저장하지 않음 — 전 기능 공통 백스톱
+  if(typeof SESSION!=='undefined' && SESSION.role==='viewer'){
+    if(!save._warned){ save._warned=true; try{toast('뷰어(읽기 전용)는 변경을 저장할 수 없습니다','!');}catch(e){} setTimeout(()=>{save._warned=false;},1500); }
+    return;
+  }
+  bumpData(); try{ localStorage.setItem(LS, JSON.stringify(DB)); }catch(e){}
+}
+function saveRaw(){ bumpData(); try{ localStorage.setItem(LS, JSON.stringify(DB)); }catch(e){} }   // 역할 무관 저장(워크스페이스 시드 등 내부용)
 
 /* ---------- grade helpers ---------- */
 const clsOf = g => g.cls || 'none';
@@ -6959,7 +6999,7 @@ function activateWorkspace(wsId){
     if(DB.donators&&DB.donators.length>80) DB.donators=DB.donators.slice(0,60);
     DB.settings=DB.settings||{}; if(!DB.settings.creatorName) DB.settings.creatorName=acct(ws.ownerToonId)?.nickname||'';
   }
-  normalize(); save();
+  normalize(); saveRaw();   // 워크스페이스 시드 저장(뷰어 백스톱 우회)
   document.documentElement.setAttribute('data-role',SESSION.role);
   saveSession(); renderAll(); updateWsBar();
   byId('wsPickerOverlay').classList.remove('show');
