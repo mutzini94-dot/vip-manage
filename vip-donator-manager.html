@@ -1460,6 +1460,10 @@ tbody tr.blocked:hover{opacity:.72}
 :root[data-role="viewer"] #tfSave,
 :root[data-role="viewer"] #titleCsvUp,
 :root[data-role="viewer"] #goLiveBtn,
+:root[data-role="viewer"] .re-btn,
+:root[data-role="viewer"] .nudge-btn,
+:root[data-role="viewer"] .goal-nudge,
+:root[data-role="viewer"] .bulk-bar,
 :root[data-role="viewer"] .form-actions{display:none !important}
 .ws-chip .ws-role.viewer{color:#ffb020}
 /* 초대 아이디 조회 */
@@ -3480,6 +3484,7 @@ function renderThanksSummary(){
 }
 function thanksPrev(){const d=thanksRecipients[0];byId('thanksPreview').innerHTML=`<div class="kakao"><div class="kt">💌 감사 알림톡</div><div class="kb">${subMsg(byId('thanksMsg').value,d)}</div><div class="kbtn">방송 보러가기</div></div>`;}
 function openThanks(){
+  if(viewerGuard())return;
   const sel=selectedList().filter(d=>!d.blocked);
   if(!sel.length)return toast('도네이터를 선택하세요');
   thanksRecipients=sel; renderThanksSummary();
@@ -4811,7 +4816,9 @@ byId('creditOverlay').onclick=e=>{if(e.target===byId('creditOverlay'))byId('cred
 
 /* --- 복귀 유도 모달 --- */
 let reId=null;
+function viewerGuard(){ if(typeof SESSION!=='undefined' && SESSION.role==='viewer'){ toast('뷰어(읽기 전용)는 이 작업을 할 수 없습니다','!'); return true; } return false; }
 function openReengage(id){
+  if(viewerGuard())return;
   const d=DB.donators.find(x=>x.id===id);if(!d)return;reId=id;
   const g=gradeForCash(d.cash);
   const reNote=d.reengagedAt?` · <span style="color:var(--on);font-weight:700">복귀 유도 ${fmtAgo(d.reengagedAt)}</span>`:'';
@@ -4874,6 +4881,7 @@ byId('nudgeThresh').querySelectorAll('button').forEach(b=>b.onclick=()=>{
 });
 let nudgeId=null;
 function openNudge(id){
+  if(viewerGuard())return;
   const d=DB.donators.find(x=>x.id===id);if(!d)return;nudgeId=id;
   const cur=gradeForCash(d.cash), g=gaugeData(d);
   byId('nudgeTarget').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
@@ -5338,6 +5346,7 @@ function renderDrBlock(d){
   }
 }
 function openBlock(id){
+  if(viewerGuard())return;
   const d=DB.donators.find(x=>x.id===id);if(!d)return;blockId=id;
   const g=gradeForCash(d.cash);
   byId('blockTarget').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
@@ -6011,7 +6020,7 @@ function cancelToon(id){const t=DB.toontalks.find(x=>x.id===id);if(!t)return;
 
 /* 답장하기 → 완료 */
 let replyId=null;
-function openReply(id){const t=DB.toontalks.find(x=>x.id===id);if(!t)return;replyId=id;
+function openReply(id){if(viewerGuard())return;const t=DB.toontalks.find(x=>x.id===id);if(!t)return;replyId=id;
   const d=DB.donators.find(x=>x.id===t.donatorId),g=gradeForCash(d.cash),r=fmtRemain(t.createdTs);
   byId('replyMsg').innerHTML=`<div class="bh"><div class="ava" style="width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:${avaColor(d.name)};color:#fff;font-size:10px;font-weight:700">${d.name.slice(0,2)}</div>${d.alias||d.name} ${g?gradeBadge(g):''} · ${won(t.amount)} C · <span class="${r.cls}">${r.txt}</span></div><div class="bm">${(t.message||'').replace(/</g,'&lt;')}</div>`;
   byId('replyText').value=''; byId('replyCount').textContent='0/500';
