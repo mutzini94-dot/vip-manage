@@ -2025,7 +2025,6 @@ tbody tr.blocked:hover{opacity:.72}
                 <th style="width:110px">유형</th>
                 <th class="sortable" data-col="amount" style="width:120px">금액 <span class="arr"></span></th>
                 <th>내용</th>
-                <th style="width:70px">출처</th>
               </tr>
             </thead>
             <tbody id="dlTbody"></tbody>
@@ -6484,8 +6483,7 @@ function renderDonationList(){
       <td><div class="dn-cell"><div class="ava" style="width:30px;height:30px;font-size:11px;background:${avaColor(r.d.name)}">${r.d.name.slice(0,2)}${avaImg(r.d.name)}</div><div><div class="nm" style="font-size:13px">${r.d.alias||r.d.name}</div><div class="al">${g?g.name:'미분류'}</div></div></div></td>
       <td><span class="dtype-badge" style="background:${ty.color}22;color:${ty.color}">${ty.icon} ${r.kind}</span></td>
       <td><div class="cash">${won(r.amount)}<small> 캐시</small></div></td>
-      <td><div class="dl-msg" title="${((r.sig?'['+r.sig+'] ':'')+(r.msg||'')).replace(/"/g,'&quot;')}">${r.sig?`<span class="sig-chip">✍️ ${r.sig.replace(/</g,'&lt;')}</span> `:''}${(r.msg||'').replace(/</g,'&lt;')||(r.sig?'':'-')}</div></td>
-      <td><span class="dl-src ${r.source==='투네톡'?'toon':''}">${r.source}</span></td></tr>`;}).join(''):`<tr><td colspan="6"><div class="empty" style="padding:40px"><div class="t">해당하는 후원이 없습니다</div></div></td></tr>`;
+      <td><div class="dl-msg" title="${((r.sig?'['+r.sig+'] ':'')+(r.msg||'')).replace(/"/g,'&quot;')}">${r.sig?`<span class="sig-chip">✍️ ${r.sig.replace(/</g,'&lt;')}</span> `:''}${(r.msg||'').replace(/</g,'&lt;')||(r.sig?'':'-')}</div></td></tr>`;}).join(''):`<tr><td colspan="5"><div class="empty" style="padding:40px"><div class="t">해당하는 후원이 없습니다</div></div></td></tr>`;
   tb.querySelectorAll('tr[data-don]').forEach(el=>el.onclick=()=>openDrawer(el.dataset.don));
   // pager
   const pg=byId('dlPager');
