@@ -1349,9 +1349,25 @@ tbody tr.blocked:hover{opacity:.72}
 .ac-stats .as-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--on),var(--accent));border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
 @media(max-width:520px){.ac-stats .as-metrics{border-left:none;padding-left:0;gap:13px}}
 /* 설정 모달 */
-.set-sec{margin-bottom:22px}
-.set-sec:last-child{margin-bottom:0}
-.set-h{font-size:12.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+/* 설정: 좌측 메뉴 + 콘텐츠 레이아웃 */
+.set-layout{display:flex;gap:0;align-items:flex-start}
+.set-nav{flex:none;width:168px;display:flex;flex-direction:column;gap:3px;position:sticky;top:0;align-self:flex-start;padding-right:14px;border-right:1px solid var(--line)}
+.set-nav button{display:flex;align-items:center;gap:10px;width:100%;padding:9px 11px;border:none;border-radius:9px;background:none;color:var(--muted);font-weight:700;font-size:13px;text-align:left;cursor:pointer;transition:.12s}
+.set-nav button:hover{background:var(--surface-2);color:var(--text)}
+.set-nav button.on{background:var(--accent-soft);color:var(--accent)}
+.set-nav button .ni{font-size:15px;width:20px;text-align:center;flex:none}
+.set-main{flex:1;min-width:0;padding-left:20px}
+.set-sec{display:none}
+.set-sec.active{display:block;animation:setFade .18s ease}
+@keyframes setFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.set-h{font-size:12.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+@media(max-width:640px){
+  .set-layout{flex-direction:column}
+  .set-nav{width:auto;flex-direction:row;overflow-x:auto;gap:6px;padding:0 0 12px;border-right:none;border-bottom:1px solid var(--line);position:static;scrollbar-width:none}
+  .set-nav::-webkit-scrollbar{display:none}
+  .set-nav button{flex:none;width:auto;white-space:nowrap;padding:8px 12px}
+  .set-main{padding-left:0;padding-top:16px}
+}
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px;flex-wrap:wrap}
 .set-row>label{font-size:13.5px;font-weight:700;flex:none}
 .set-row .set-hint{display:block;font-size:11.5px;color:var(--muted-2);font-weight:500;margin-top:2px}
@@ -2502,12 +2518,22 @@ tbody tr.blocked:hover{opacity:.72}
 
 <!-- ============ 앱 설정 ============ -->
 <div class="overlay" id="settingsOverlay">
-  <div class="modal" style="max-width:560px">
+  <div class="modal" style="max-width:720px">
     <div class="modal-head">
       <h2 id="setTitle">⚙️ 설정</h2><div class="spacer"></div><button class="xbtn" id="setClose">✕</button>
     </div>
     <div class="modal-body">
-      <div class="set-sec" data-setsec="profile">
+     <div class="set-layout">
+      <nav class="set-nav" id="setNav">
+        <button data-nav="profile" class="on"><span class="ni">👤</span><span class="nlbl">프로필</span></button>
+        <button data-nav="theme"><span class="ni">🎨</span><span class="nlbl">표시·테마</span></button>
+        <button data-nav="notify"><span class="ni">🔔</span><span class="nlbl">알림·자동화</span></button>
+        <button data-nav="data"><span class="ni">💾</span><span class="nlbl">데이터·백업</span></button>
+        <button data-nav="team"><span class="ni">👥</span><span class="nlbl">팀·권한</span></button>
+        <button data-nav="account"><span class="ni">🔒</span><span class="nlbl">계정</span></button>
+      </nav>
+      <div class="set-main">
+      <div class="set-sec active" data-setsec="profile">
         <div class="set-h">👤 크리에이터 프로필</div>
         <div class="set-row"><label>크리에이터 이름 <span class="set-hint">메시지의 {크리에이터}에 반영</span></label><input class="inp" id="setCreator" maxlength="20" placeholder="크리에이터"></div>
         <div class="set-row"><label>채널명</label><input class="inp" id="setChannel" maxlength="30" placeholder="예: 투네이션 게임채널"></div>
@@ -2558,6 +2584,8 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="set-row"><label>비밀번호 변경 <span class="set-hint">입력 후 포커스 해제 시 저장</span></label><input class="inp" id="setAuthPw" type="password" placeholder="새 비밀번호" maxlength="24" style="max-width:220px"></div>
         <div class="set-actions"><div class="spacer"></div><button class="btn ghost sm danger" id="setLogout">↩ 로그아웃</button></div>
       </div>
+      </div>
+     </div>
     </div>
     <div class="modal-foot"><a class="btn ghost sm" href="manual.html" target="_blank" rel="noopener">📖 사용 매뉴얼</a><div class="spacer"></div><button class="btn primary" id="setDone">완료</button></div>
   </div>
@@ -6660,13 +6688,20 @@ byId('setSnapNew').onclick=()=>{
   while(list.length>8)list.pop();
   if(saveSnaps(list)){renderSnapshots();renderStorageInfo();toast('현재 상태를 스냅샷으로 저장했습니다 📸');}
 };
+function setSettingsSection(key){
+  document.querySelectorAll('#settingsOverlay .set-sec').forEach(sec=>sec.classList.toggle('active',sec.dataset.setsec===key));
+  byId('setNav').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.nav===key));
+  const body=document.querySelector('#settingsOverlay .modal-body'); if(body)body.scrollTop=0;
+}
+byId('setNav').querySelectorAll('button').forEach(b=>b.onclick=()=>setSettingsSection(b.dataset.nav));
 function openSettings(mode){
-  const prof = mode==='profile';   // 프로필 아이콘 클릭 시: 프로필·계정만 노출
+  const prof = mode==='profile';   // 프로필 아이콘 클릭 시: 프로필·계정 메뉴만 노출
   byId('setTitle').textContent = prof ? '👤 내 프로필' : '⚙️ 설정';
-  document.querySelectorAll('#settingsOverlay .set-sec').forEach(sec=>{
-    const s=sec.dataset.setsec;
-    sec.style.display = (prof && !(s==='profile'||s==='account')) ? 'none' : '';
+  byId('setNav').querySelectorAll('button').forEach(b=>{
+    const k=b.dataset.nav;
+    b.style.display = (prof && !(k==='profile'||k==='account')) ? 'none' : '';
   });
+  setSettingsSection('profile');
   renderSettings();
   byId('settingsOverlay').classList.add('show');
 }
