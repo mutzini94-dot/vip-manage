@@ -665,7 +665,14 @@ input.tnum.sm-inp{width:80px;text-align:right}
   display:flex;flex-direction:column;box-shadow:-16px 0 50px rgba(0,0,0,.4)}
 .drawer.show{transform:none}
 .dr-hero{flex:none;padding:24px 22px 20px;position:relative;background:linear-gradient(160deg,var(--dr-grade-soft),var(--surface));border-bottom:1px solid var(--dr-grade-soft)}
-.dr-hero .close{position:absolute;top:16px;right:16px}
+.dr-hero-top{position:absolute;top:14px;left:14px;right:14px;display:flex;align-items:center;gap:8px;justify-content:flex-end;z-index:2}
+.dr-hero-top .close{position:static}
+.dr-block-slot:empty{display:none}
+.dr-block-slot .btn.block-btn{margin-top:0;width:auto;padding:5px 11px;font-size:11.5px;border-radius:8px;background:rgba(255,70,70,.08)}
+.dr-block-slot .btn.block-btn:hover{background:rgba(255,70,70,.16)}
+.dr-block-slot .blocked-chip{margin-top:0;width:auto;padding:5px 11px;font-size:11.5px;border-radius:8px;background:rgba(255,70,70,.16);border:1px solid rgba(255,70,70,.4);color:#ff6b81;font-weight:800}
+.dr-always{flex:none;padding:14px 22px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--line)}
+.dr-always .gauge-box{margin-top:0}
 .dr-avatar{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:26px;margin-bottom:14px;box-shadow:0 0 0 3px var(--dr-grade-soft),0 4px 16px rgba(0,0,0,.3)}
 .dr-name{font-size:20px;font-weight:800;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 .dr-alias{color:var(--muted);font-size:13.5px;margin-top:3px;display:flex;align-items:center;gap:5px}
@@ -2338,7 +2345,10 @@ tbody tr.blocked:hover{opacity:.72}
 <div class="overlay" id="drawerOverlay" style="background:rgba(6,7,11,.5)"></div>
 <div class="drawer" id="donDrawer">
   <div class="dr-hero">
-    <button class="xbtn close" id="drClose">✕</button>
+    <div class="dr-hero-top">
+      <div class="dr-block-slot" id="drBlock"></div>
+      <button class="xbtn close" id="drClose">✕</button>
+    </div>
     <div class="dr-avatar" id="drAva">D</div>
     <div class="dr-name" id="drName">도네이터 명 <span id="drGrade"></span></div>
     <div class="dr-alias" id="drAlias"></div>
@@ -2354,21 +2364,19 @@ tbody tr.blocked:hover{opacity:.72}
       </div>
     </div>
   </div>
+  <div class="dr-always">
+    <div class="gauge-box" id="drGauge"></div>
+    <div id="drTemp"></div>
+  </div>
   <div class="dr-tabs" id="drTabs">
-    <button data-sec="status" class="on">📊 현황</button>
-    <button data-sec="manage">🏷 관리</button>
+    <button data-sec="manage" class="on">🏷 관리</button>
     <button data-sec="reward">🎁 후원·혜택</button>
     <button data-sec="activity">🧭 활동</button>
   </div>
   <div class="dr-body">
-    <div class="dr-group" id="drg-status">
-      <div class="gauge-box" id="drGauge"></div>
-      <div id="drMember"></div>
-      <div id="drTemp"></div>
-      <div id="drConsent"></div>
-      <div id="drBlock"></div>
-    </div>
     <div class="dr-group" id="drg-manage">
+      <div id="drMember"></div>
+      <div id="drConsent"></div>
       <div class="dr-sec">
         <div class="h">🏷 태그</div>
         <div class="tag-edit" id="drTags"></div>
@@ -4298,7 +4306,7 @@ function openDrawer(id){
   renderTimeline(d);
   byId('drawerOverlay').classList.add('show');
   byId('donDrawer').classList.add('show');
-  const _b=byId('donDrawer').querySelector('.dr-body'); if(_b)_b.scrollTop=0; setDrTab('status');
+  const _b=byId('donDrawer').querySelector('.dr-body'); if(_b)_b.scrollTop=0; setDrTab('manage');
 }
 function closeDrawer(){byId('drawerOverlay').classList.remove('show');byId('donDrawer').classList.remove('show');}
 byId('drClose').onclick=closeDrawer; byId('drawerOverlay').onclick=closeDrawer;
@@ -4314,7 +4322,7 @@ byId('drTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   const body=byId('donDrawer').querySelector('.dr-body'); if(!body)return;
   let raf=0;
   body.addEventListener('scroll',()=>{ if(raf)return; raf=requestAnimationFrame(()=>{ raf=0;
-    const secs=['status','manage','reward','activity'], bt=body.getBoundingClientRect().top; let cur='status';
+    const secs=['manage','reward','activity'], bt=body.getBoundingClientRect().top; let cur='manage';
     secs.forEach(s=>{const g=byId('drg-'+s); if(g && (g.getBoundingClientRect().top - bt) <= 40) cur=s;});
     setDrTab(cur);
   }); });
@@ -5244,11 +5252,8 @@ let blockId=null;
 function renderDrBlock(d){
   const box=byId('drBlock');
   if(d.blocked){
-    box.innerHTML=`<div class="dr-blockbanner">
-      <div class="bi">⛔</div>
-      <div class="bt"><b>차단된 도네이터</b>${d.blockedAt?` · ${d.blockedAt}`:''}
-        <div class="br">${d.blockReason?'사유: '+d.blockReason:'사유 미기재'}</div></div>
-      <button class="btn ghost sm" id="drUnblock">차단 해제</button></div>`;
+    const tip=`${d.blockReason?'사유: '+d.blockReason.replace(/"/g,'&quot;'):'사유 미기재'}${d.blockedAt?' · '+d.blockedAt:''}`;
+    box.innerHTML=`<button class="btn blocked-chip" id="drUnblock" title="${tip}">⛔ 차단됨 · 해제</button>`;
     byId('drUnblock').onclick=()=>{d.blocked=false;delete d.blockReason;delete d.blockedAt;save();renderDrBlock(d);renderDonators();if(LIVE.on)renderLive();toast('차단을 해제했습니다');};
   }else{
     box.innerHTML=`<button class="btn block-btn" id="drBlockBtn">⛔ 이 도네이터 차단</button>`;
