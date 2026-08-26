@@ -753,8 +753,8 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .flip-num{display:inline-flex;align-items:baseline;perspective:320px}
 .flip-num .flip-digit{display:inline-block;transform-origin:50% 50%;backface-visibility:hidden}
 .flip-num .flip-sep{display:inline-block}
-.flip-num .flip-digit.flip{animation:digitFlip .5s cubic-bezier(.2,.7,.3,1)}
-@keyframes digitFlip{0%{transform:rotateX(90deg);opacity:0}50%{opacity:1}100%{transform:rotateX(0);opacity:1}}
+.flip-num .flip-digit.flip{animation:digitFlip .6s cubic-bezier(.2,.8,.25,1)}
+@keyframes digitFlip{0%{transform:rotateX(-90deg) translateY(-5px);opacity:0}40%{opacity:1}70%{transform:rotateX(12deg) translateY(1px)}100%{transform:rotateX(0) translateY(0);opacity:1}}
 @media(prefers-reduced-motion:reduce){.flip-num .flip-digit.flip{animation:none}}
 .kpi .sub{font-size:11.5px;margin-top:5px;font-weight:700;color:var(--muted)}
 .kpi .sub .up{color:var(--on)} .kpi .sub .down{color:#ff6b81} .kpi .sub .warn{color:var(--warn)}
@@ -4646,17 +4646,15 @@ function renderKpis(){
     <div class="kpi"><div class="k">👑 활성 VIP</div><div class="v tnum">${activeVip}<small>명</small></div><div class="sub">등급 보유 도네이터</div></div>
     <div class="kpi"><div class="k">📈 이번 달 후원</div><div class="v tnum"><span class="flip-num" id="kpiMonthNum">${won(thisM)}</span><small>캐시</small></div><div class="sub"><span class="${cls}">${arrow} ${Math.abs(delta)}%</span> 전월 대비</div></div>
     <div class="kpi ${churnN?'alert':''}"><div class="k">⚠️ 이탈 위험 VIP</div><div class="v tnum">${churnN}<small>명</small></div><div class="sub"><span class="${churnN?'warn':''}">${churnN?'복귀 유도 필요':'모두 최근 활동'}</span></div></div>`;
-  flipMaybe('kpiTotalNum',total);
-  flipMaybe('kpiMonthNum',thisM);
+  playKpiFlip();
 }
-/* 숫자 플립 — 값이 바뀔 때만 자릿수별 스태거 플립 리빌 */
-const _kpiLast={};
-function flipMaybe(id,val){ const el=byId(id); if(!el)return; el.textContent=won(val); if(_kpiLast[id]===val)return; _kpiLast[id]=val; flipReveal(el,won(val)); }
+/* 숫자 플립 — 자릿수별 스태거 리빌(인사이트 렌더/진입 시 재생) */
 function flipReveal(el,str){
   el.innerHTML=[...str].map((c,i)=>/\d/.test(c)
     ? `<span class="flip-digit flip" style="animation-delay:${(i*0.06).toFixed(3)}s">${c}</span>`
     : `<span class="flip-sep">${c}</span>`).join('');
 }
+function playKpiFlip(){ ['kpiTotalNum','kpiMonthNum'].forEach(id=>{const el=byId(id); const s=el&&el.textContent.trim(); if(s) flipReveal(el,s);}); }
 function renderTrend(){
   const vals=monthlyTrend(),labs=monthLabels(6);
   byId('trendChart').innerHTML=areaChart(vals)+`<div class="chart-x">${labs.map(l=>`<span>${l}</span>`).join('')}</div>`;
