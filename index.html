@@ -664,6 +664,21 @@ input.tnum.sm-inp{width:80px;text-align:right}
   border-left:3px solid var(--dr-grade);z-index:85;transform:translateX(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);
   display:flex;flex-direction:column;box-shadow:-16px 0 50px rgba(0,0,0,.4)}
 .drawer.show{transform:none}
+/* 라이브 우측 패널 */
+.live-drawer{width:min(720px,96vw);max-width:96vw;border-left-color:#ff3d68;--dr-grade:#ff3d68}
+.live-dr-x{position:absolute;top:14px;right:16px;z-index:3}
+.live-dr-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:18px 22px}
+.live-dr-body>#page-live{display:block !important}
+.live-dr-body .page-head{padding-right:40px;margin-bottom:16px}
+.live-dr-body .page-head h1{font-size:20px}
+.live-dr-body .ins-grid{grid-template-columns:1fr !important;gap:14px}
+.live-launcher{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:70;writing-mode:vertical-rl;text-orientation:upright;
+  background:linear-gradient(180deg,#ff6a6a,#ff3d68);color:#fff;font-weight:800;font-size:13px;letter-spacing:3px;padding:16px 8px;border:none;
+  border-radius:12px 0 0 12px;cursor:pointer;box-shadow:-3px 3px 14px rgba(255,61,104,.35);display:flex;align-items:center;gap:8px;transition:.15s}
+.live-launcher:hover{padding-right:12px}
+.live-launcher .ll-dot{width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 0 0 rgba(255,255,255,.7);animation:llPulse 1.6s infinite}
+@keyframes llPulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.65)}70%{box-shadow:0 0 0 7px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+:root:not([data-auth="1"]) .live-launcher{display:none}
 .dr-hero{flex:none;padding:13px 22px 11px;position:relative;background:linear-gradient(160deg,var(--dr-grade-soft),var(--surface));border-bottom:1px solid var(--dr-grade-soft)}
 .dr-hero-top{position:absolute;top:14px;left:14px;right:14px;display:flex;align-items:center;gap:8px;justify-content:flex-end;z-index:2}
 .dr-hero-top .close{position:static}
@@ -2577,6 +2592,14 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
 </div>
 
+<!-- ============ 라이브 우측 고정 패널 ============ -->
+<button class="live-launcher" id="liveLauncher" title="라이브 패널 열기"><span class="ll-dot"></span>LIVE</button>
+<div class="overlay" id="liveDrawerOverlay" style="background:rgba(6,7,11,.5)"></div>
+<div class="drawer live-drawer" id="liveDrawer">
+  <button class="xbtn live-dr-x" id="liveDrClose" title="닫기">✕</button>
+  <div class="live-dr-body" id="liveDrBody"></div>
+</div>
+
 <!-- ============ 복귀 유도 메시지 ============ -->
 <div class="overlay" id="reOverlay">
   <div class="modal" style="max-width:480px">
@@ -3418,8 +3441,10 @@ function titleBadge(t){return `<span class="tbadge" style="--tc:${t.color}"><spa
 /* =========================================================
    Tabs
    ========================================================= */
-const pages={insight:byId('page-insight'),hall:byId('page-hall'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),donations:byId('page-donations'),auto:byId('page-auto'),toon:byId('page-toon'),sched:byId('page-sched'),live:byId('page-live')};
+const pages={insight:byId('page-insight'),hall:byId('page-hall'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),donations:byId('page-donations'),auto:byId('page-auto'),toon:byId('page-toon'),sched:byId('page-sched')};
 function byId(id){return document.getElementById(id);}
+/* 라이브 페이지를 우측 고정 패널로 이전(도네이터 드로어와 동일한 UX) */
+(function(){const pl=byId('page-live'),body=byId('liveDrBody'); if(pl&&body){body.appendChild(pl);pl.classList.remove('hidden');}})();
 /* 모바일 햄버거 내비 토글 */
 function setNav(open){
   const bar=document.querySelector('.tabbar'), bd=byId('navBackdrop'), bt=byId('navBurger');
@@ -3432,6 +3457,8 @@ byId('navBurger').onclick=()=>setNav(!document.querySelector('.tabbar').classLis
 byId('navBackdrop').onclick=()=>setNav(false);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')setNav(false);});
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  const tabName=t.dataset.tab;
+  if(tabName==='live'){ setNav(false); openLiveDrawer(); return; }   // 라이브는 페이지 전환 대신 우측 패널
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
   setNav(false);   // 탭 선택 시 모바일 메뉴 닫기
   const tab=t.dataset.tab;
@@ -3445,8 +3472,13 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   if(tab==='auto') renderAutos();
   if(tab==='grade') renderGrades();
   if(tab==='title') renderTitles();
-  if(tab==='live') renderLive();
 });
+/* 라이브 우측 패널 열기/닫기 */
+function openLiveDrawer(){ byId('liveDrawerOverlay').classList.add('show'); byId('liveDrawer').classList.add('show'); renderLive(); }
+function closeLiveDrawer(){ byId('liveDrawerOverlay').classList.remove('show'); byId('liveDrawer').classList.remove('show'); }
+byId('liveLauncher').onclick=openLiveDrawer;
+byId('liveDrClose').onclick=closeLiveDrawer;
+byId('liveDrawerOverlay').onclick=closeLiveDrawer;
 
 /* =========================================================
    TAB 1 — 등급 관리
@@ -4580,7 +4612,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','trendOverlay','creditOverlay','sendLogOverlay','activityLogOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay','perkOverlay','thanksOverlay','insightCustomOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();if(typeof closeLiveDrawer==='function')closeLiveDrawer();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','trendOverlay','creditOverlay','sendLogOverlay','activityLogOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay','perkOverlay','thanksOverlay','insightCustomOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
