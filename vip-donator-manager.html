@@ -1273,6 +1273,7 @@ tbody tr.blocked:hover{opacity:.72}
 .rl-list{display:flex;flex-direction:column;max-height:60vh;overflow-y:auto}
 .rl-row{display:flex;align-items:center;gap:13px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:.12s}
 .rl-row:last-child{border-bottom:none}
+.rl-pager{display:flex;align-items:center;justify-content:center;gap:14px;padding:11px;border-top:1px solid var(--line)}
 .rl-row:hover{background:var(--surface-2)}
 .rl-date{flex:none;width:42px;text-align:center;line-height:1.1}
 .rl-date b{display:block;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
@@ -3508,7 +3509,7 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   if(tab==='title') renderTitles();
 });
 /* 라이브 우측 패널 열기/닫기 */
-function openLiveDrawer(){ byId('liveDrawerOverlay').classList.add('show'); byId('liveDrawer').classList.add('show'); renderLive(); }
+function openLiveDrawer(){ liveRecapPage=1; byId('liveDrawerOverlay').classList.add('show'); byId('liveDrawer').classList.add('show'); renderLive(); }
 function closeLiveDrawer(){ byId('liveDrawerOverlay').classList.remove('show'); byId('liveDrawer').classList.remove('show'); }
 byId('liveLauncher').onclick=openLiveDrawer;
 byId('liveDrClose').onclick=closeLiveDrawer;
@@ -5712,15 +5713,19 @@ function openRecap(id){
     <div class="recap-top">${r.top&&r.top.length?r.top.map((t,i)=>`<div class="rt-row"><div class="rt-medal">${['🥇','🥈','🥉'][i]||(i+1)}</div><div class="rt-nm">${t.name} ${gbByName(t.grade)}</div><div class="rt-bar"><i style="width:${(t.amount/topMax*100).toFixed(0)}%"></i></div><div class="rt-amt">${won(t.amount)}</div></div>`).join(''):'<div class="helper">후원 기록이 없습니다</div>'}</div>`;
   byId('recapOverlay').classList.add('show');
 }
+let liveRecapPage=1; const RECAP_PP=5;
 function renderLiveRecaps(){
   const box=byId('liveRecaps'); if(!box)return;
   box.classList.toggle('hidden',LIVE.on||!DB.recaps.length);
   if(LIVE.on||!DB.recaps.length){box.innerHTML='';return;}
   const rows=[...DB.recaps].sort((a,b)=>b.startedTs-a.startedTs);
   const tot=rows.reduce((s,r)=>s+(r.totalDonation||0),0);
+  const pages=Math.max(1,Math.ceil(rows.length/RECAP_PP));
+  if(liveRecapPage>pages)liveRecapPage=pages; if(liveRecapPage<1)liveRecapPage=1;
+  const start=(liveRecapPage-1)*RECAP_PP, pageRows=rows.slice(start,start+RECAP_PP);
   box.innerHTML=`<div class="recap-log">
     <div class="rl-head"><span class="rl-h-t">📊 방송 성과 로그</span><span class="rl-cnt">${won(rows.length)}회</span><div class="spacer"></div><span class="rl-h-tot">누적 ${won(tot)}캐시</span></div>
-    <div class="rl-list">${rows.map(r=>{const cat=SCHED_CATS[r.category]||{icon:'📺',color:'#8b8fa3'};const dt=new Date(r.startedTs);
+    <div class="rl-list">${pageRows.map(r=>{const cat=SCHED_CATS[r.category]||{icon:'📺',color:'#8b8fa3'};const dt=new Date(r.startedTs);
       return `<div class="rl-row" data-r="${r.id}" title="클릭하여 상세 성과 보기">
         <div class="rl-date"><b>${dt.getMonth()+1}.${dt.getDate()}</b><span>${WD[dt.getDay()]}</span></div>
         <div class="rl-ic" style="background:${cat.color}22">${cat.icon}</div>
@@ -5733,8 +5738,12 @@ function renderLiveRecaps(){
         </div>
         <span class="rl-more">›</span>
       </div>`;}).join('')}</div>
+    ${pages>1?`<div class="rl-pager"><button class="btn ghost sm" id="rlPrev" ${liveRecapPage<=1?'disabled':''}>◀ 이전</button><span class="sl-pageinfo">${liveRecapPage} / ${pages}</span><button class="btn ghost sm" id="rlNext" ${liveRecapPage>=pages?'disabled':''}>다음 ▶</button></div>`:''}
   </div>`;
   box.querySelectorAll('.rl-row').forEach(el=>el.onclick=()=>openRecap(el.dataset.r));
+  const pv=byId('rlPrev'),nx=byId('rlNext');
+  if(pv)pv.onclick=()=>{if(liveRecapPage>1){liveRecapPage--;renderLiveRecaps();}};
+  if(nx)nx.onclick=()=>{if(liveRecapPage<pages){liveRecapPage++;renderLiveRecaps();}};
 }
 byId('recapClose').onclick=byId('recapCloseBtn').onclick=()=>byId('recapOverlay').classList.remove('show');
 byId('recapOverlay').onclick=e=>{if(e.target===byId('recapOverlay'))byId('recapOverlay').classList.remove('show');};
