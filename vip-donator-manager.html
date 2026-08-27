@@ -665,7 +665,7 @@ input.tnum.sm-inp{width:80px;text-align:right}
   display:flex;flex-direction:column;box-shadow:-16px 0 50px rgba(0,0,0,.4)}
 .drawer.show{transform:none}
 /* 라이브 우측 패널 */
-.live-drawer{width:min(720px,96vw);max-width:96vw;border-left-color:#ff3d68;--dr-grade:#ff3d68}
+.live-drawer{width:min(936px,96vw);max-width:96vw;border-left-color:#ff3d68;--dr-grade:#ff3d68}
 .live-dr-x{position:absolute;top:14px;right:16px;z-index:3}
 .live-dr-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:18px 22px}
 .live-dr-body>#page-live{display:block !important}
@@ -673,12 +673,13 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .live-dr-body .page-head h1{font-size:20px}
 .live-dr-body .ins-grid{grid-template-columns:1fr !important;gap:14px}
 .live-launcher{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:70;writing-mode:vertical-rl;text-orientation:upright;
-  background:linear-gradient(180deg,#ff6a6a,#ff3d68);color:#fff;font-weight:800;font-size:13px;letter-spacing:3px;padding:16px 8px;border:none;
-  border-radius:12px 0 0 12px;cursor:pointer;box-shadow:-3px 3px 14px rgba(255,61,104,.35);display:flex;align-items:center;gap:8px;transition:.15s}
+  background:linear-gradient(180deg,#5b6070,#3a3e4c);color:#e9eaf0;font-weight:800;font-size:12.5px;letter-spacing:2px;padding:16px 8px;border:none;
+  border-radius:12px 0 0 12px;cursor:pointer;box-shadow:-3px 3px 14px rgba(0,0,0,.28);display:flex;align-items:center;gap:8px;transition:.15s}
 .live-launcher:hover{padding-right:12px}
-.live-launcher .ll-dot{width:8px;height:8px;border-radius:50%;background:#fff}
-/* 펄스는 방송 중일 때만 (idle CPU 방지) — opacity 기반(GPU 합성) */
-.live-launcher.live-active .ll-dot{animation:llPulse 1.4s ease-in-out infinite}
+.live-launcher .ll-dot{width:8px;height:8px;border-radius:50%;background:#c8ccd8}
+/* 방송 중: 빨간 LIVE + 펄스(opacity, GPU) / 비방송: 회색 OFFLINE */
+.live-launcher.live-active{background:linear-gradient(180deg,#ff6a6a,#ff3d68);color:#fff;letter-spacing:3px;box-shadow:-3px 3px 16px rgba(255,61,104,.4)}
+.live-launcher.live-active .ll-dot{background:#fff;animation:llPulse 1.4s ease-in-out infinite}
 @keyframes llPulse{0%,100%{opacity:1}50%{opacity:.35}}
 :root:not([data-auth="1"]) .live-launcher{display:none}
 .dr-hero{flex:none;padding:13px 22px 11px;position:relative;background:linear-gradient(160deg,var(--dr-grade-soft),var(--surface));border-bottom:1px solid var(--dr-grade-soft)}
@@ -2595,7 +2596,7 @@ tbody tr.blocked:hover{opacity:.72}
 </div>
 
 <!-- ============ 라이브 우측 고정 패널 ============ -->
-<button class="live-launcher" id="liveLauncher" title="라이브 패널 열기"><span class="ll-dot"></span>LIVE</button>
+<button class="live-launcher" id="liveLauncher" title="라이브 패널 열기"><span class="ll-dot"></span><span class="ll-label">OFFLINE</span></button>
 <div class="overlay" id="liveDrawerOverlay" style="background:rgba(6,7,11,.5)"></div>
 <div class="drawer live-drawer" id="liveDrawer">
   <button class="xbtn live-dr-x" id="liveDrClose" title="닫기">✕</button>
@@ -5597,7 +5598,7 @@ function haltLive(){
   if(!LIVE.on && !LIVE.tick && !LIVE.clock) return;
   LIVE.on=false; clearInterval(LIVE.tick); clearInterval(LIVE.clock); LIVE.tick=null; LIVE.clock=null;
   LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0; LIVE.rank=new Map(); LIVE.happy={on:false,mult:2,ends:0};
-  const ll=byId('liveLauncher'); if(ll)ll.classList.remove('live-active');
+  const ll=byId('liveLauncher'); if(ll){ll.classList.remove('live-active');const lbl=ll.querySelector('.ll-label');if(lbl)lbl.textContent='OFFLINE';}
 }
 function buildRecap(){
   if(LIVE.elapsed<2 && LIVE.donation===0) return null;
@@ -5772,7 +5773,7 @@ function updateElapsed(){ if(byId('liveElapsed')) byId('liveElapsed').textConten
 
 function renderLive(){
   byId('liveDot').classList.toggle('on',LIVE.on);
-  const ll=byId('liveLauncher'); if(ll)ll.classList.toggle('live-active',LIVE.on);
+  const ll=byId('liveLauncher'); if(ll){ll.classList.toggle('live-active',LIVE.on);const lbl=ll.querySelector('.ll-label');if(lbl)lbl.textContent=LIVE.on?'LIVE':'OFFLINE';ll.title=LIVE.on?'방송 중 · 라이브 패널 열기':'방송 종료 상태 · 라이브 패널 열기';}
   const btn=byId('goLiveBtn');
   btn.classList.toggle('live',LIVE.on);
   btn.innerHTML = LIVE.on
