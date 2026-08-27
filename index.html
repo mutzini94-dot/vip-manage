@@ -6916,15 +6916,13 @@ function renderDonationList(){
   const perDon={}; rows.forEach(r=>perDon[r.d.id]=(perDon[r.d.id]||0)+1);
   const uniq=Object.keys(perDon).length;
   const repeatRate=uniq?Math.round(Object.values(perDon).filter(c=>c>=2).length/uniq*100):0;
-  const sigRate=cnt?Math.round(rows.filter(r=>r.kind==='시그니처').length/cnt*100):0;
   byId('dlStats').innerHTML=`
     <div class="stat"><div class="k">💰 총 후원</div><div class="v tnum">${won(total)}<small>캐시</small></div></div>
     <div class="stat"><div class="k">🧾 후원 건수</div><div class="v tnum">${won(cnt)}<small>건</small></div></div>
     <div class="stat"><div class="k">📊 평균 후원</div><div class="v tnum">${won(avg)}<small>캐시</small></div></div>
     <div class="stat"><div class="k">🏆 최고 후원</div><div class="v tnum">${won(max)}<small>캐시</small></div></div>
     <div class="stat"><div class="k">👥 참여 도네이터</div><div class="v tnum">${won(uniq)}<small>명</small></div></div>
-    <div class="stat"><div class="k">🔁 재후원율</div><div class="v tnum">${repeatRate}<small>%</small></div><div class="sub" style="font-size:11px;color:var(--muted);margin-top:4px">2건 이상 후원 비율</div></div>
-    <div class="stat"><div class="k">✍️ 시그니처 비중</div><div class="v tnum">${sigRate}<small>%</small></div><div class="sub" style="font-size:11px;color:var(--muted);margin-top:4px">건수 기준</div></div>`;
+    <div class="stat"><div class="k">🔁 재후원율</div><div class="v tnum">${repeatRate}<small>%</small></div><div class="sub" style="font-size:11px;color:var(--muted);margin-top:4px">2건 이상 후원 비율</div></div>`;
   renderDlCharts(rows);
   const pages=Math.max(1,Math.ceil(cnt/DL_PER)); if(dlPage>pages)dlPage=pages;
   const slice=rows.slice((dlPage-1)*DL_PER,dlPage*DL_PER);
