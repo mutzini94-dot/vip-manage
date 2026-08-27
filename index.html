@@ -676,8 +676,10 @@ input.tnum.sm-inp{width:80px;text-align:right}
   background:linear-gradient(180deg,#ff6a6a,#ff3d68);color:#fff;font-weight:800;font-size:13px;letter-spacing:3px;padding:16px 8px;border:none;
   border-radius:12px 0 0 12px;cursor:pointer;box-shadow:-3px 3px 14px rgba(255,61,104,.35);display:flex;align-items:center;gap:8px;transition:.15s}
 .live-launcher:hover{padding-right:12px}
-.live-launcher .ll-dot{width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 0 0 rgba(255,255,255,.7);animation:llPulse 1.6s infinite}
-@keyframes llPulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.65)}70%{box-shadow:0 0 0 7px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+.live-launcher .ll-dot{width:8px;height:8px;border-radius:50%;background:#fff}
+/* 펄스는 방송 중일 때만 (idle CPU 방지) — opacity 기반(GPU 합성) */
+.live-launcher.live-active .ll-dot{animation:llPulse 1.4s ease-in-out infinite}
+@keyframes llPulse{0%,100%{opacity:1}50%{opacity:.35}}
 :root:not([data-auth="1"]) .live-launcher{display:none}
 .dr-hero{flex:none;padding:13px 22px 11px;position:relative;background:linear-gradient(160deg,var(--dr-grade-soft),var(--surface));border-bottom:1px solid var(--dr-grade-soft)}
 .dr-hero-top{position:absolute;top:14px;left:14px;right:14px;display:flex;align-items:center;gap:8px;justify-content:flex-end;z-index:2}
@@ -5595,6 +5597,7 @@ function haltLive(){
   if(!LIVE.on && !LIVE.tick && !LIVE.clock) return;
   LIVE.on=false; clearInterval(LIVE.tick); clearInterval(LIVE.clock); LIVE.tick=null; LIVE.clock=null;
   LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0; LIVE.rank=new Map(); LIVE.happy={on:false,mult:2,ends:0};
+  const ll=byId('liveLauncher'); if(ll)ll.classList.remove('live-active');
 }
 function buildRecap(){
   if(LIVE.elapsed<2 && LIVE.donation===0) return null;
@@ -5769,6 +5772,7 @@ function updateElapsed(){ if(byId('liveElapsed')) byId('liveElapsed').textConten
 
 function renderLive(){
   byId('liveDot').classList.toggle('on',LIVE.on);
+  const ll=byId('liveLauncher'); if(ll)ll.classList.toggle('live-active',LIVE.on);
   const btn=byId('goLiveBtn');
   btn.classList.toggle('live',LIVE.on);
   btn.innerHTML = LIVE.on
