@@ -5582,7 +5582,7 @@ function goLive(){
   pool.slice(0,Math.min(6,pool.length)).forEach(d=>LIVE.online.set(d.id,{mins:1+Math.floor(Math.random()*35)}));
   LIVE.peakOnline=LIVE.online.size;
   pushFeed('start',null,'방송을 시작했습니다');
-  LIVE.tick=setInterval(liveTick,3000);
+  LIVE.tick=setInterval(liveTick,4500);
   LIVE.clock=setInterval(()=>{LIVE.elapsed++;updateElapsed();tickHappy();},1000);
   renderLive();
 }
@@ -5591,7 +5591,7 @@ function stopLive(){
   LIVE.on=false; clearInterval(LIVE.tick); clearInterval(LIVE.clock); LIVE.tick=null; LIVE.clock=null;
   LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0; LIVE.rank=new Map(); LIVE.happy={on:false,mult:2,ends:0};
   if(recap){ DB.recaps.unshift(recap); if(DB.recaps.length>50)DB.recaps.pop(); save(); renderLive(); openRecap(recap.id); toast('방송 성과 리캡이 저장되었습니다 📊'); }
-  else renderLive();
+  else { save(); renderLive(); }   // 방송 중 생략했던 저장을 종료 시 1회 반영
 }
 /* 워크스페이스 전환·로그아웃 시 라이브 시뮬레이션을 조용히 중단(리캡 없이) */
 function haltLive(){
@@ -5599,6 +5599,7 @@ function haltLive(){
   LIVE.on=false; clearInterval(LIVE.tick); clearInterval(LIVE.clock); LIVE.tick=null; LIVE.clock=null;
   LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0; LIVE.rank=new Map(); LIVE.happy={on:false,mult:2,ends:0};
   const ll=byId('liveLauncher'); if(ll){ll.classList.remove('live-active');const lbl=ll.querySelector('.ll-label');if(lbl)lbl.textContent='OFFLINE';}
+  save();   // 방송 중 생략했던 저장을 종료 시 1회 반영
 }
 function buildRecap(){
   if(LIVE.elapsed<2 && LIVE.donation===0) return null;
@@ -5729,7 +5730,7 @@ function liveTick(){
     }
   }
   LIVE.peakOnline=Math.max(LIVE.peakOnline,LIVE.online.size);
-  renderLive();
+  renderLiveContent();   // 헤더/버튼/리캡 제외한 콘텐츠만 갱신
 }
 function loginRandom(offline){
   const d=pick(offline); if(!d)return;
@@ -5782,6 +5783,11 @@ function renderLive(){
   byId('liveOff').classList.toggle('hidden',LIVE.on);
   byId('liveOn').classList.toggle('hidden',!LIVE.on);
   renderLiveRecaps();
+  if(!LIVE.on) return;
+  renderLiveContent();
+}
+/* 라이브 콘텐츠만 부분 갱신(틱마다 호출) — 헤더/버튼/리캡 재렌더 제외 */
+function renderLiveContent(){
   if(!LIVE.on) return;
   // stats
   const onl=[...LIVE.online.entries()].map(([id,v])=>({d:DB.donators.find(x=>x.id===id),v})).filter(x=>x.d);
@@ -5961,7 +5967,8 @@ function fireAutos(kind,d,amt){
   });
   while(DB.autoLogs.length>200) DB.autoLogs.pop();
   while((DB.autoRuns||[]).length>600) DB.autoRuns.pop();
-  save();
+  if(LIVE.on) bumpData();   // 방송 중엔 전체 DB 직렬화 저장 생략(종료 시 1회 저장) — CPU 절감
+  else save();
   if(!pages.auto.classList.contains('hidden')) renderAutos();
 }
 function renderAutoLogs(){
