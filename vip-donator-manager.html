@@ -6105,6 +6105,9 @@ function updateBulkBar(){
   const n=donSelected.size;
   byId('bulkBar').classList.toggle('hidden',n===0);
   byId('bulkCount').textContent=n;
+  // 복귀 유도는 '이탈 위험' 탭, 넛지는 '승급 임박' 탭에서만 노출
+  byId('bulkReengage').classList.toggle('hidden', donView!=='churn');
+  byId('bulkNudge').classList.toggle('hidden', donView!=='promote');
   const all=byId('selAll'); if(all){const vis=currentDonatorRows();all.checked=vis.length>0&&vis.every(d=>donSelected.has(d.id));}
 }
 function selectedList(){return DB.donators.filter(d=>donSelected.has(d.id));}
