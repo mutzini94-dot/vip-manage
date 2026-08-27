@@ -1270,16 +1270,12 @@ tbody tr.blocked:hover{opacity:.72}
 .rl-m span{font-size:10.5px;color:var(--muted-2);font-weight:700}
 .rl-more{flex:none;color:var(--muted-2);font-size:18px;font-weight:700}
 @media(max-width:640px){.rl-metrics{gap:12px}.rl-m:not(.hl){display:none}.rl-more{display:none}}
-/* 명예의 전당 — 어워드 리본(등급/온도 pill과 구분되는 사각 그라디언트 뱃지) */
-.hall-tier{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;letter-spacing:.02em;padding:3px 8px 3px 6px;border-radius:5px;white-space:nowrap;border:none;color:#3a2600;position:relative;box-shadow:0 1px 3px rgba(0,0,0,.28)}
-.hall-tier::before{content:"";position:absolute;left:-4px;top:50%;width:0;height:0;border:5px solid transparent;border-right-width:5px;transform:translateY(-50%)}
-.hall-tier .ht-ic{font-size:11px;line-height:1}
-.hall-tier.king{background:linear-gradient(135deg,#ffd75e,#ff9a3c);color:#4a2e00}
-.hall-tier.king::before{border-right-color:#ff9a3c}
-.hall-tier.fame{background:linear-gradient(135deg,#ff9a6b,#ff5c7a);color:#fff}
-.hall-tier.fame::before{border-right-color:#ff5c7a}
-.hall-tier.legend{background:linear-gradient(135deg,#6fd6ee,#4f8ce8);color:#062a3a}
-.hall-tier.legend::before{border-right-color:#4f8ce8}
+/* 명예의 전당 — 아이콘 메달(등급/온도 pill과 형태 구분: 원형 그라디언트 아이콘) */
+.hall-tier{display:inline-grid;place-items:center;width:21px;height:21px;border-radius:50%;border:1.5px solid rgba(255,255,255,.25);box-shadow:0 1px 4px rgba(0,0,0,.3);vertical-align:middle;flex:none}
+.hall-tier .ht-ic{font-size:11px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+.hall-tier.king{background:linear-gradient(135deg,#ffd75e,#ff9a3c)}
+.hall-tier.fame{background:linear-gradient(135deg,#ff9a6b,#ff5c7a)}
+.hall-tier.legend{background:linear-gradient(135deg,#6fd6ee,#4f8ce8)}
 .podium{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:12px;align-items:end;margin-bottom:18px}
 @media(max-width:640px){.podium{grid-template-columns:1fr;align-items:stretch}}
 .pod{border:1px solid var(--line);border-radius:16px;padding:18px 14px;text-align:center;background:linear-gradient(180deg,var(--surface-2),var(--surface));position:relative;overflow:hidden}
@@ -6782,7 +6778,7 @@ function hallTier(rank){
   if(rank<=10) return {key:'legend',label:'레전드',icon:'💎'};
   return null;
 }
-function hallTierBadge(rank){if(!rank)return '';const t=hallTier(rank);return t?`<span class="hall-tier ${t.key}" title="역대 누적 후원 ${rank}위"><span class="ht-ic">${t.icon}</span>${t.label}</span>`:'';}
+function hallTierBadge(rank){if(!rank)return '';const t=hallTier(rank);return t?`<span class="hall-tier ${t.key}" title="${t.label} · 역대 누적 후원 ${rank}위"><span class="ht-ic">${t.icon}</span></span>`:'';}
 function hallRanking(mode){
   const ds=DB.donators.filter(d=>isMember(d)&&!d.blocked);
   if(mode==='month'){
