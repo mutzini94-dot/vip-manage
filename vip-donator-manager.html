@@ -5585,7 +5585,7 @@ function goLive(){
 }
 function stopLive(){
   const recap=buildRecap();
-  LIVE.on=false; clearInterval(LIVE.tick); clearInterval(LIVE.clock);
+  LIVE.on=false; clearInterval(LIVE.tick); clearInterval(LIVE.clock); LIVE.tick=null; LIVE.clock=null;
   LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0; LIVE.rank=new Map(); LIVE.happy={on:false,mult:2,ends:0};
   if(recap){ DB.recaps.unshift(recap); if(DB.recaps.length>50)DB.recaps.pop(); save(); renderLive(); openRecap(recap.id); toast('방송 성과 리캡이 저장되었습니다 📊'); }
   else renderLive();
