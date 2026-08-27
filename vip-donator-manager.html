@@ -2456,6 +2456,13 @@ tbody tr.blocked:hover{opacity:.72}
               </div>
             </div>
             <div class="adv-block">
+              <div class="adv-head"><div><div class="adv-t">📨 알림톡 발송 상한</div><div class="adv-d">이 자동화가 보낼 수 있는 누적 알림톡 건수를 제한합니다.</div></div><div class="tgl" id="scapTgl"></div></div>
+              <div class="adv-opts hidden" id="scapOpts">
+                <div class="adv-row"><span class="adv-lbl">최대 발송 건수</span><input class="inp tnum sm-inp" id="scapMax" inputmode="numeric" placeholder="1,000"> <span class="unit">건</span></div>
+                <div class="adv-row" id="scapUsedRow" style="display:none"><span class="adv-lbl">현재까지 발송</span><span id="scapUsed" style="font-weight:800"></span> <button type="button" class="btn ghost sm" id="scapReset" style="margin-left:8px">카운트 초기화</button></div>
+              </div>
+            </div>
+            <div class="adv-block">
               <div class="adv-head"><div><div class="adv-t">스케줄 · 기간 한정</div><div class="adv-d">지정한 요일·시간대·기간에만 발동합니다.</div></div><div class="tgl" id="scTgl"></div></div>
               <div class="adv-opts hidden" id="scOpts">
                 <div class="adv-row"><span class="adv-lbl">요일</span><div class="daypick" id="scDays"></div></div>
@@ -3260,6 +3267,7 @@ function normalize(){
     DB.titlesV=1;
   }
   if(!DB.autoLogs) DB.autoLogs=[];
+  (DB.autos||[]).forEach(a=>{ if(!a.sendCap) a.sendCap={on:true,max:1000}; if(a.sentTotal==null) a.sentTotal=0; });   // 알림톡 발송 상한 기본값
   if(!DB.team||!DB.team.length) DB.team=seedTeam();
   if(!DB.activityLog) DB.activityLog=seedActivity();
   if(!DB.msgTemplates) DB.msgTemplates={};
@@ -3967,6 +3975,7 @@ function renderAutos(){
     acts.forEach(ac=>{ if(ac.type==='widget')tags.push('효과: '+(ac.cfg?.widget||'')); if(ac.type==='tts')tags.push('보이스: '+(VOICES.find(v=>v.k===ac.cfg?.voice)?.n||'기본')); });
     if(a.situ==='prestart')tags.push(`⏰ ${a.lead||3}시간 전`);
     if(a.cooldown?.on)tags.push(`⏱ ${a.cooldown.minutes}분`+(a.cooldown.dailyCap>0?` · ${a.cooldown.dailyCap}회/일`:''));
+    if(acts.some(ac=>ac.type==='kakao_send') && a.sendCap?.on && a.sendCap.max>0){const used=a.sentTotal||0;tags.push(`📨 ${won(used)}/${won(a.sendCap.max)}건`+(used>=a.sendCap.max?' · 상한 도달':''));}
     if(a.schedule?.on){const dc=(a.schedule.days||[]).length;tags.push('📅 '+(dc?`${dc}개 요일`:'스케줄'));}
     const summary=acts.map(ac=>ACTIONS[ac.type]?.label).filter(Boolean).join(' + ')||'액션 없음';
     const actChips=acts.map(ac=>{const A=ACTIONS[ac.type];return `<span class="flow-chip act">${A?.icon||''} ${A?.label||''}</span>`;}).join('<span class="flow-arrow">+</span>');
@@ -4024,10 +4033,11 @@ function openWizard(id){
     const a=DB.autos.find(x=>x.id===id);
     W={step:1,id,situ:a.situ,targetMode:a.targetMode||'class',classes:[...(a.classes||[])],picks:[...(a.picks||[])],
        amt:{...(a.amt||{mode:'range',min:0,max:0})},lead:a.lead||3,actions:(a.actions||[]).map(x=>({type:x.type,cfg:{...x.cfg}})),
-       cooldown:{...defCooldown(),...(a.cooldown||{})},schedule:{...defSchedule(),...(a.schedule||{}),days:[...((a.schedule||{}).days||[])]}};
+       cooldown:{...defCooldown(),...(a.cooldown||{})},schedule:{...defSchedule(),...(a.schedule||{}),days:[...((a.schedule||{}).days||[])]},
+       sendCap:{...defSendCap(),...(a.sendCap||{})},sentTotal:a.sentTotal||0};
     byId('wizTitle').textContent='자동화 수정';
   }else{
-    W={step:1,id:null,situ:null,targetMode:'class',classes:[],picks:[],amt:{mode:'range',min:0,max:0},lead:3,actions:[],cooldown:defCooldown(),schedule:defSchedule()};
+    W={step:1,id:null,situ:null,targetMode:'class',classes:[],picks:[],amt:{mode:'range',min:0,max:0},lead:3,actions:[],cooldown:defCooldown(),schedule:defSchedule(),sendCap:defSendCap(),sentTotal:0};
     byId('wizTitle').textContent='자동화 추가';
   }
   advOpen=W.cooldown.on||W.schedule.on;
@@ -4174,17 +4184,26 @@ const DAYS=[{d:1,n:'월'},{d:2,n:'화'},{d:3,n:'수'},{d:4,n:'목'},{d:5,n:'금'
 let advOpen=false;
 function defCooldown(){return {on:false,scope:'donator',minutes:5,dailyCap:0};}
 function defSchedule(){return {on:false,days:[],start:'',end:'',from:'',to:''};}
+function defSendCap(){return {on:true,max:1000};}   // 알림톡 누적 발송 상한(기본 1000건)
 function renderAdvanced(){
   const cd=W.cooldown, sc=W.schedule;
   byId('advBody').classList.toggle('hidden',!advOpen);
   byId('advToggle').querySelector('.chev').textContent=advOpen?'▴':'▾';
-  const parts=[]; if(cd.on)parts.push('쿨다운'); if(sc.on)parts.push('스케줄');
+  const sca=W.sendCap||(W.sendCap=defSendCap());
+  const parts=[]; if(cd.on)parts.push('쿨다운'); if(sca.on)parts.push('발송상한'); if(sc.on)parts.push('스케줄');
   byId('advToggle').querySelector('.adv-sum').textContent=parts.length?parts.join(' · ')+' 적용':'선택';
   // 쿨다운
   byId('cdTgl').classList.toggle('on',cd.on);
   byId('cdOpts').classList.toggle('hidden',!cd.on);
   byId('cdScope').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.s===cd.scope));
   byId('cdMin').value=cd.minutes||0; byId('cdCap').value=cd.dailyCap||0;
+  // 알림톡 발송 상한
+  byId('scapTgl').classList.toggle('on',sca.on);
+  byId('scapOpts').classList.toggle('hidden',!sca.on);
+  byId('scapMax').value=sca.max||0;
+  const usedRow=byId('scapUsedRow'), used=W.sentTotal||0;
+  usedRow.style.display = W.id ? 'flex' : 'none';
+  if(W.id){ byId('scapUsed').textContent=`${won(used)}건${sca.max?` / ${won(sca.max)}건`:''}${sca.on&&sca.max&&used>=sca.max?' · 상한 도달':''}`; }
   // 스케줄
   byId('scTgl').classList.toggle('on',sc.on);
   byId('scOpts').classList.toggle('hidden',!sc.on);
@@ -4200,6 +4219,9 @@ byId('scTgl').onclick=()=>{W.schedule.on=!W.schedule.on;renderAdvanced();};
 byId('cdScope').querySelectorAll('button').forEach(b=>b.onclick=()=>{W.cooldown.scope=b.dataset.s;renderAdvanced();});
 byId('cdMin').addEventListener('input',e=>{W.cooldown.minutes=+e.target.value.replace(/[^\d]/g,'')||0;});
 byId('cdCap').addEventListener('input',e=>{W.cooldown.dailyCap=+e.target.value.replace(/[^\d]/g,'')||0;});
+byId('scapTgl').onclick=()=>{(W.sendCap||(W.sendCap=defSendCap())).on=!W.sendCap.on;renderAdvanced();};
+byId('scapMax').addEventListener('input',e=>{const v=+e.target.value.replace(/[^\d]/g,'')||0;e.target.value=v?won(v):'';(W.sendCap||(W.sendCap=defSendCap())).max=v;});
+byId('scapReset').onclick=()=>{W.sentTotal=0; if(W.id){const a=DB.autos.find(x=>x.id===W.id);if(a){a.sentTotal=0;save();}} renderAdvanced();renderAutos();toast('발송 카운트를 초기화했습니다');};
 byId('scStart').addEventListener('input',e=>{W.schedule.start=e.target.value;});
 byId('scEnd').addEventListener('input',e=>{W.schedule.end=e.target.value;});
 byId('scFrom').addEventListener('input',e=>{W.schedule.from=e.target.value;});
@@ -4316,7 +4338,8 @@ byId('wizNext').onclick=()=>{
   if(W.step===1){W.step=2;renderWizard();return;}
   // save
   const obj={id:W.id||uid(),on:true,situ:W.situ,actions:W.actions.map(a=>({type:a.type,cfg:{...a.cfg}})),
-    cooldown:{...W.cooldown},schedule:{...W.schedule,days:[...W.schedule.days]}};
+    cooldown:{...W.cooldown},schedule:{...W.schedule,days:[...W.schedule.days]},
+    sendCap:{...(W.sendCap||defSendCap())},sentTotal:W.id?(W.sentTotal||0):0};
   const s=SITU[W.situ];
   if(s.amount) obj.amt={...W.amt};
   if(s.lead) obj.lead=W.lead;
@@ -5887,7 +5910,12 @@ function fireAutos(kind,d,amt){
     if(match && autoAllowed(a,d)){
       const g=gradeForCash(d.cash);
       (a.actions||[]).forEach(ac=>{
-        if(ac.type==='kakao_send' && !d.alimConsent) return;   // 수신 미동의 → 알림톡 발송 생략
+        if(ac.type==='kakao_send'){
+          if(!d.alimConsent) return;   // 수신 미동의 → 알림톡 발송 생략
+          const cap=a.sendCap||defSendCap();
+          if(cap.on && cap.max>0 && (a.sentTotal||0)>=cap.max) return;   // 발송 상한 도달 → 발송 생략
+          a.sentTotal=(a.sentTotal||0)+1;
+        }
         DB.autoLogs.unshift({when:nowClock(),situ:a.situ,name:d.alias||d.name,grade:g?g.name:'',action:ac.type,amt:NO_AMT_SITU.includes(a.situ)?0:amt});
       });
       // 자동화별 발동 기록 (전환 효과 추적 · 결과는 대기중)
