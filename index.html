@@ -2117,6 +2117,8 @@ tbody tr.blocked:hover{opacity:.72}
         <button class="btn ghost sm" id="bulkTagAdd">태그 추가</button>
         <button class="btn ghost sm danger" id="bulkBlock">차단</button>
         <button class="btn ghost sm" id="bulkUnblock">차단 해제</button>
+        <button class="btn ghost sm" id="bulkReengage">💤 복귀 유도</button>
+        <button class="btn ghost sm" id="bulkNudge">🎯 넛지</button>
         <button class="btn ghost sm" id="bulkThanks">💌 감사 메시지</button>
         <button class="btn ghost sm" id="bulkCsv">선택 CSV</button>
         <div class="spacer"></div>
@@ -6078,6 +6080,32 @@ function updateBulkBar(){
   const all=byId('selAll'); if(all){const vis=currentDonatorRows();all.checked=vis.length>0&&vis.every(d=>donSelected.has(d.id));}
 }
 function selectedList(){return DB.donators.filter(d=>donSelected.has(d.id));}
+/* 선택 도네이터 일괄 복귀 유도 / 승급 넛지 */
+function bulkOutreach(kind){
+  if(viewerGuard())return;
+  const isReeng=kind==='reengage';
+  const label=isReeng?'복귀 유도':'승급 넛지';
+  const cond=isReeng?isChurnTarget:isNudgeTarget;
+  const need=isReeng?'이탈 위험':'승급 임박';
+  const sel=selectedList();
+  const targets=sel.filter(d=>!d.blocked && d.alimConsent && cond(d));
+  const skipped=sel.length-targets.length;
+  if(!targets.length) return toast(`${label} 대상이 없습니다 (${need}·알림톡 수신 동의 필요)`,'!');
+  if(creditBalance()<targets.length){ toast(`잔여 발송 건수 부족 (필요 ${won(targets.length)}, 잔여 ${won(creditBalance())})`,'!'); return openRecharge(); }
+  askConfirm(`${label} 일괄 발송`,`${need} ${won(targets.length)}명에게 ${label} 알림톡을 발송합니다.${skipped?` (대상 아님 ${won(skipped)}명 제외)`:''} 계속할까요?`,()=>{
+    const tpl=msgList(kind)[0]||MSG_SEED[kind][0];
+    let sent=0;
+    targets.forEach(d=>{
+      if(!spendCredit(`${isReeng?'💤 복귀 유도':'🎯 승급 넛지'} · ${d.name}`,1,subMsg(tpl,d)))return;
+      if(isReeng){d.reengaged=true;d.reengagedAt=Date.now();} else {d.nudged=true;}
+      logOutreach(kind,d); sent++;
+    });
+    save(); donSelected.clear(); renderDonators(); renderInsights();
+    toast(`${won(sent)}명에게 ${label}를 발송했습니다 ${isReeng?'💤':'🎯'} · 잔여 ${won(creditBalance())}건`);
+  });
+}
+byId('bulkReengage').onclick=()=>bulkOutreach('reengage');
+byId('bulkNudge').onclick=()=>bulkOutreach('nudge');
 byId('bulkClear').onclick=()=>{donSelected.clear();renderDonators();};
 byId('bulkCsv').onclick=()=>{const l=selectedList();if(!l.length)return;exportCSV(l,`도네이터_선택_${l.length}명.csv`);toast(`선택한 ${l.length}명을 내보냈습니다`);};
 byId('bulkTagAdd').onclick=()=>{
