@@ -581,8 +581,9 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .modal-body{padding:22px;overflow-y:auto}
 .modal-foot{display:flex;gap:10px;padding:16px 22px;border-top:1px solid var(--line);flex:none}
 .modal-foot .spacer{flex:1}
-.xbtn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--muted)}
-.xbtn:hover{background:var(--surface-3);color:var(--text)}
+.xbtn{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;color:var(--text);font-size:21px;line-height:1;
+  background:var(--surface-2);border:1px solid var(--line);cursor:pointer;transition:.12s;flex:none}
+.xbtn:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);transform:scale(1.06)}
 
 /* Wizard steps */
 .steps{display:flex;align-items:center;gap:0;margin-bottom:8px}
@@ -659,7 +660,7 @@ input.tnum.sm-inp{width:80px;text-align:right}
 
 /* ===== Donator profile drawer ===== */
 .drawer{--dr-grade:var(--line-strong); --dr-grade-soft:var(--surface-2); --dr-grade-wash:transparent;
-  position:fixed;top:0;right:0;bottom:0;width:440px;max-width:100vw;
+  position:fixed;top:0;right:0;bottom:0;width:528px;max-width:100vw;
   background:linear-gradient(var(--dr-grade-wash),var(--dr-grade-wash)),var(--surface);
   border-left:3px solid var(--dr-grade);z-index:85;transform:translateX(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);
   display:flex;flex-direction:column;box-shadow:-16px 0 50px rgba(0,0,0,.4)}
@@ -669,7 +670,7 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .live-dr-x{position:absolute;top:14px;right:16px;z-index:3}
 .live-dr-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:18px 22px}
 .live-dr-body>#page-live{display:block !important}
-.live-dr-body .page-head{padding-right:40px;margin-bottom:16px}
+.live-dr-body .page-head{padding-right:50px;margin-bottom:16px}
 .live-dr-body .page-head h1{font-size:20px}
 .live-dr-body .ins-grid{grid-template-columns:1fr !important;gap:14px}
 .live-launcher{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:70;writing-mode:vertical-rl;text-orientation:upright;
