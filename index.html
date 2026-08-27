@@ -5590,8 +5590,9 @@ function stopLive(){
   const recap=buildRecap();
   LIVE.on=false; clearInterval(LIVE.tick); clearInterval(LIVE.clock); LIVE.tick=null; LIVE.clock=null;
   LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0; LIVE.rank=new Map(); LIVE.happy={on:false,mult:2,ends:0};
+  closeLiveDrawer();   // 방송 종료 시 우측 패널 자동 닫기
   if(recap){ DB.recaps.unshift(recap); if(DB.recaps.length>50)DB.recaps.pop(); save(); renderLive(); openRecap(recap.id); toast('방송 성과 리캡이 저장되었습니다 📊'); }
-  else { save(); renderLive(); }   // 방송 중 생략했던 저장을 종료 시 1회 반영
+  else { save(); renderLive(); toast('방송을 종료했습니다'); }   // 후원 없이 종료 시(리캡 없음)
 }
 /* 워크스페이스 전환·로그아웃 시 라이브 시뮬레이션을 조용히 중단(리캡 없이) */
 function haltLive(){
