@@ -667,6 +667,10 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .drawer.show{transform:none}
 /* 라이브 우측 패널 */
 .live-drawer{width:min(936px,96vw);max-width:96vw;border-left-color:#ff3d68;--dr-grade:#ff3d68}
+/* 라이브 패널(z85)보다 위: 성과 리캡, 도네이터 프로필 드로어 */
+#recapOverlay{z-index:95}
+#drawerOverlay{z-index:94}
+#donDrawer{z-index:96}
 .live-dr-x{position:absolute;top:14px;right:16px;z-index:3}
 .live-dr-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:18px 22px}
 .live-dr-body>#page-live{display:block !important}
