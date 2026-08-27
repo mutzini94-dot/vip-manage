@@ -1592,6 +1592,7 @@ tbody tr.blocked:hover{opacity:.72}
 .tsim-send:hover{background:#3f7bee}
 .tsim-send b{font-weight:800}
 /* 인사이트 패널 미니 버튼 */
+.bs-target{font-size:13px;font-weight:600;color:var(--text)}.bs-target b{color:var(--accent);font-weight:800}
 .mini-btn{flex:none;font-size:11.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);border:1px solid transparent;border-radius:8px;padding:5px 10px;cursor:pointer;transition:.12s;white-space:nowrap}
 .mini-btn:hover{border-color:var(--accent);transform:translateY(-1px)}
 /* 후원 추이 자세히 보기 모달 */
@@ -2629,6 +2630,33 @@ tbody tr.blocked:hover{opacity:.72}
       <button class="btn ghost" id="reCancel">취소</button>
       <div class="spacer"></div>
       <button class="btn primary" id="reSend">알림톡 발송</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 복귀 유도 / 넛지 일괄 발송 ============ -->
+<div class="overlay" id="bulkSendOverlay">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <h2 id="bulkSendTitle">일괄 발송</h2><div class="spacer"></div><button class="xbtn" id="bulkSendClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="re-target" id="bulkSendTarget"></div>
+      <div class="field alim-editor">
+        <label>카카오 알림톡 메시지</label>
+        <textarea class="inp" id="bulkSendMsg" rows="4"></textarea>
+        <div class="helper">{닉네임}·{크리에이터}·{등급}·{다음등급}·{남은금액} 은 도네이터별로 자동 치환됩니다. 프로토타입 — 실제 발송 없이 이력만 기록됩니다.</div>
+      </div>
+      <div class="msg-picker" id="bulkSendPicker"></div>
+      <div class="preview-box">
+        <div class="preview-lbl">👁 발송 메시지 미리보기 <span class="helper" style="display:inline;font-weight:500">· 첫 대상 기준</span></div>
+        <div id="bulkSendPreview"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="bulkSendCancel">취소</button>
+      <div class="spacer"></div>
+      <button class="btn primary" id="bulkSendConfirm">발송</button>
     </div>
   </div>
 </div>
@@ -4618,7 +4646,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();if(typeof closeLiveDrawer==='function')closeLiveDrawer();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','trendOverlay','creditOverlay','sendLogOverlay','activityLogOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay','perkOverlay','thanksOverlay','insightCustomOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();if(typeof closeLiveDrawer==='function')closeLiveDrawer();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','bulkSendOverlay','blockOverlay','happyOverlay','replyOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','trendOverlay','creditOverlay','sendLogOverlay','activityLogOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay','perkOverlay','thanksOverlay','insightCustomOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -6080,7 +6108,8 @@ function updateBulkBar(){
   const all=byId('selAll'); if(all){const vis=currentDonatorRows();all.checked=vis.length>0&&vis.every(d=>donSelected.has(d.id));}
 }
 function selectedList(){return DB.donators.filter(d=>donSelected.has(d.id));}
-/* 선택 도네이터 일괄 복귀 유도 / 승급 넛지 */
+/* 선택 도네이터 일괄 복귀 유도 / 승급 넛지 — 문구 선택 후 발송 */
+let bulkSend={kind:null,targets:[]};
 function bulkOutreach(kind){
   if(viewerGuard())return;
   const isReeng=kind==='reengage';
@@ -6092,18 +6121,34 @@ function bulkOutreach(kind){
   const skipped=sel.length-targets.length;
   if(!targets.length) return toast(`${label} 대상이 없습니다 (${need}·알림톡 수신 동의 필요)`,'!');
   if(creditBalance()<targets.length){ toast(`잔여 발송 건수 부족 (필요 ${won(targets.length)}, 잔여 ${won(creditBalance())})`,'!'); return openRecharge(); }
-  askConfirm(`${label} 일괄 발송`,`${need} ${won(targets.length)}명에게 ${label} 알림톡을 발송합니다.${skipped?` (대상 아님 ${won(skipped)}명 제외)`:''} 계속할까요?`,()=>{
-    const tpl=msgList(kind)[0]||MSG_SEED[kind][0];
-    let sent=0;
-    targets.forEach(d=>{
-      if(!spendCredit(`${isReeng?'💤 복귀 유도':'🎯 승급 넛지'} · ${d.name}`,1,subMsg(tpl,d)))return;
-      if(isReeng){d.reengaged=true;d.reengagedAt=Date.now();} else {d.nudged=true;}
-      logOutreach(kind,d); sent++;
-    });
-    save(); donSelected.clear(); renderDonators(); renderInsights();
-    toast(`${won(sent)}명에게 ${label}를 발송했습니다 ${isReeng?'💤':'🎯'} · 잔여 ${won(creditBalance())}건`);
-  });
+  bulkSend={kind,targets};
+  byId('bulkSendTitle').textContent=`${isReeng?'💤':'🎯'} ${label} 일괄 발송`;
+  byId('bulkSendTarget').innerHTML=`<div class="bs-target">${need} <b>${won(targets.length)}명</b>에게 ${label} 알림톡을 보냅니다${skipped?` <span class="helper" style="display:inline">· 대상 아님 ${won(skipped)}명 제외</span>`:''} · 잔여 ${won(creditBalance())}건</div>`;
+  byId('bulkSendConfirm').textContent=`${won(targets.length)}명 일괄 발송`;
+  renderMsgPicker(kind,'bulkSendPicker','bulkSendMsg',bulkSendPrev);
+  bulkSendPrev();
+  byId('bulkSendOverlay').classList.add('show');
 }
+function bulkSendPrev(){
+  const d=bulkSend.targets[0]; const kt=bulkSend.kind==='reengage'?'💬 알림톡':'🎯 승급 넛지 알림톡';
+  byId('bulkSendPreview').innerHTML=`<div class="kakao"><div class="kt">${kt}</div><div class="kb">${subMsg(byId('bulkSendMsg').value,d)}</div><div class="kbtn">${bulkSend.kind==='reengage'?'방송 보러가기':'후원하러 가기'}</div></div>`;
+}
+byId('bulkSendMsg').addEventListener('input',bulkSendPrev);
+byId('bulkSendClose').onclick=byId('bulkSendCancel').onclick=()=>byId('bulkSendOverlay').classList.remove('show');
+byId('bulkSendOverlay').onclick=e=>{if(e.target===byId('bulkSendOverlay'))byId('bulkSendOverlay').classList.remove('show');};
+byId('bulkSendConfirm').onclick=()=>{
+  const {kind,targets}=bulkSend; const isReeng=kind==='reengage'; const label=isReeng?'복귀 유도':'승급 넛지';
+  const msg=byId('bulkSendMsg').value;
+  let sent=0;
+  targets.forEach(d=>{
+    if(!spendCredit(`${isReeng?'💤 복귀 유도':'🎯 승급 넛지'} · ${d.name}`,1,subMsg(msg,d)))return;
+    if(isReeng){d.reengaged=true;d.reengagedAt=Date.now();} else {d.nudged=true;}
+    logOutreach(kind,d); sent++;
+  });
+  save(); donSelected.clear(); renderDonators(); renderInsights();
+  byId('bulkSendOverlay').classList.remove('show');
+  toast(`${won(sent)}명에게 ${label}를 발송했습니다 ${isReeng?'💤':'🎯'} · 잔여 ${won(creditBalance())}건`);
+};
 byId('bulkReengage').onclick=()=>bulkOutreach('reengage');
 byId('bulkNudge').onclick=()=>bulkOutreach('nudge');
 byId('bulkClear').onclick=()=>{donSelected.clear();renderDonators();};
