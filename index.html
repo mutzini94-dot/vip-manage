@@ -735,7 +735,10 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .live-drawer{width:min(936px,96vw);max-width:96vw;border-left-color:#ff3d68;--dr-grade:#ff3d68}
 /* 라이브 패널(z85)보다 위: 성과 리캡, 도네이터 프로필 드로어 */
 #recapOverlay{z-index:95}
+#liveStartOverlay{z-index:97}
 #thanksOverlay{z-index:100}
+.live-title-bar{background:linear-gradient(135deg,rgba(255,61,104,.14),var(--surface-2));border:1px solid rgba(255,61,104,.35);border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:15px;font-weight:700;color:var(--text)}
+.live-title-bar b{font-weight:800}
 .recap-thanks{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
 .rtk-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px}
 .rtk-chip{padding:6px 12px;border-radius:20px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:12.5px;font-weight:700;cursor:pointer;transition:.12s}
@@ -2360,6 +2363,7 @@ tbody tr.blocked:hover{opacity:.72}
 
       <!-- 라이브 상태 -->
       <div id="liveOn" class="hidden">
+        <div id="liveTitleBar" class="live-title-bar hidden"></div>
         <div id="happyBanner" class="happy-banner hidden"></div>
         <div class="stats">
           <div class="stat"><div class="k"><span class="live-badge"><span class="pulse"></span>LIVE</span> 방송 시간</div><div class="v tnum" id="liveElapsed">00:00</div></div>
@@ -2914,6 +2918,23 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="sl-pager" id="autoLogPager"></div>
       <div class="spacer"></div>
       <button class="btn primary" id="autoLogCloseBtn">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 방송 시작 (방송명 선택 입력) ============ -->
+<div class="overlay" id="liveStartOverlay">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head"><h2>🔴 방송 시작</h2><div class="spacer"></div><button class="xbtn" id="liveStartClose">✕</button></div>
+    <div class="modal-body">
+      <div class="field-lbl-sm">방송명 <span style="color:var(--muted-2);font-weight:600">· 선택 입력</span></div>
+      <input id="liveStartTitle" class="inp" placeholder="예: 신규 게임 첫 방송 🎮" maxlength="60" style="width:100%">
+      <div class="helper" style="margin-top:9px">입력하지 않으면 ‘라이브 방송’으로 저장됩니다. 방송 성과 리캡에 표시됩니다.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="liveStartCancel">취소</button>
+      <div class="spacer"></div>
+      <button class="btn primary golive" id="liveStartGo">🔴 방송 시작</button>
     </div>
   </div>
 </div>
@@ -5834,14 +5855,25 @@ const DONATE_AMTS=[1000,3000,5000,10000,30000,50000];
 function liveEligible(){return DB.donators.filter(d=>!d.blocked && gradeForCash(d.cash));}
 function pick(arr){return arr.length?arr[Math.floor(Math.random()*arr.length)]:null;}
 
-byId('goLiveBtn').onclick=()=>{ LIVE.on?stopLive():goLive(); };
+byId('goLiveBtn').onclick=()=>{ LIVE.on?stopLive():openLiveStart(); };
 byId('stopLiveBtn').onclick=stopLive;
+/* 방송 시작 시 방송명(선택) 입력 모달 */
+function openLiveStart(){
+  if(typeof SESSION!=='undefined' && SESSION.role==='viewer'){ toast('뷰어는 방송을 시작할 수 없습니다','!'); return; }
+  byId('liveStartTitle').value='';
+  byId('liveStartOverlay').classList.add('show');
+  setTimeout(()=>byId('liveStartTitle').focus(),60);
+}
+byId('liveStartClose').onclick=byId('liveStartCancel').onclick=()=>byId('liveStartOverlay').classList.remove('show');
+byId('liveStartOverlay').onclick=e=>{if(e.target===byId('liveStartOverlay'))byId('liveStartOverlay').classList.remove('show');};
+byId('liveStartGo').onclick=()=>{ const t=byId('liveStartTitle').value.trim(); byId('liveStartOverlay').classList.remove('show'); goLive(t); };
+byId('liveStartTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();byId('liveStartGo').click();} });
 
-function goLive(){
+function goLive(title){
   if(typeof SESSION!=='undefined' && SESSION.role==='viewer'){ toast('뷰어는 방송을 시작할 수 없습니다','!'); return; }
   clearInterval(LIVE.tick); clearInterval(LIVE.clock);   // 중복 타이머 방지
   LIVE.on=true; LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0; LIVE.rank=new Map(); LIVE.happy={on:false,mult:2,ends:0};
-  LIVE.donCount=0; LIVE.peakOnline=0; LIVE.hadHappy=false; LIVE.startTs=Date.now(); LIVE.schedId=null; LIVE.title=''; LIVE.category='';
+  LIVE.donCount=0; LIVE.peakOnline=0; LIVE.hadHappy=false; LIVE.startTs=Date.now(); LIVE.schedId=null; LIVE.title=(title||'').trim(); LIVE.category='';
   const pool=liveEligible().sort(()=>Math.random()-.5);
   pool.slice(0,Math.min(6,pool.length)).forEach(d=>LIVE.online.set(d.id,{mins:1+Math.floor(Math.random()*35)}));
   LIVE.peakOnline=LIVE.online.size;
@@ -6086,6 +6118,8 @@ function renderLive(){
     : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5v14l11-7z"/></svg> 방송 시작`;
   byId('liveOff').classList.toggle('hidden',LIVE.on);
   byId('liveOn').classList.toggle('hidden',!LIVE.on);
+  const tb=byId('liveTitleBar');
+  if(tb){ if(LIVE.on&&LIVE.title){tb.innerHTML=`🔴 <b>${LIVE.title.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</b>`;tb.classList.remove('hidden');} else tb.classList.add('hidden'); }
   renderLiveRecaps();
   if(!LIVE.on) return;
   renderLiveContent();
