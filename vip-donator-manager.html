@@ -4909,10 +4909,11 @@ function renderPareto(){
   const{sorted,total,n20,pc20}=paretoData();
   const top=sorted.slice(0,5);
   const maxv=top[0]?top[0].cash:1;
-  const bars=top.map((d,i)=>`<div class="pareto-row"><div class="rk">${i+1}</div><div class="nm">${d.alias||d.name}</div>
+  const bars=top.map((d,i)=>`<div class="pareto-row" data-don="${d.id}"><div class="rk">${i+1}</div><div class="nm">${d.alias||d.name}</div>
     <div class="bar"><i style="width:${(d.cash/maxv*100).toFixed(0)}%"></i></div><div class="pc">${Math.round(d.cash/total*100)}%</div></div>`).join('');
   byId('paretoBox').innerHTML=`<div class="pareto-hero"><div class="big">상위 <b>${n20}명</b>이 전체의 <b>${pc20}%</b></div>
     <div class="sub">소수의 핵심 팬이 후원을 이끌고 있어요. 이들을 먼저 챙기세요.</div></div>${bars}`;
+  byId('paretoBox').querySelectorAll('[data-don]').forEach(el=>{el.style.cursor='pointer';el.onclick=()=>openDrawer(el.dataset.don);});
 }
 
 /* --- 이탈 위험 VIP --- */
@@ -4942,6 +4943,7 @@ function renderChurn(){
         ? `<div class="re-wrap"><span class="re-last">✓ ${reLast}</span><button class="btn ghost sm re-btn">다시 복귀 유도</button></div>`
         : '<button class="btn primary sm re-btn">복귀 유도</button>'}`;
     const btn=row.querySelector('.re-btn');if(btn)btn.onclick=()=>openReengage(d.id);
+    ['.nm','.ava'].forEach(s=>{const el=row.querySelector(s);if(el){el.style.cursor='pointer';el.onclick=()=>openDrawer(d.id);}});
     box.appendChild(row);
   });
   if(rows.length>8){const m=document.createElement('button');m.className='more-link';m.textContent=`외 ${rows.length-8}명 더 있습니다 →`;m.onclick=()=>goDonView('churn');box.appendChild(m);}
@@ -5118,6 +5120,7 @@ function renderNudge(){
         <div class="gauge mini" style="max-width:230px;margin-top:7px"><i style="width:${g.pct}%;background:${g.nx.color}"></i></div></div>
       ${right}`;
     const btn=row.querySelector('.nudge-btn'); if(btn)btn.onclick=()=>openNudge(d.id);
+    ['.nm','.ava'].forEach(s=>{const el=row.querySelector(s);if(el){el.style.cursor='pointer';el.onclick=()=>openDrawer(d.id);}});
     box.appendChild(row);
   });
   if(rows.length>8){const m=document.createElement('button');m.className='more-link';m.textContent=`외 ${rows.length-8}명 더 있습니다 →`;m.onclick=()=>goDonView('promote');box.appendChild(m);}
@@ -5215,7 +5218,7 @@ function orRow(o){
   const d=DB.donators.find(x=>x.id===o.donatorId);if(!d)return '';
   const g=gradeForCash(d.cash);
   const tb=o.type==='reengage'?'<span class="or-type re">💤 복귀 유도</span>':'<span class="or-type nu">🎯 넛지</span>';
-  return `<div class="or-row"><div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
+  return `<div class="or-row" data-don="${d.id}" style="cursor:pointer"><div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
     <div class="or-nm">${d.alias||d.name} ${gradeBadge(g)}</div>${tb}<span class="or-when">${fmtAgo(o.ts)}</span>${orResBadge(o)}</div>`;
 }
 function renderOutreach(){
@@ -5234,6 +5237,7 @@ function renderOutreach(){
     card('🎯','승급 넛지',st.nudge,'후원',st.nuRate,'var(--accent)');
   const recent=(DB.outreach||[]).slice(0,5);
   byId('outreachRecent').innerHTML=recent.length?recent.map(orRow).join(''):'<div class="helper" style="padding:14px;text-align:center">발송 이력이 없습니다</div>';
+  byId('outreachRecent').querySelectorAll('[data-don]').forEach(el=>el.onclick=()=>openDrawer(el.dataset.don));
 }
 /* 성과 모달 */
 let orTypeSel='all', orResSel='all';
@@ -5247,6 +5251,7 @@ function renderOutreachModal(){
     <div class="os"><div class="k">유도 후원</div><div class="v" style="color:var(--accent)">${won(st.totalCash)}<small>캐시</small></div></div>`;
   let list=(DB.outreach||[]).filter(o=>(orTypeSel==='all'||o.type===orTypeSel)&&(orResSel==='all'||o.result===orResSel));
   byId('orFullList').innerHTML=list.length?list.map(orRow).join(''):'<div class="helper" style="padding:24px;text-align:center">해당하는 발송 이력이 없습니다</div>';
+  byId('orFullList').querySelectorAll('[data-don]').forEach(el=>el.onclick=()=>{byId('outreachOverlay').classList.remove('show');openDrawer(el.dataset.don);});
 }
 function openOutreachModal(){orTypeSel='all';orResSel='all';byId('orTypeF').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.t==='all'));byId('orResF').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.r==='all'));renderOutreachModal();byId('outreachOverlay').classList.add('show');}
 byId('outreachMore').onclick=openOutreachModal;
@@ -6267,6 +6272,7 @@ function renderAnniv(){
       <div class="meta"><div class="nm">${d.alias||d.name} ${gradeBadge(g)}</div><div class="dd">🎉 가입 ${years}주년 · ${date}</div></div>
       ${d.celebrated?'<div class="celeb-done">✓ 축하함</div>':`<div class="dday ${days<=7?'soon':''}">${today?'오늘!':'D-'+days}</div>`}`;
     if(!d.celebrated){card.style.cursor='pointer';card.onclick=()=>openCeleb(d.id,years);}
+    ['.nm','.ava'].forEach(s=>{const el=card.querySelector(s);if(el){el.style.cursor='pointer';el.onclick=e=>{e.stopPropagation();openDrawer(d.id);};}});
     box.appendChild(card);
   });
 }
