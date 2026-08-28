@@ -1877,10 +1877,6 @@ tbody tr.blocked:hover{opacity:.72}
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 13a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 6.6 19a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H2a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 3.7 6.6a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>
       자동화 설정 <span class="cnt" id="tabCntAuto">0</span>
     </button>
-    <button class="tab" data-tab="credit">
-      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20M6 15h4"/></svg>
-      이용 내역
-    </button>
     <button class="tab" data-tab="toon">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l2-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg>
       투네톡 <span class="cnt" id="tabCntToon">0</span>
@@ -2828,7 +2824,7 @@ tbody tr.blocked:hover{opacity:.72}
 <div class="overlay" id="creditOverlay">
   <div class="modal" style="max-width:462px">
     <div class="modal-head">
-      <h2>충전하기</h2><div class="spacer"></div><button class="xbtn" id="creditClose">✕</button>
+      <h2>충전하기</h2><div class="spacer"></div><button class="btn ghost sm" id="creditHistoryLink" style="margin-right:10px">🧾 이용 내역</button><button class="xbtn" id="creditClose">✕</button>
     </div>
     <div class="modal-body">
       <div class="rc-tabs" id="rcTabs">
@@ -5192,6 +5188,15 @@ function renderCreditPage(){
 }
 byId('cpSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{cpFilter=b.dataset.f;cpPage=1;renderCreditPage();});
 byId('creditPageCharge').onclick=()=>openRecharge();
+/* 이용 내역 페이지로 이동 (GNB 탭 없이 충전 모달 링크에서 진입) */
+function goCreditPage(){
+  byId('creditOverlay').classList.remove('show');
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  Object.entries(pages).forEach(([k,el])=>el.classList.toggle('hidden',k!=='credit'));
+  cpPage=1; renderCreditPage();
+  window.scrollTo(0,0);
+}
+byId('creditHistoryLink').onclick=goCreditPage;
 /* ---- 알림톡 발송 내역 (상세·페이징) ---- */
 let sendLogPage=1; const SEND_LOG_PP=6;
 function parseSend(l){
