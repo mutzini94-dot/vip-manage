@@ -692,8 +692,7 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .live-launcher .ll-dot{width:8px;height:8px;border-radius:50%;background:#c8ccd8}
 /* 방송 중: 빨간 LIVE + 펄스(opacity, GPU) / 비방송: 회색 OFFLINE */
 .live-launcher.live-active{background:linear-gradient(180deg,#ff6a6a,#ff3d68);color:#fff;letter-spacing:3px;box-shadow:-3px 3px 16px rgba(255,61,104,.4)}
-.live-launcher.live-active .ll-dot{background:#fff;animation:llPulse 1.4s ease-in-out infinite}
-@keyframes llPulse{0%,100%{opacity:1}50%{opacity:.35}}
+.live-launcher.live-active .ll-dot{background:#fff;animation:liveBlink 1.6s step-end infinite}
 :root:not([data-auth="1"]) .live-launcher{display:none}
 .dr-hero{flex:none;padding:13px 22px 11px;position:relative;background:linear-gradient(160deg,var(--dr-grade-soft),var(--surface));border-bottom:1px solid var(--dr-grade-soft)}
 .dr-hero-top{position:absolute;top:14px;left:14px;right:14px;display:flex;align-items:center;gap:8px;justify-content:flex-end;z-index:2}
@@ -768,12 +767,11 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .vip-alert .va-tier{font-size:12px;font-weight:800;color:var(--vip-c);display:flex;align-items:center;gap:5px;letter-spacing:.01em}
 .vip-alert .va-nm{font-size:17px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
 .vip-alert .va-sub{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:1px}
-.vip-alert .va-spark{font-size:13px;display:inline-block;animation:vipSpark 1.2s ease-in-out infinite}
+.vip-alert .va-spark{font-size:13px;display:inline-block;animation:liveBlink 1.8s step-end infinite}
 .vip-alert .va-close{position:absolute;top:8px;right:8px;width:22px;height:22px;border:none;background:rgba(150,150,170,.16);color:var(--muted);border-radius:7px;cursor:pointer;font-size:12px;line-height:1;display:grid;place-items:center;transition:.12s;z-index:2}
 .vip-alert .va-close:hover{background:var(--accent-soft);color:var(--accent)}
 @keyframes vipIn{from{opacity:0;transform:translateX(28px) scale(.96)}to{opacity:1;transform:none}}
 @keyframes vipOut{to{opacity:0;transform:translateX(28px) scale(.96)}}
-@keyframes vipSpark{0%,100%{transform:scale(1);opacity:.75}50%{transform:scale(1.3) rotate(12deg);opacity:1}}
 
 /* ===== Insights ===== */
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
@@ -1037,11 +1035,11 @@ input.tnum.sm-inp{width:80px;text-align:right}
 
 /* ===== 라이브 VIP 뷰 ===== */
 .tab-live .live-dot{width:8px;height:8px;border-radius:50%;background:var(--muted-2)}
-.tab-live .live-dot.on{background:var(--live);box-shadow:0 0 0 3px rgba(255,70,70,.22);animation:pulse 1.4s infinite}
+.tab-live .live-dot.on{background:var(--live);box-shadow:0 0 0 3px rgba(255,70,70,.22);animation:liveBlink 1.6s step-end infinite}
 .btn.golive.live{background:var(--live);box-shadow:0 3px 14px rgba(255,70,70,.35)}
 .live-badge{display:inline-flex;align-items:center;gap:5px;background:var(--live);color:#fff;font-weight:800;font-size:10px;letter-spacing:.05em;padding:2px 7px;border-radius:5px}
-.live-badge .pulse{width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1.4s infinite}
-@keyframes pulse{0%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(1.35)}100%{opacity:1;transform:scale(1)}}
+.live-badge .pulse{width:6px;height:6px;border-radius:50%;background:#fff;animation:liveBlink 1.6s step-end infinite}
+@keyframes liveBlink{0%{opacity:1}50%{opacity:.4}}
 .live-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:11px}
 .live-card{border:1px solid var(--line);border-radius:13px;padding:13px;background:var(--surface-2);display:flex;flex-direction:column;gap:10px;transition:.14s;animation:cardin .3s}
 .live-card:hover{border-color:var(--line-strong)}
