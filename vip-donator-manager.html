@@ -1535,7 +1535,6 @@ tbody tr.blocked:hover{opacity:.72}
 :root[data-role="viewer"] #setReset,
 :root[data-role="viewer"] #setSnapNew,
 :root[data-role="viewer"] #creditConfirm,
-:root[data-role="viewer"] #clearLogs,
 :root[data-role="viewer"] #perkDelete,
 :root[data-role="viewer"] #schedDelete,
 :root[data-role="viewer"] .form-actions{display:none !important}
@@ -2264,8 +2263,7 @@ tbody tr.blocked:hover{opacity:.72}
       </div>
 
       <div class="panel" style="margin-top:22px">
-        <div class="panel-head"><h3>🧾 자동화 실행 로그</h3><span class="hint">발동된 자동화 이력 · 라이브 방송 중 실시간 기록</span><div class="spacer"></div>
-          <button class="btn ghost sm" id="clearLogs">기록 지우기</button></div>
+        <div class="panel-head"><h3>🧾 자동화 실행 로그</h3><span class="hint">발동된 자동화 이력 · 라이브 방송 중 실시간 기록 · 최근 50건</span><div class="spacer"></div></div>
         <div class="panel-body"><div id="autoLogList" class="log-list"></div></div>
       </div>
     </section>
@@ -2771,6 +2769,22 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="sl-pager" id="sendLogPager"></div>
       <div class="spacer"></div>
       <button class="btn primary" id="sendLogCloseBtn">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 자동화 실행 로그 (전체·페이징) ============ -->
+<div class="overlay" id="autoLogOverlay">
+  <div class="modal wide" style="max-width:600px">
+    <div class="modal-head"><h2>🧾 자동화 실행 로그</h2><div class="spacer"></div><button class="xbtn" id="autoLogClose">✕</button></div>
+    <div class="modal-body">
+      <div class="sl-sum" id="autoLogSum"></div>
+      <div class="log-list" id="autoLogModalList" style="max-height:none"></div>
+    </div>
+    <div class="modal-foot">
+      <div class="sl-pager" id="autoLogPager"></div>
+      <div class="spacer"></div>
+      <button class="btn primary" id="autoLogCloseBtn">닫기</button>
     </div>
   </div>
 </div>
@@ -6070,19 +6084,43 @@ function fireAutos(kind,d,amt){
   else save();
   if(!pages.auto.classList.contains('hidden')) renderAutos();
 }
+function autoLogRowHTML(l){
+  const act=ACTIONS[l.action]||{icon:'⚡',label:l.action};
+  const situ = SITU_LOG[l.situ||l.type]||'후원 시';
+  return `<div class="log-row"><div class="lw">${l.when}</div><div class="li">${act.icon}</div>
+    <div class="lc"><div class="who">${l.name} ${l.grade?`<span style="color:var(--muted);font-weight:600">(${l.grade})</span>`:''} · ${situ}</div>
+      <div class="act">${act.label}</div></div>
+    ${l.amt?`<div class="la">${won(l.amt)}캐시</div>`:''}</div>`;
+}
+const AUTO_LOG_RECENT=50;
 function renderAutoLogs(){
   const box=byId('autoLogList');
   if(!DB.autoLogs.length){box.innerHTML='<div class="log-empty">아직 실행된 자동화가 없습니다.<br>라이브 방송을 시작하면 실시간으로 기록됩니다.</div>';return;}
-  box.innerHTML=DB.autoLogs.map(l=>{
-    const act=ACTIONS[l.action]||{icon:'⚡',label:l.action};
-    const situ = SITU_LOG[l.situ||l.type]||'후원 시';
-    return `<div class="log-row"><div class="lw">${l.when}</div><div class="li">${act.icon}</div>
-      <div class="lc"><div class="who">${l.name} ${l.grade?`<span style="color:var(--muted);font-weight:600">(${l.grade})</span>`:''} · ${situ}</div>
-        <div class="act">${act.label}</div></div>
-      ${l.amt?`<div class="la">${won(l.amt)}캐시</div>`:''}</div>`;
-  }).join('');
+  const recent=DB.autoLogs.slice(0,AUTO_LOG_RECENT);
+  box.innerHTML=recent.map(autoLogRowHTML).join('')
+    +(DB.autoLogs.length>AUTO_LOG_RECENT?`<button class="sl-open" id="autoLogMore">🔎 전체 실행 로그 보기 (${won(DB.autoLogs.length)}건) →</button>`:'');
+  const mb=byId('autoLogMore'); if(mb)mb.onclick=openAutoLogModal;
 }
-byId('clearLogs').onclick=()=>askConfirm('실행 로그 삭제','모든 자동화 실행 기록을 지울까요?',()=>{DB.autoLogs=[];save();renderAutoLogs();toast('실행 로그를 지웠습니다');});
+/* ---- 자동화 실행 로그 전체 (상세·페이징) ---- */
+let autoLogPage=1; const AUTO_LOG_PP=12;
+function renderAutoLogModal(){
+  const rows=DB.autoLogs||[];
+  const pages=Math.max(1,Math.ceil(rows.length/AUTO_LOG_PP));
+  if(autoLogPage>pages)autoLogPage=pages; if(autoLogPage<1)autoLogPage=1;
+  const start=(autoLogPage-1)*AUTO_LOG_PP, page=rows.slice(start,start+AUTO_LOG_PP);
+  byId('autoLogSum').innerHTML=`총 <b>${won(rows.length)}</b>건 실행 기록`;
+  byId('autoLogModalList').innerHTML=page.length?page.map(autoLogRowHTML).join(''):`<div class="log-empty">실행 기록이 없습니다</div>`;
+  byId('autoLogPager').innerHTML=`
+    <button class="btn ghost sm" id="alPrev" ${autoLogPage<=1?'disabled':''}>◀ 이전</button>
+    <span class="sl-pageinfo">${autoLogPage} / ${pages}</span>
+    <button class="btn ghost sm" id="alNext" ${autoLogPage>=pages?'disabled':''}>다음 ▶</button>`;
+  const pv=byId('alPrev'),nx=byId('alNext');
+  if(pv)pv.onclick=()=>{if(autoLogPage>1){autoLogPage--;renderAutoLogModal();}};
+  if(nx)nx.onclick=()=>{if(autoLogPage<pages){autoLogPage++;renderAutoLogModal();}};
+}
+function openAutoLogModal(){autoLogPage=1;renderAutoLogModal();byId('autoLogOverlay').classList.add('show');}
+byId('autoLogClose').onclick=byId('autoLogCloseBtn').onclick=()=>byId('autoLogOverlay').classList.remove('show');
+byId('autoLogOverlay').onclick=e=>{if(e.target===byId('autoLogOverlay'))byId('autoLogOverlay').classList.remove('show');};
 
 /* =========================================================
    자동화별 발동 횟수 · 전환 효과 분석
