@@ -669,6 +669,14 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .live-drawer{width:min(936px,96vw);max-width:96vw;border-left-color:#ff3d68;--dr-grade:#ff3d68}
 /* 라이브 패널(z85)보다 위: 성과 리캡, 도네이터 프로필 드로어 */
 #recapOverlay{z-index:95}
+#thanksOverlay{z-index:100}
+.recap-thanks{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+.rtk-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px}
+.rtk-chip{padding:6px 12px;border-radius:20px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:12.5px;font-weight:700;cursor:pointer;transition:.12s}
+.rtk-chip:hover{border-color:var(--line-strong)}
+.rtk-chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.rtk-chip b{font-weight:800}
+.rtk-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 #drawerOverlay{z-index:94}
 #donDrawer{z-index:96}
 .live-dr-x{position:absolute;top:14px;right:16px;z-index:3}
@@ -3263,12 +3271,13 @@ function seedRecaps(donators){
   const amtSets=[[90000,70000,55000,40000,30000],[60000,50000,42000,28000,20000],[130000,88000,60000,45000,33000],[42000,35000,28000,20000,14000],[70000,58000,44000,30000,22000],[110000,74000,52000,38000,26000]];
   return specs.map((s,si)=>{
     const off=si*3;  // 방송마다 상위 후원자 살짝 다르게
-    const top=pool.slice(off,off+5).map((d,i)=>({name:d.alias||d.name,grade:gname(d.cash),amount:amtSets[si%amtSets.length][i]||10000}));
+    const donorSlice=pool.slice(off,off+Math.max(5,s.uniq));
+    const top=donorSlice.slice(0,5).map((d,i)=>({name:d.alias||d.name,grade:gname(d.cash),amount:amtSets[si%amtSets.length][i]||10000}));
     const started=now - s.daysAgo*86400000;
     return {id:uid(),schedId:null,title:s.title,category:s.cat,
       startedTs:started,endedTs:started+s.dur*1000,durationSec:Math.round(s.dur),
       totalDonation:s.total,donationCount:s.cnt,uniqueDonors:s.uniq,peakOnline:s.peak,
-      top,happyHour:s.hh,toonCompleted:s.toon};
+      top,donors:donorSlice.map(d=>d.id),happyHour:s.hh,toonCompleted:s.toon};
   });
 }
 function seedStories(){const now=Date.now();return [
@@ -5657,7 +5666,7 @@ function buildRecap(){
   const toonDone=DB.toontalks.filter(t=>t.status==='done'&&t.respondedTs>=st&&t.respondedTs<=en).length;
   return {id:uid(),schedId:LIVE.schedId,title:LIVE.title||'라이브 방송',category:LIVE.category||'',
     startedTs:st,endedTs:en,durationSec:LIVE.elapsed,totalDonation:LIVE.donation,donationCount:LIVE.donCount,
-    uniqueDonors:LIVE.rank.size,peakOnline:LIVE.peakOnline,top:ranked.slice(0,5),happyHour:!!LIVE.hadHappy,toonCompleted:toonDone};
+    uniqueDonors:LIVE.rank.size,peakOnline:LIVE.peakOnline,top:ranked.slice(0,5),donors:[...LIVE.rank.keys()],happyHour:!!LIVE.hadHappy,toonCompleted:toonDone};
 }
 function fmtDur(s){const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?`${h}시간 ${m}분`:`${Math.max(1,m)}분`;}
 function gbByName(name){const g=DB.grades.find(x=>x.name===name);return g?gradeBadge(g):(name?`<span class="gb none"><span class="d"></span>${name}</span>`:'');}
@@ -5726,8 +5735,37 @@ function openRecap(id){
       <div class="rc-chart"><div class="section-lbl">💫 후원 유형 분포</div><div class="rc-tbars">${typeBars}</div></div>
     </div>
     <div class="section-lbl">🏆 TOP 후원자</div>
-    <div class="recap-top">${r.top&&r.top.length?r.top.map((t,i)=>`<div class="rt-row"><div class="rt-medal">${['🥇','🥈','🥉'][i]||(i+1)}</div><div class="rt-nm">${t.name} ${gbByName(t.grade)}</div><div class="rt-bar"><i style="width:${(t.amount/topMax*100).toFixed(0)}%"></i></div><div class="rt-amt">${won(t.amount)}</div></div>`).join(''):'<div class="helper">후원 기록이 없습니다</div>'}</div>`;
+    <div class="recap-top">${r.top&&r.top.length?r.top.map((t,i)=>`<div class="rt-row"><div class="rt-medal">${['🥇','🥈','🥉'][i]||(i+1)}</div><div class="rt-nm">${t.name} ${gbByName(t.grade)}</div><div class="rt-bar"><i style="width:${(t.amount/topMax*100).toFixed(0)}%"></i></div><div class="rt-amt">${won(t.amount)}</div></div>`).join(''):'<div class="helper">후원 기록이 없습니다</div>'}</div>
+    <div class="section-lbl" style="margin-top:6px">💌 후원자에게 감사 메시지</div>
+    <div class="recap-thanks" id="recapThanks"></div>`;
+  renderRecapThanks(r);
   byId('recapOverlay').classList.add('show');
+}
+/* 리캡: 방송 후원 도네이터 대상 감사 메시지(전체/등급별) */
+function renderRecapThanks(r){
+  const box=byId('recapThanks'); if(!box)return;
+  const donors=(r.donors||[]).map(id=>DB.donators.find(x=>x.id===id)).filter(d=>d&&!d.blocked);
+  if(!donors.length){ box.innerHTML='<div class="helper">이 방송의 후원자 정보가 없어 감사 메시지를 보낼 수 없습니다.</div>'; return; }
+  const grp={}; donors.forEach(d=>{const g=gradeForCash(d.cash);const key=g?clsOf(g):'none';(grp[key]=grp[key]||[]).push(d);});
+  const order=[['all','전체',donors]];
+  ['vvip','vip','yeol'].forEach(cls=>{ if(grp[cls]&&grp[cls].length){const g=DB.grades.find(x=>clsOf(x)===cls); order.push([cls,g?g.name:cls,grp[cls]]); }});
+  if(grp['none']&&grp['none'].length) order.push(['none','미분류',grp['none']]);
+  const sel=box._sel||'all';
+  const cur=order.find(o=>o[0]===sel)||order[0];
+  const consented=cur[2].filter(d=>isMember(d)&&d.alimConsent).length;
+  box.innerHTML=`
+    <div class="rtk-chips">${order.map(o=>`<button class="rtk-chip ${o[0]===sel?'on':''}" data-g="${o[0]}">${o[1]} <b>${won(o[2].length)}</b></button>`).join('')}</div>
+    <div class="rtk-foot"><div class="helper">선택 <b>${won(cur[2].length)}명</b> · 수신 동의 <b style="color:var(--on)">${won(consented)}명</b></div>
+      <button class="btn primary sm" id="recapThanksSend" ${consented?'':'disabled'}>💌 감사 메시지 발송</button></div>`;
+  box._sel=sel;
+  box.querySelectorAll('.rtk-chip').forEach(b=>b.onclick=()=>{box._sel=b.dataset.g;renderRecapThanks(r);});
+  const sendB=byId('recapThanksSend');
+  if(sendB) sendB.onclick=()=>{
+    if(viewerGuard())return;
+    thanksRecipients=cur[2].filter(d=>!d.blocked);
+    renderThanksSummary(); renderMsgPicker('thanks','thanksMsgPicker','thanksMsg',thanksPrev); thanksPrev();
+    byId('thanksOverlay').classList.add('show');
+  };
 }
 let liveRecapPage=1; const RECAP_PP=5;
 function renderLiveRecaps(){
