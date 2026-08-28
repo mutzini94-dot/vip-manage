@@ -219,6 +219,72 @@ input,textarea,select{font-family:inherit}
 .credit-log .cl-row .cl-a{font-weight:800;color:var(--on);font-variant-numeric:tabular-nums;flex:none}
 .credit-log .cl-row .cl-a.minus{color:#ff6b81}
 .credit-log .cl-empty{font-size:12px;color:var(--muted-2);text-align:center;padding:14px 8px}
+/* ===== 충전하기 모달 (투네이션 스타일) ===== */
+.rc-tabs{display:flex;gap:0;border-bottom:1.5px solid var(--line);margin:0 0 20px}
+.rc-tabs button{flex:1;padding:13px 0;background:none;border:none;border-bottom:2.5px solid transparent;margin-bottom:-1.5px;color:var(--muted);font-weight:800;font-size:14px;cursor:pointer;transition:.14s}
+.rc-tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+.rc-sech{display:flex;align-items:center;justify-content:space-between;font-size:13.5px;font-weight:800;margin:0 0 10px}
+.rc-sech .rc-cur{font-size:12px;font-weight:700;color:var(--muted)}
+.rc-sech .rc-cur b{color:var(--accent);font-variant-numeric:tabular-nums}
+.rc-amt{position:relative;display:flex;align-items:center;background:var(--surface-2);border:1.5px solid var(--line);border-radius:12px;padding:0 16px;transition:.12s}
+.rc-amt:focus-within{border-color:var(--accent)}
+.rc-amt input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:22px;font-weight:800;padding:14px 0;font-variant-numeric:tabular-nums;min-width:0}
+.rc-amt .rc-clear{width:20px;height:20px;border-radius:50%;border:none;background:var(--surface-3);color:var(--muted);font-size:10px;cursor:pointer;flex:none;display:grid;place-items:center;margin-right:8px}
+.rc-amt .rc-unit{font-size:15px;font-weight:700;color:var(--muted);flex:none}
+.rc-quick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:9px}
+.rc-quick button{padding:11px 0;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--accent);font-weight:800;font-size:13px;cursor:pointer;transition:.12s;font-variant-numeric:tabular-nums}
+.rc-quick button:hover{border-color:var(--accent);background:var(--accent-soft)}
+.rc-hint{font-size:11.5px;color:var(--muted-2);margin-top:10px;line-height:1.6}
+.rc-pay{display:flex;gap:10px;margin-bottom:12px}
+.rc-radio{flex:1;display:flex;align-items:center;gap:8px;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;font-size:13px;font-weight:700;color:var(--muted);transition:.12s}
+.rc-radio.on{border-color:var(--accent);background:var(--accent-soft);color:var(--text)}
+.rc-radio input{accent-color:var(--accent);width:16px;height:16px}
+.rc-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+.rc-card{display:flex;align-items:center;justify-content:center;gap:5px;height:52px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface-2);color:var(--text);font-weight:800;font-size:13px;cursor:pointer;transition:.12s;position:relative}
+.rc-card:hover{border-color:var(--line-strong)}
+.rc-card.on{border-color:var(--accent);background:var(--accent-soft)}
+.rc-card.on::after{content:"✓";position:absolute;top:6px;right:8px;font-size:11px;color:var(--accent);font-weight:900}
+.rc-card b{color:var(--accent)}
+.rc-total{display:flex;align-items:center;justify-content:space-between;margin:20px 0 0;padding-top:16px;border-top:1.5px solid var(--line)}
+.rc-total span{font-size:14px;font-weight:800}
+.rc-total b{font-size:22px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+.rc-notes{font-size:11px;color:var(--muted-2);line-height:1.7;margin-top:12px}
+.rc-submit{width:100%;justify-content:center;padding:15px;font-size:15px;font-weight:800;margin-top:16px}
+.rc-auto-toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px}
+.rc-auto-toggle b{font-size:14px;display:block}
+.rc-auto-toggle span{font-size:11.5px;color:var(--muted);display:block;margin-top:3px}
+.rc-cond{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px}
+.rc-cond input{width:110px;background:var(--surface-2);border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--text);font-size:15px;font-weight:800;outline:none;font-variant-numeric:tabular-nums}
+.rc-cond input:focus{border-color:var(--accent)}
+#rcAutoBody.off{opacity:.4;pointer-events:none}
+/* ===== 이용 내역 페이지 ===== */
+.cp-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.cp-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+.cp-card .k{font-size:12.5px;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:6px}
+.cp-card .v{font-size:28px;font-weight:800;letter-spacing:-.02em;margin-top:8px;font-variant-numeric:tabular-nums}
+.cp-card .v small{font-size:14px;color:var(--muted);font-weight:600;margin-left:2px}
+.cp-card.accent .v{color:var(--accent)}
+.cp-card .s{font-size:11.5px;color:var(--muted-2);margin-top:5px}
+.cp-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.cp-seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.cp-seg button{font-size:12.5px;font-weight:700;color:var(--muted);background:none;border:none;border-radius:7px;padding:7px 15px;cursor:pointer;transition:.12s}
+.cp-seg button.on{background:var(--accent);color:#fff}
+.cp-list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.cp-row{display:flex;align-items:center;gap:14px;padding:15px 18px;border-bottom:1px solid var(--line);font-size:13.5px}
+.cp-row:last-child{border-bottom:none}
+.cp-row:hover{background:var(--surface-2)}
+.cp-ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:18px;flex:none;background:var(--surface-2)}
+.cp-row.send .cp-ic{background:rgba(255,107,129,.12)}
+.cp-row.charge .cp-ic{background:var(--accent-soft)}
+.cp-main{flex:1;min-width:0}
+.cp-nm{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-msg{font-size:12px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-when{font-size:12px;color:var(--muted-2);flex:none;font-variant-numeric:tabular-nums}
+.cp-amt{font-weight:800;font-variant-numeric:tabular-nums;flex:none;min-width:96px;text-align:right;color:var(--on)}
+.cp-amt.minus{color:#ff6b81}
+.cp-empty{padding:50px 20px;text-align:center;color:var(--muted-2);font-size:13px}
+.cp-pager{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:18px}
+@media(max-width:640px){.cp-cards{grid-template-columns:1fr;gap:10px}.cp-when{display:none}.cp-amt{min-width:70px}}
 /* 발송 내역 자세히 보기 진입 버튼 */
 .sl-open{width:100%;margin-top:10px;padding:10px;border:1px dashed var(--line-strong);border-radius:10px;background:var(--surface-2);color:var(--accent);font-weight:800;font-size:12.5px;cursor:pointer;transition:.12s}
 .sl-open:hover{background:var(--accent-soft);border-style:solid;border-color:var(--accent)}
@@ -1535,6 +1601,8 @@ tbody tr.blocked:hover{opacity:.72}
 :root[data-role="viewer"] #setReset,
 :root[data-role="viewer"] #setSnapNew,
 :root[data-role="viewer"] #creditConfirm,
+:root[data-role="viewer"] #creditPageCharge,
+:root[data-role="viewer"] #rcAutoSave,
 :root[data-role="viewer"] #perkDelete,
 :root[data-role="viewer"] #schedDelete,
 :root[data-role="viewer"] .form-actions{display:none !important}
@@ -1808,6 +1876,10 @@ tbody tr.blocked:hover{opacity:.72}
     <button class="tab" data-tab="auto">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 13a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 6.6 19a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H2a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 3.7 6.6a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>
       자동화 설정 <span class="cnt" id="tabCntAuto">0</span>
+    </button>
+    <button class="tab" data-tab="credit">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20M6 15h4"/></svg>
+      이용 내역
     </button>
     <button class="tab" data-tab="toon">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l2-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg>
@@ -2318,6 +2390,34 @@ tbody tr.blocked:hover{opacity:.72}
       </div>
     </section>
 
+    <!-- ============ TAB: 이용 내역 ============ -->
+    <section id="page-credit" class="hidden">
+      <div class="page-head">
+        <div>
+          <h1>💳 이용 내역</h1>
+          <p>알림톡 발송 건수 충전·발송(차감) 내역을 한눈에 확인하세요.</p>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn primary" id="creditPageCharge">＋ 발송 건수 충전</button>
+      </div>
+      <div class="cp-cards">
+        <div class="cp-card accent"><div class="k">✉️ 현재 잔여 건수</div><div class="v"><b id="cpBal">0</b><small>건</small></div><div class="s" id="cpAutoState">자동 충전 꺼짐</div></div>
+        <div class="cp-card"><div class="k">＋ 누적 충전</div><div class="v"><b id="cpCharge">0</b><small>건</small></div><div class="s" id="cpChargeCnt">0회 충전</div></div>
+        <div class="cp-card"><div class="k">💬 누적 발송</div><div class="v"><b id="cpSend">0</b><small>건</small></div><div class="s" id="cpSendCnt">0회 발송</div></div>
+      </div>
+      <div class="cp-bar">
+        <div class="cp-seg" id="cpSeg">
+          <button data-f="all" class="on">전체</button>
+          <button data-f="recharge">충전</button>
+          <button data-f="send">발송</button>
+        </div>
+        <div class="spacer" style="flex:1"></div>
+        <span class="helper" id="cpCount"></span>
+      </div>
+      <div class="cp-list" id="cpList"></div>
+      <div class="cp-pager" id="cpPager"></div>
+    </section>
+
     <!-- ============ TAB: 투네톡 ============ -->
     <section id="page-toon" class="hidden">
       <div class="page-head">
@@ -2726,33 +2826,66 @@ tbody tr.blocked:hover{opacity:.72}
 
 <!-- ============ 알림톡 건수 충전 ============ -->
 <div class="overlay" id="creditOverlay">
-  <div class="modal" style="max-width:440px">
+  <div class="modal" style="max-width:462px">
     <div class="modal-head">
-      <h2>💌 알림톡 발송 건수 충전</h2><div class="spacer"></div><button class="xbtn" id="creditClose">✕</button>
+      <h2>충전하기</h2><div class="spacer"></div><button class="xbtn" id="creditClose">✕</button>
     </div>
     <div class="modal-body">
-      <div class="credit-hero">
-        <div class="ch-k">현재 잔여 건수</div>
-        <div class="ch-v"><b id="creditBalBig">300</b><small>건</small></div>
-        <div class="ch-sub">복귀 유도·승급 넛지 알림톡 발송 시 1건씩 차감됩니다.</div>
+      <div class="rc-tabs" id="rcTabs">
+        <button data-rc="charge" class="on">건수 충전</button>
+        <button data-rc="auto">자동 충전</button>
       </div>
-      <div class="field-lbl-sm">충전 수량 선택</div>
-      <div class="credit-presets" id="creditPresets">
-        <button data-amt="100">+100건</button>
-        <button data-amt="300" class="on">+300건</button>
-        <button data-amt="500">+500건</button>
-        <button data-amt="1000">+1,000건</button>
+
+      <!-- 건수 충전 -->
+      <div id="rcCharge">
+        <div class="rc-sech"><span>충전 수량</span><span class="rc-cur">잔여 <b id="creditBalBig">300</b>건</span></div>
+        <div class="rc-amt">
+          <input id="creditCustom" inputmode="numeric" value="300" maxlength="7">
+          <button class="rc-clear" id="rcClear" aria-label="지우기">✕</button>
+          <span class="rc-unit">건</span>
+        </div>
+        <div class="rc-quick" id="creditPresets">
+          <button data-add="100">+100</button>
+          <button data-add="500">+500</button>
+          <button data-add="1000">+1,000</button>
+        </div>
+        <div class="rc-hint">※ 충전 수량은 100건 단위로만 결제 가능합니다. · 알림톡 1건 = 10원 (VAT 별도)</div>
+
+        <div class="rc-sech" style="margin-top:22px"><span>결제 수단</span></div>
+        <div class="rc-pay" id="rcPaySeg">
+          <label class="rc-radio on"><input type="radio" name="rcPay" value="dom" checked><span>국내 결제</span></label>
+          <label class="rc-radio"><input type="radio" name="rcPay" value="intl"><span>해외 결제</span></label>
+        </div>
+        <div class="rc-cards" id="rcCards">
+          <button class="rc-card on" data-pm="npay"><b>N</b>pay</button>
+          <button class="rc-card" data-pm="kakao">kakao pay</button>
+          <button class="rc-card" data-pm="card">신용/체크카드</button>
+          <button class="rc-card" data-pm="toss">토스페이</button>
+        </div>
+
+        <div class="rc-total"><span>최종 결제 금액</span><b id="rcTotal">3,300원</b></div>
+        <div class="rc-notes">
+          · 결제 금액에는 부가세(VAT 10%)가 포함되어 있습니다.<br>
+          · 충전한 발송 건수는 복귀 유도·승급 넛지·감사 알림톡 발송 시 1건씩 차감됩니다.<br>
+          · 잔여 건수는 워크스페이스별로 관리됩니다.
+        </div>
+        <button class="btn primary rc-submit" id="creditConfirm">충전하기</button>
       </div>
-      <div class="credit-custom">
-        <input id="creditCustom" inputmode="numeric" placeholder="직접 입력 (건)" maxlength="6">
-        <button class="btn ghost sm" id="creditCustomBtn">적용</button>
+
+      <!-- 자동 충전 -->
+      <div id="rcAuto" class="hidden">
+        <label class="rc-auto-toggle">
+          <div><b>자동 충전 사용</b><span>잔여 건수가 기준 이하로 떨어지면 자동으로 충전합니다.</span></div>
+          <div class="tgl" id="rcAutoToggle"></div>
+        </label>
+        <div id="rcAutoBody">
+          <div class="rc-sech" style="margin-top:20px"><span>충전 조건</span></div>
+          <div class="rc-cond"><span>잔여</span><input id="rcAutoThresh" inputmode="numeric" value="50" maxlength="5"><span>건 이하가 되면</span></div>
+          <div class="rc-cond"><input id="rcAutoAmt" inputmode="numeric" value="300" maxlength="6"><span>건을 자동 충전</span></div>
+          <div class="rc-hint">자동 충전 시에도 위에서 선택한 결제 수단으로 결제됩니다.</div>
+          <button class="btn primary rc-submit" id="rcAutoSave">자동 충전 설정 저장</button>
+        </div>
       </div>
-      <div class="credit-log" id="creditLog"></div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn ghost" id="creditCancel">닫기</button>
-      <div class="spacer"></div>
-      <button class="btn primary" id="creditConfirm">＋ <b id="creditConfirmAmt">300</b>건 충전</button>
     </div>
   </div>
 </div>
@@ -3512,7 +3645,7 @@ function titleBadge(t){return `<span class="tbadge" style="--tc:${t.color}"><spa
 /* =========================================================
    Tabs
    ========================================================= */
-const pages={insight:byId('page-insight'),hall:byId('page-hall'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),donations:byId('page-donations'),auto:byId('page-auto'),toon:byId('page-toon'),sched:byId('page-sched')};
+const pages={insight:byId('page-insight'),hall:byId('page-hall'),grade:byId('page-grade'),title:byId('page-title'),donator:byId('page-donator'),donations:byId('page-donations'),auto:byId('page-auto'),credit:byId('page-credit'),toon:byId('page-toon'),sched:byId('page-sched')};
 function byId(id){return document.getElementById(id);}
 /* 라이브 페이지를 우측 고정 패널로 이전(도네이터 드로어와 동일한 UX) */
 (function(){const pl=byId('page-live'),body=byId('liveDrBody'); if(pl&&body){body.appendChild(pl);pl.classList.remove('hidden');}})();
@@ -3540,6 +3673,7 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   if(tab==='sched') renderSchedule();
   if(tab==='donations') renderDonationList();
   if(tab==='donator') renderDonators();
+  if(tab==='credit') renderCreditPage();
   if(tab==='auto') renderAutos();
   if(tab==='grade') renderGrades();
   if(tab==='title') renderTitles();
@@ -4991,41 +5125,73 @@ function spendCredit(label,n,msg){
   if(!DB.msgCredit||DB.msgCredit.balance<n)return false;
   DB.msgCredit.balance-=n; DB.msgCredit.sent=(DB.msgCredit.sent||0)+n;
   logCredit('send',n,label||'💬 알림톡 발송',msg);
-  save(); renderCredit(); renderCreditModal(); return true;
+  const au=DB.msgCredit.auto;   // 자동 충전: 잔여가 기준 이하로 떨어지면 자동 충전
+  if(au&&au.on&&DB.msgCredit.balance<(au.thresh||0)){DB.msgCredit.balance+=(au.amt||300);logCredit('auto',au.amt||300,'');}
+  save(); renderCredit(); renderCreditModal(); renderCreditPage(); return true;
 }
 function rechargeCredit(amt){
   amt=Math.floor(+amt||0); if(amt<=0)return false;
   DB.msgCredit.balance+=amt;
   logCredit('recharge',amt,'');
-  save(); renderCredit(); renderCreditModal(); return true;
+  save(); renderCredit(); renderCreditModal(); renderCreditPage(); return true;
 }
-let creditSel=300, creditLogF='all';
+/* ===== 충전하기 모달 (건수 충전 / 자동 충전) ===== */
+const CREDIT_UNIT=100, CREDIT_PRICE=10;   // 100건 단위 · 알림톡 1건 = 10원(VAT 별도)
+let creditQty=300, creditPM='npay', creditRegion='dom';
+function creditCost(q){ return Math.round(q*CREDIT_PRICE*1.1); }   // VAT 10% 포함
+function snapQty(q){ q=Math.max(0,Math.floor(+q||0)); return Math.round(q/CREDIT_UNIT)*CREDIT_UNIT; }
 function renderCreditModal(){
-  byId('creditBalBig').textContent=won(creditBalance());
-  byId('creditConfirmAmt').textContent=won(creditSel);
-  const box=byId('creditLog');
+  const bb=byId('creditBalBig'); if(bb)bb.textContent=won(creditBalance());
+  const inp=byId('creditCustom'); if(inp&&document.activeElement!==inp) inp.value=won(creditQty);
+  const t=byId('rcTotal'); if(t)t.textContent=won(creditCost(creditQty))+'원';
+  const au=(DB.msgCredit&&DB.msgCredit.auto)||{};
+  const tg=byId('rcAutoToggle'); if(tg)tg.classList.toggle('on',!!au.on);
+  const body=byId('rcAutoBody'); if(body)body.classList.toggle('off',!au.on);
+  const th=byId('rcAutoThresh'); if(th&&document.activeElement!==th)th.value=au.thresh||50;
+  const am=byId('rcAutoAmt'); if(am&&document.activeElement!==am)am.value=au.amt||300;
+}
+/* ===== 이용 내역 페이지 ===== */
+let cpFilter='all', cpPage=1; const CP_PP=12;
+function renderCreditPage(){
+  if(!byId('page-credit'))return;
   const all=(DB.msgCredit&&DB.msgCredit.log)||[];
   const totCharge=all.filter(l=>l.type!=='send').reduce((s,l)=>s+l.amount,0);
   const totSend=all.filter(l=>l.type==='send').reduce((s,l)=>s+l.amount,0);
-  const log=all.filter(l=>creditLogF==='all'?true:creditLogF==='send'?l.type==='send':l.type!=='send');
-  const empty=creditLogF==='send'?'발송 내역이 없습니다':creditLogF==='recharge'?'충전 내역이 없습니다':'이용 내역이 없습니다';
-  box.innerHTML=`
-    <div class="cl-top"><div class="cl-h">이용 내역</div>
-      <div class="cl-seg" id="creditLogSeg">
-        <button data-f="all" class="${creditLogF==='all'?'on':''}">전체</button>
-        <button data-f="recharge" class="${creditLogF==='recharge'?'on':''}">충전</button>
-        <button data-f="send" class="${creditLogF==='send'?'on':''}">발송</button>
-      </div></div>
-    <div class="cl-sum"><span>총 충전 <b>${won(totCharge)}</b>건</span><span>총 발송 <b>${won(totSend)}</b>건</span></div>
-    ${log.length?log.map(l=>{const send=l.type==='send';
-      const nm=send?(l.label||'💬 알림톡 발송'):(l.type==='init'?'🎁 지급':'＋ 충전');
-      return `<div class="cl-row"><span class="cl-nm">${nm}</span><span class="cl-t">${fmtAgo(l.ts)}</span><span class="cl-a ${send?'minus':''}">${send?'−':'+'}${won(l.amount)}건 → ${won(l.balance)}건</span></div>`;
-    }).join(''):`<div class="cl-empty">${empty}</div>`}
-    ${totSend>0?`<button class="sl-open" id="creditSendMore">🔎 발송 내역 자세히 보기 (${won(all.filter(l=>l.type==='send').length)}회) →</button>`:''}`;
-  const seg=byId('creditLogSeg');
-  if(seg)seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{creditLogF=b.dataset.f;renderCreditModal();});
-  const more=byId('creditSendMore'); if(more)more.onclick=openSendLog;
+  const chargeCnt=all.filter(l=>l.type!=='send').length, sendCnt=all.filter(l=>l.type==='send').length;
+  byId('cpBal').textContent=won(creditBalance());
+  byId('cpCharge').textContent=won(totCharge);
+  byId('cpSend').textContent=won(totSend);
+  byId('cpChargeCnt').textContent=`${won(chargeCnt)}회 충전`;
+  byId('cpSendCnt').textContent=`${won(sendCnt)}회 발송`;
+  const au=(DB.msgCredit&&DB.msgCredit.auto)||{};
+  byId('cpAutoState').textContent=au.on?`🔄 자동 충전 켜짐 · 잔여 ${won(au.thresh||50)}건 이하 시 ${won(au.amt||300)}건`:'자동 충전 꺼짐';
+  byId('cpSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.f===cpFilter));
+  const rows=all.filter(l=>cpFilter==='all'?true:cpFilter==='send'?l.type==='send':l.type!=='send');
+  const pages=Math.max(1,Math.ceil(rows.length/CP_PP));
+  if(cpPage>pages)cpPage=pages; if(cpPage<1)cpPage=1;
+  const start=(cpPage-1)*CP_PP, pageRows=rows.slice(start,start+CP_PP);
+  byId('cpCount').textContent=`${won(rows.length)}건`;
+  byId('cpList').innerHTML=pageRows.length?pageRows.map(l=>{
+    const send=l.type==='send';
+    let icon='＋',nm='발송 건수 충전',msg='';
+    if(send){const p=parseSend(l);icon=p.icon;nm=p.type;msg=[p.target,l.msg].filter(x=>x&&x!=='-').join(' · ');}
+    else if(l.type==='init'){icon='🎁';nm='최초 지급';}
+    else if(l.type==='auto'){icon='🔄';nm='자동 충전';}
+    return `<div class="cp-row ${send?'send':'charge'}"><div class="cp-ic">${icon}</div>
+      <div class="cp-main"><div class="cp-nm">${nm}</div>${msg?`<div class="cp-msg">${msg}</div>`:''}</div>
+      <div class="cp-when">${fmtDT(l.ts)}</div>
+      <div class="cp-amt ${send?'minus':''}">${send?'−':'+'}${won(l.amount)}건</div></div>`;
+  }).join(''):`<div class="cp-empty">${cpFilter==='send'?'발송 내역이 없습니다':cpFilter==='recharge'?'충전 내역이 없습니다':'이용 내역이 없습니다'}</div>`;
+  byId('cpPager').innerHTML=rows.length>CP_PP?`
+    <button class="btn ghost sm" id="cpPrev" ${cpPage<=1?'disabled':''}>◀ 이전</button>
+    <span class="sl-pageinfo">${cpPage} / ${pages}</span>
+    <button class="btn ghost sm" id="cpNext" ${cpPage>=pages?'disabled':''}>다음 ▶</button>`:'';
+  const pv=byId('cpPrev'),nx=byId('cpNext');
+  if(pv)pv.onclick=()=>{if(cpPage>1){cpPage--;renderCreditPage();}};
+  if(nx)nx.onclick=()=>{if(cpPage<pages){cpPage++;renderCreditPage();}};
 }
+byId('cpSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{cpFilter=b.dataset.f;cpPage=1;renderCreditPage();});
+byId('creditPageCharge').onclick=()=>openRecharge();
 /* ---- 알림톡 발송 내역 (상세·페이징) ---- */
 let sendLogPage=1; const SEND_LOG_PP=6;
 function parseSend(l){
@@ -5063,20 +5229,40 @@ function renderSendLog(){
 function openSendLog(){sendLogPage=1;renderSendLog();byId('sendLogOverlay').classList.add('show');}
 byId('sendLogClose').onclick=byId('sendLogCloseBtn').onclick=()=>byId('sendLogOverlay').classList.remove('show');
 byId('sendLogOverlay').onclick=e=>{if(e.target===byId('sendLogOverlay'))byId('sendLogOverlay').classList.remove('show');};
-function openRecharge(){creditSel=300;byId('creditPresets').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.amt===300));byId('creditCustom').value='';renderCreditModal();byId('creditOverlay').classList.add('show');}
+function rcTab(which){
+  byId('rcTabs').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.rc===which));
+  byId('rcCharge').classList.toggle('hidden',which!=='charge');
+  byId('rcAuto').classList.toggle('hidden',which!=='auto');
+  renderCreditModal();
+}
+function openRecharge(){ if(viewerGuard())return; creditQty=300; rcTab('charge'); renderCreditModal(); byId('creditOverlay').classList.add('show'); }
 byId('creditChip').onclick=openRecharge;
-byId('creditPresets').querySelectorAll('button').forEach(b=>b.onclick=()=>{
-  creditSel=+b.dataset.amt; byId('creditCustom').value='';
-  byId('creditPresets').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
-  byId('creditConfirmAmt').textContent=won(creditSel);
-});
-byId('creditCustom').addEventListener('input',e=>{
-  const v=parseInt(e.target.value.replace(/[^\d]/g,''),10);
-  if(v>0){creditSel=v;byId('creditPresets').querySelectorAll('button').forEach(x=>x.classList.remove('on'));byId('creditConfirmAmt').textContent=won(creditSel);}
-});
-byId('creditCustomBtn').onclick=()=>{const v=parseInt(byId('creditCustom').value.replace(/[^\d]/g,''),10);if(v>0){creditSel=v;byId('creditConfirmAmt').textContent=won(creditSel);}};
-byId('creditConfirm').onclick=()=>{ if(rechargeCredit(creditSel)) toast(`${won(creditSel)}건을 충전했습니다 · 잔여 ${won(creditBalance())}건`); };
-byId('creditClose').onclick=byId('creditCancel').onclick=()=>byId('creditOverlay').classList.remove('show');
+byId('rcTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>rcTab(b.dataset.rc));
+/* 빠른 추가 */
+byId('creditPresets').querySelectorAll('button').forEach(b=>b.onclick=()=>{creditQty=snapQty(creditQty)+(+b.dataset.add);renderCreditModal();});
+/* 직접 입력 */
+byId('creditCustom').addEventListener('input',e=>{creditQty=parseInt(e.target.value.replace(/[^\d]/g,''),10)||0;byId('rcTotal').textContent=won(creditCost(creditQty))+'원';});
+byId('creditCustom').addEventListener('blur',()=>{creditQty=snapQty(creditQty);renderCreditModal();});
+byId('rcClear').onclick=()=>{creditQty=0;byId('creditCustom').value='0';renderCreditModal();byId('creditCustom').focus();};
+/* 결제 수단 */
+byId('rcPaySeg').querySelectorAll('.rc-radio').forEach(r=>r.onclick=()=>{creditRegion=r.querySelector('input').value;byId('rcPaySeg').querySelectorAll('.rc-radio').forEach(x=>x.classList.toggle('on',x===r));});
+byId('rcCards').querySelectorAll('.rc-card').forEach(c=>c.onclick=()=>{creditPM=c.dataset.pm;byId('rcCards').querySelectorAll('.rc-card').forEach(x=>x.classList.toggle('on',x===c));});
+/* 충전 실행 */
+byId('creditConfirm').onclick=()=>{
+  const q=snapQty(creditQty); creditQty=q; renderCreditModal();
+  if(q<CREDIT_UNIT){toast(`최소 ${won(CREDIT_UNIT)}건부터 충전할 수 있습니다`);return;}
+  if(rechargeCredit(q)){toast(`${won(q)}건 충전 완료 · ${won(creditCost(q))}원 결제 · 잔여 ${won(creditBalance())}건`);byId('creditOverlay').classList.remove('show');}
+};
+/* 자동 충전 */
+document.querySelector('.rc-auto-toggle').onclick=()=>{ if(viewerGuard())return; DB.msgCredit.auto=DB.msgCredit.auto||{thresh:50,amt:300}; DB.msgCredit.auto.on=!DB.msgCredit.auto.on; save(); renderCreditModal(); renderCreditPage(); };
+byId('rcAutoSave').onclick=()=>{
+  if(viewerGuard())return;
+  const th=Math.max(1,parseInt(byId('rcAutoThresh').value.replace(/[^\d]/g,''),10)||50);
+  const am=snapQty(parseInt(byId('rcAutoAmt').value.replace(/[^\d]/g,''),10)||0)||300;
+  DB.msgCredit.auto={on:true,thresh:th,amt:am}; save(); renderCreditModal(); renderCreditPage();
+  toast(`자동 충전 설정 저장 · 잔여 ${won(th)}건 이하 시 ${won(am)}건 충전`);
+};
+byId('creditClose').onclick=()=>byId('creditOverlay').classList.remove('show');
 byId('creditOverlay').onclick=e=>{if(e.target===byId('creditOverlay'))byId('creditOverlay').classList.remove('show');};
 
 /* --- 복귀 유도 모달 --- */
