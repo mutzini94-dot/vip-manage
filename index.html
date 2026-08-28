@@ -3707,7 +3707,7 @@ function renderThanksSummary(){
   byId('thanksSummary').innerHTML=`<div><b>${won(thanksRecipients.length)}명</b> 선택 · <span style="color:var(--on)">수신 동의 ${won(consented)}명</span>${excl?` · <span style="color:#ff8a5c">미동의 ${won(excl)}명 제외</span>`:''}</div>
     <div class="ts-cost">필요 크레딧 <b>${won(consented)}</b> · 잔여 <b>${won(creditBalance())}</b>건</div>`;
 }
-function thanksPrev(){const d=thanksRecipients[0];byId('thanksPreview').innerHTML=`<div class="kakao"><div class="kt">💌 감사 알림톡</div><div class="kb">${subMsg(byId('thanksMsg').value,d)}</div><div class="kbtn">방송 보러가기</div></div>`;}
+function thanksPrev(){const d=thanksRecipients[0];byId('thanksPreview').innerHTML=`<div class="kakao"><div class="kt">💌 감사 알림톡</div><div class="kb">${subMsg(byId('thanksMsg').value,d)}</div><div class="kbtn">후원 채널 바로가기</div></div>`;}
 function openThanks(){
   if(viewerGuard())return;
   const sel=selectedList().filter(d=>!d.blocked);
