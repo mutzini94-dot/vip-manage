@@ -5852,6 +5852,9 @@ function todayStr(){const t=refNow();const dt=new Date(t);return `${dt.getFullYe
    ========================================================= */
 const LIVE={on:false,online:new Map(),feed:[],donation:0,elapsed:0,rank:new Map(),happy:{on:false,mult:2,ends:0},donCount:0,peakOnline:0,schedId:null,title:'',category:'',hadHappy:false,startTs:0,tick:null,clock:null};
 const DONATE_AMTS=[1000,3000,5000,10000,30000,50000];
+/* 후원 유형(실시간 기록용) — 가중 랜덤 */
+const DONATE_TYPES=[['텍스트',50],['시그니처',28],['음성',14],['퀘스트',8]];
+function pickDonateType(){let r=Math.random()*DONATE_TYPES.reduce((s,t)=>s+t[1],0);for(const[n,w]of DONATE_TYPES){if((r-=w)<0)return n;}return '텍스트';}
 function liveEligible(){return DB.donators.filter(d=>!d.blocked && gradeForCash(d.cash));}
 function pick(arr){return arr.length?arr[Math.floor(Math.random()*arr.length)]:null;}
 
@@ -5873,7 +5876,7 @@ function goLive(title){
   if(typeof SESSION!=='undefined' && SESSION.role==='viewer'){ toast('뷰어는 방송을 시작할 수 없습니다','!'); return; }
   clearInterval(LIVE.tick); clearInterval(LIVE.clock);   // 중복 타이머 방지
   LIVE.on=true; LIVE.online=new Map(); LIVE.feed=[]; LIVE.donation=0; LIVE.elapsed=0; LIVE.rank=new Map(); LIVE.happy={on:false,mult:2,ends:0};
-  LIVE.donCount=0; LIVE.peakOnline=0; LIVE.hadHappy=false; LIVE.startTs=Date.now(); LIVE.schedId=null; LIVE.title=(title||'').trim(); LIVE.category='';
+  LIVE.donCount=0; LIVE.peakOnline=0; LIVE.hadHappy=false; LIVE.startTs=Date.now(); LIVE.schedId=null; LIVE.title=(title||'').trim(); LIVE.category=''; LIVE.series=[];
   const pool=liveEligible().sort(()=>Math.random()-.5);
   pool.slice(0,Math.min(6,pool.length)).forEach(d=>LIVE.online.set(d.id,{mins:1+Math.floor(Math.random()*35)}));
   LIVE.peakOnline=LIVE.online.size;
@@ -5906,7 +5909,7 @@ function buildRecap(){
   const toonDone=DB.toontalks.filter(t=>t.status==='done'&&t.respondedTs>=st&&t.respondedTs<=en).length;
   return {id:uid(),schedId:LIVE.schedId,title:LIVE.title||'라이브 방송',category:LIVE.category||'',
     startedTs:st,endedTs:en,durationSec:LIVE.elapsed,totalDonation:LIVE.donation,donationCount:LIVE.donCount,
-    uniqueDonors:LIVE.rank.size,peakOnline:LIVE.peakOnline,top:ranked.slice(0,5),donors:[...LIVE.rank.keys()],happyHour:!!LIVE.hadHappy,toonCompleted:toonDone};
+    uniqueDonors:LIVE.rank.size,peakOnline:LIVE.peakOnline,top:ranked.slice(0,5),donors:[...LIVE.rank.keys()],series:(LIVE.series||[]).slice(),happyHour:!!LIVE.hadHappy,toonCompleted:toonDone};
 }
 function fmtDur(s){const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?`${h}시간 ${m}분`:`${Math.max(1,m)}분`;}
 function gbByName(name){const g=DB.grades.find(x=>x.name===name);return g?gradeBadge(g):(name?`<span class="gb none"><span class="d"></span>${name}</span>`:'');}
@@ -5916,7 +5919,38 @@ function recapDelta(cur,prev){ if(prev==null||!prev)return ''; const p=Math.roun
 function recapDerived(r){
   const rnd=seedRand('recap_'+r.id);
   const total=r.totalDonation||0, cnt=r.donationCount||0, durH=(r.durationSec||3600)/3600;
-  const N=12, w=[];
+  const N=12;
+  const meta={avg:cnt?Math.round(total/cnt):0, perHour:Math.round(total/Math.max(0.15,durH)),
+    maxSingle:(r.top&&r.top[0]?r.top[0].amount:Math.round((cnt?total/cnt:0)*3.5)),
+    convRate:r.peakOnline?Math.min(100,Math.round(r.uniqueDonors/r.peakOnline*100)):0,
+    newRatio:Math.round(15+rnd()*32)};
+  /* ── 실제 방송 이벤트가 있으면 그대로 집계(합성 금지) ── */
+  if(Array.isArray(r.series)&&r.series.length){
+    const span=Math.max(1,(r.endedTs||(r.startedTs+(r.durationSec||1)*1000))-r.startedTs);
+    const buckets=new Array(N).fill(0), hhB=new Array(N).fill(false);
+    const gAgg={}, tAgg={}; let hhSum=0, maxSingle=0;
+    r.series.forEach(e=>{
+      const idx=Math.min(N-1,Math.max(0,Math.floor((e.ts-r.startedTs)/span*N)));
+      buckets[idx]+=e.amt; if(e.hh){hhB[idx]=true;hhSum+=e.amt;}
+      const gk=e.gcls||'none'; gAgg[gk]=(gAgg[gk]||0)+e.amt;
+      if(e.type)tAgg[e.type]=(tAgg[e.type]||0)+1;
+      if(e.amt>maxSingle)maxSingle=e.amt;
+    });
+    const labels=[];for(let i=0;i<N;i++){const t=new Date(r.startedTs+(i+0.5)/N*span);labels.push(z2(t.getHours())+':'+z2(t.getMinutes()));}
+    const GMAP={vvip:['VVIP','#ffcb45'],vip:['VIP','#a45bff'],yeol:['열혈','#5b8cff'],none:['미분류','#8b8fa3']};
+    const TCOL={'텍스트':'#5b8cff','시그니처':'#a45bff','음성':'#33d69f','퀘스트':'#ff8a5c'};
+    const grades=['vvip','vip','yeol','none'].filter(k=>gAgg[k]>0).map(k=>({name:GMAP[k][0],color:GMAP[k][1],val:gAgg[k]}));
+    const types=['텍스트','시그니처','음성','퀘스트'].filter(k=>tAgg[k]>0).map(k=>({name:k,color:TCOL[k],val:tAgg[k]}));
+    return Object.assign(meta,{
+      buckets, labels,
+      hhIdx:hhB.map((v,i)=>v?i:-1).filter(i=>i>=0),
+      hhShare: total?Math.round(hhSum/total*100):0,
+      grades: grades.length?grades:[{name:'미분류',color:'#8b8fa3',val:total||1}],
+      types,
+      maxSingle: maxSingle||meta.maxSingle});
+  }
+  /* ── 데모 시드(실이벤트 없음): 기존 합성 유지 ── */
+  const w=[];
   for(let i=0;i<N;i++) w.push(0.45+(i/(N-1))*0.7+rnd()*0.7);
   const hhIdx=[];
   if(r.happyHour){const s=Math.max(0,N-4-Math.floor(rnd()*2));for(let i=s;i<Math.min(N,s+3);i++){w[i]*=2.0;hhIdx.push(i);}}
@@ -5927,11 +5961,7 @@ function recapDerived(r){
   const gs=gp.reduce((a,x)=>a+x[2],0)||1, grades=gp.map(a=>({name:a[0],color:a[1],val:Math.round(a[2]/gs*total)}));
   const tp=[['텍스트','#5b8cff',0.5],['시그니처','#a45bff',0.28],['음성','#33d69f',0.14],['퀘스트','#ff8a5c',0.08]].map(a=>[a[0],a[1],a[2]*(0.85+rnd()*0.3)]);
   const tsu=tp.reduce((a,x)=>a+x[2],0)||1, types=tp.map(a=>({name:a[0],color:a[1],val:Math.round(a[2]/tsu*cnt)}));
-  return {buckets,labels,hhIdx,hhShare,grades,types,
-    avg:cnt?Math.round(total/cnt):0, perHour:Math.round(total/Math.max(0.15,durH)),
-    maxSingle:(r.top&&r.top[0]?r.top[0].amount:Math.round((cnt?total/cnt:0)*3.5)),
-    convRate:r.peakOnline?Math.min(100,Math.round(r.uniqueDonors/r.peakOnline*100)):0,
-    newRatio:Math.round(15+rnd()*32)};
+  return Object.assign(meta,{buckets,labels,hhIdx,hhShare,grades,types});
 }
 function recapTimeChart(d){
   const W=560,H=138,pl=8,pr=8,pt=12,pb=22,n=d.buckets.length,max=Math.max.apply(null,d.buckets)||1;
@@ -6059,6 +6089,8 @@ function liveTick(){
       const base=pick(DONATE_AMTS), boost=hh?LIVE.happy.mult:1, amt=base*boost;
       LIVE.donation+=amt;
       LIVE.rank.set(d.id,(LIVE.rank.get(d.id)||0)+amt); LIVE.donCount++;
+      if(!LIVE.series)LIVE.series=[];
+      LIVE.series.push({ts:Date.now(),amt,hh:boost>1,gcls:(clsOf(gradeForCash(d.cash))||'none'),type:pickDonateType()});
       pushFeed('donate',d,null,amt,boost>1?boost:0);
       fireAutos('donate',d,amt);        // 특정 도네이터 / 특정 금액 트리거
       if(Math.random()<0.15) fireAutos('first',d,amt);   // 가끔 첫 후원 트리거
