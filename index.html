@@ -396,6 +396,17 @@ body.nav-lock{overflow:hidden}                        /* 햄버거 메뉴 열림
 .panel-head{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--line)}
 .panel-head h3{margin:0;font-size:15px;font-weight:800}
 .panel-head .hint{font-size:12px;color:var(--muted);font-weight:500}
+/* 도움말 아이콘 + 클릭 툴팁 (position:fixed 공유 팝) */
+.help-ic{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line-strong);background:var(--surface-2);color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;display:inline-grid;place-items:center;line-height:1;padding:0;flex:none;transition:.12s}
+.help-ic:hover{border-color:var(--accent);color:var(--accent)}
+.help-ic.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.help-tip{position:fixed;z-index:120;width:300px;max-width:calc(100vw - 24px);background:var(--surface);border:1px solid var(--line-strong);border-radius:12px;padding:14px 16px;box-shadow:0 14px 40px rgba(0,0,0,.34);font-size:12px;line-height:1.65;color:var(--muted);font-weight:500}
+.help-tip h4{margin:0 0 5px;font-size:13px;font-weight:800;color:var(--text)}
+.help-tip p{margin:0}
+.help-tip .ht-sub{margin:11px 0 5px;font-size:11px;font-weight:800;color:var(--text)}
+.help-tip ul{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px}
+.help-tip b{color:var(--text);font-weight:800}
+.help-tip em{font-style:normal;font-weight:700;color:var(--accent)}
 .panel-head .spacer{flex:1}
 .panel-body{padding:18px}
 
@@ -1936,7 +1947,7 @@ tbody tr.blocked:hover{opacity:.72}
         </div>
         <div class="panel" data-insec="churn">
           <div class="panel-head">
-            <h3>⚠️ 이탈 위험 VIP</h3><span class="hint" id="churnHint"></span><div class="spacer"></div>
+            <h3>⚠️ 이탈 위험 VIP</h3><button class="help-ic" data-help="churn" aria-label="이탈 위험 VIP 도움말" title="이탈 위험 VIP란? · 사용법">?</button><span class="hint" id="churnHint"></span><div class="spacer"></div>
             <div class="seg" id="churnThresh" style="flex:none">
               <button data-d="14">14일</button><button data-d="30" class="on">30일</button><button data-d="60">60일</button>
             </div>
@@ -2921,6 +2932,9 @@ tbody tr.blocked:hover{opacity:.72}
     </div>
   </div>
 </div>
+
+<!-- 도움말 툴팁(공유) -->
+<div id="helpTip" class="help-tip hidden" role="tooltip"></div>
 
 <!-- ============ 방송 시작 (방송명 선택 입력) ============ -->
 <div class="overlay" id="liveStartOverlay">
@@ -5118,6 +5132,35 @@ byId('churnThresh').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   byId('churnThresh').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
   renderChurn();renderKpis();
 });
+/* ===== 도움말 아이콘 클릭 툴팁 ===== */
+const HELP_TIPS={
+  churn:{title:'⚠️ 이탈 위험 VIP',
+    html:`<p>등급(열혈 이상)을 보유했지만 <b>설정한 기간 동안 후원이 없는</b> 단골이에요. 관계가 식기 전에 먼저 챙겨야 할 대상입니다.</p>
+      <div class="ht-sub">사용법</div>
+      <ul>
+        <li>오른쪽 <em>14 / 30 / 60일</em> 버튼으로 ‘무후원 기준’ 기간을 조절해요.</li>
+        <li>목록의 <em>복귀 유도</em> 버튼으로 알림톡을 보내 재방문을 유도합니다.</li>
+        <li>도네이터 이름을 클릭하면 프로필이 열립니다.</li>
+        <li>알림톡 수신 미동의(🚫) 대상은 발송이 제한돼요.</li>
+      </ul>`}
+};
+let helpOpenBtn=null;
+function closeHelpTip(){const t=byId('helpTip');if(t)t.classList.add('hidden');if(helpOpenBtn){helpOpenBtn.classList.remove('on');helpOpenBtn=null;}}
+function openHelpTip(btn){
+  const cfg=HELP_TIPS[btn.dataset.help]; if(!cfg)return;
+  const t=byId('helpTip'); t.innerHTML=`<h4>${cfg.title}</h4>${cfg.html}`; t.classList.remove('hidden');
+  const r=btn.getBoundingClientRect(), tw=t.offsetWidth, th=t.offsetHeight;
+  let left=r.left, top=r.bottom+8;
+  if(left+tw>window.innerWidth-12) left=Math.max(12,window.innerWidth-12-tw);
+  if(top+th>window.innerHeight-12) top=Math.max(12,r.top-8-th);
+  t.style.left=left+'px'; t.style.top=top+'px';
+  btn.classList.add('on'); helpOpenBtn=btn;
+}
+document.querySelectorAll('.help-ic').forEach(b=>b.onclick=e=>{e.stopPropagation(); if(helpOpenBtn===b){closeHelpTip();} else {closeHelpTip(); openHelpTip(b);}});
+document.addEventListener('click',e=>{if(helpOpenBtn && !byId('helpTip').contains(e.target)) closeHelpTip();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape') closeHelpTip();});
+window.addEventListener('scroll',closeHelpTip,true);
+window.addEventListener('resize',closeHelpTip);
 
 /* =========================================================
    알림톡 발송 건수(크레딧) — 복귀 유도·넛지 공용 총량 제한
