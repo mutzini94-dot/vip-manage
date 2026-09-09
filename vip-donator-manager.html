@@ -1984,7 +1984,7 @@ tbody tr.blocked:hover{opacity:.72}
 
       <div class="panel" style="margin-bottom:16px" data-insec="outreach">
         <div class="panel-head">
-          <h3>📈 복귀 유도·넛지 성과</h3><span class="hint" id="outreachHint">발송 대비 전환 분석</span><div class="spacer"></div>
+          <h3>📈 복귀 유도·넛지 성과</h3><button class="help-ic" data-help="outreach" aria-label="복귀 유도·넛지 성과 도움말" title="복귀 유도·넛지 성과란? · 사용법">?</button><span class="hint" id="outreachHint">발송 대비 전환 분석</span><div class="spacer"></div>
           <button class="btn ghost sm" id="outreachMore">전체 성과 보기 ▸</button>
         </div>
         <div class="panel-body">
@@ -5151,6 +5151,15 @@ const HELP_TIPS={
         <li><em>식어가는 단골</em>은 관심이 필요한 대상 — 복귀 유도·감사 메시지로 관계를 회복하세요.</li>
         <li>도네이터 이름을 클릭하면 프로필이 열립니다.</li>
         <li>도네이터 관리의 <em>관계 온도별</em> 탭에서 온도 범위로 필터할 수 있어요.</li>
+      </ul>`},
+  outreach:{title:'📈 복귀 유도·넛지 성과',
+    html:`<p>복귀 유도·승급 넛지 알림톡을 보낸 뒤 실제 <b>후원(전환)으로 이어졌는지</b> 추적하는 지표예요. 발송 대비 전환율과 유도된 후원 금액을 보여줍니다.</p>
+      <div class="ht-sub">사용법</div>
+      <ul>
+        <li>카드에서 <em>복귀 유도 / 승급 넛지</em>별 발송·전환·전환율·유도 후원을 확인해요.</li>
+        <li>아래 최근 발송 목록에서 대상·유형·결과를 볼 수 있고, 이름 클릭 시 프로필이 열립니다.</li>
+        <li><em>전체 성과 보기</em>로 유형·결과별 필터와 전체 이력을 확인해요.</li>
+        <li>전환은 발송 이후 일정 기간 내 후원이 발생하면 집계됩니다.</li>
       </ul>`}
 };
 let helpOpenBtn=null;
