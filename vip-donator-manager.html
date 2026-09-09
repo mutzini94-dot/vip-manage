@@ -1962,7 +1962,7 @@ tbody tr.blocked:hover{opacity:.72}
 
       <div class="panel" style="margin-bottom:16px" data-insec="fanTemp">
         <div class="panel-head">
-          <h3>🌡 관계 온도</h3><span class="hint" id="fanTempHint">팬 관계 건강도</span><div class="spacer"></div>
+          <h3>🌡 관계 온도</h3><button class="help-ic" data-help="fantemp" aria-label="관계 온도 도움말" title="관계 온도란? · 사용법">?</button><span class="hint" id="fanTempHint">팬 관계 건강도</span><div class="spacer"></div>
           <div class="seg" id="fanTempMode" style="flex:none"><button data-m="cooling" class="on">🌥 식어가는 단골</button><button data-m="hot">🔥 뜨거운 팬</button></div>
         </div>
         <div class="panel-body">
@@ -5142,6 +5142,15 @@ const HELP_TIPS={
         <li>목록의 <em>복귀 유도</em> 버튼으로 알림톡을 보내 재방문을 유도합니다.</li>
         <li>도네이터 이름을 클릭하면 프로필이 열립니다.</li>
         <li>알림톡 수신 미동의(🚫) 대상은 발송이 제한돼요.</li>
+      </ul>`},
+  fantemp:{title:'🌡 관계 온도',
+    html:`<p>최근성·후원 빈도·후원 금액을 종합해 <b>팬과의 관계 건강도</b>를 0~100°로 점수화한 지표예요. 높을수록 활발하고, 낮을수록 관심이 식어가는 팬입니다.</p>
+      <div class="ht-sub">사용법</div>
+      <ul>
+        <li>오른쪽 <em>식어가는 단골 / 뜨거운 팬</em> 버튼으로 볼 그룹을 전환해요.</li>
+        <li><em>식어가는 단골</em>은 관심이 필요한 대상 — 복귀 유도·감사 메시지로 관계를 회복하세요.</li>
+        <li>도네이터 이름을 클릭하면 프로필이 열립니다.</li>
+        <li>도네이터 관리의 <em>관계 온도별</em> 탭에서 온도 범위로 필터할 수 있어요.</li>
       </ul>`}
 };
 let helpOpenBtn=null;
