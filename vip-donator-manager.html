@@ -5765,7 +5765,6 @@ function openFanCard(id){
   const rank=donatorRank(id), tier=rank?hallTier(rank):null;
   const totalRanked=hallRanking('total').length;
   const titles=donatorTitles(d);
-  const joinDays=Math.max(1,Math.round((refNow()-parseD(d.join))/864e5));
   const gc=g?g.color:'#8b8fa3';
   const card=byId('fanCard');
   card.style.cssText=`--gc:${gc};--gcSoft:${hexA(gc,.18)};--gcMid:${hexA(gc,.42)}`;
@@ -5779,11 +5778,6 @@ function openFanCard(id){
     <div class="fc-temp"><div class="fc-temp-ic">${s.level.icon}</div>
       <div class="fc-temp-mid"><div class="fc-temp-lb">관계 온도 · ${s.level.label}</div><div class="fc-temp-bar"><i style="width:${s.temp}%"></i></div></div>
       <div class="fc-temp-v">${s.temp}°</div></div>
-    <div class="fc-stats">
-      <div><div class="v">${won(d.cash)}</div><div class="k">누적 후원(캐시)</div></div>
-      <div><div class="v">${won(d.count)}</div><div class="k">후원 횟수</div></div>
-      <div><div class="v">D+${won(joinDays)}</div><div class="k">함께한 날</div></div>
-    </div>
     ${gg.top
       ? `<div class="fc-grade-top">👑 최고 등급 달성 — 최고의 팬이에요!</div>`
       : `<div class="fc-next"><div class="fc-next-lb">다음 등급 <b>${gg.nx.name}</b>까지 <b>${won(gg.remaining)}원</b> · ${Math.round(gg.pct)}%</div><div class="fc-next-bar"><i style="width:${gg.pct}%"></i></div></div>`}
