@@ -1721,6 +1721,15 @@ tbody tr.blocked:hover{opacity:.72}
 .td-kpi .v small{font-size:12px;font-weight:600;color:var(--muted);margin-left:2px}
 .td-kpi .s{font-size:11px;color:var(--muted);margin-top:3px}
 .td-kpi .s .up{color:#22c55e;font-weight:800}.td-kpi .s .down{color:var(--accent);font-weight:800}
+/* 일별 후원 추이 모달 */
+.dlt-chartbox{height:214px;overflow-x:auto;overflow-y:hidden;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:6px 10px;display:flex;align-items:flex-end}
+.dlt-chartbox .col-chart{width:auto;height:198px;flex:none}
+#dlTrendBody .up{color:#22c55e;font-weight:800}
+#dlTrendBody .down{color:var(--accent);font-weight:800}
+.dlt-insight{margin-top:16px;background:var(--accent-soft);border:1px solid rgba(255,61,104,.16);border-radius:12px;padding:14px 16px;font-size:13px}
+.dlt-insight>b{font-size:12.5px}
+.dlt-insight ul{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px;line-height:1.55;color:var(--muted)}
+.dlt-insight b{color:var(--text)}
 .td-section{margin-top:20px}
 .td-section>.section-lbl{font-size:13px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .td-section>.section-lbl .hint{font-size:11px;color:var(--muted);font-weight:600;margin-left:auto}
@@ -2275,6 +2284,7 @@ tbody tr.blocked:hover{opacity:.72}
           <p>모든 후원을 시간순으로 모아봅니다. 검색·정렬·유형/등급/기간별로 분류하세요.</p>
         </div>
         <div class="spacer"></div>
+        <button class="btn primary" id="dlTrendBtn">📈 일별 후원 추이</button>
         <button class="btn ghost" id="dlExport">📥 CSV 내보내기</button>
       </div>
 
@@ -3282,6 +3292,15 @@ tbody tr.blocked:hover{opacity:.72}
     <div class="modal-head"><h2>📈 후원 추이 인사이트</h2><div class="spacer"></div><button class="xbtn" id="trendDetClose">✕</button></div>
     <div class="modal-body" id="trendDetBody"></div>
     <div class="modal-foot"><div class="spacer"></div><button class="btn primary" id="trendDetCloseBtn">닫기</button></div>
+  </div>
+</div>
+
+<!-- ============ 일별 후원 추이 (후원 내역) ============ -->
+<div class="overlay" id="dlTrendOverlay">
+  <div class="modal wide" style="max-width:860px">
+    <div class="modal-head"><h2>📈 일별 후원 추이</h2><div class="spacer"></div><button class="xbtn" id="dlTrendClose">✕</button></div>
+    <div class="modal-body" id="dlTrendBody"></div>
+    <div class="modal-foot"><div class="spacer"></div><button class="btn primary" id="dlTrendCloseBtn">닫기</button></div>
   </div>
 </div>
 
@@ -4876,7 +4895,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();if(typeof closeLiveDrawer==='function')closeLiveDrawer();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','bulkSendOverlay','blockOverlay','happyOverlay','replyOverlay','imgViewOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','trendOverlay','creditOverlay','sendLogOverlay','activityLogOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay','perkOverlay','thanksOverlay','insightCustomOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();if(typeof closeLiveDrawer==='function')closeLiveDrawer();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','bulkSendOverlay','blockOverlay','happyOverlay','replyOverlay','imgViewOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','trendOverlay','dlTrendOverlay','creditOverlay','sendLogOverlay','activityLogOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay','perkOverlay','thanksOverlay','insightCustomOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -5082,6 +5101,51 @@ function openTrendDetail(){
 byId('trendMoreBtn').onclick=openTrendDetail;
 byId('trendDetClose').onclick=byId('trendDetCloseBtn').onclick=()=>byId('trendOverlay').classList.remove('show');
 byId('trendOverlay').onclick=e=>{if(e.target===byId('trendOverlay'))byId('trendOverlay').classList.remove('show');};
+
+/* ===== 일별 후원 추이 (후원 내역 · 현재 필터 기준) ===== */
+function openDlTrend(){
+  const body=byId('dlTrendBody'), rows=filteredDonations();
+  if(!rows.length){ body.innerHTML='<div class="helper" style="padding:36px;text-align:center">표시할 후원 내역이 없습니다. 필터를 조정해보세요.</div>'; byId('dlTrendOverlay').classList.add('show'); return; }
+  const WD=['일','월','화','수','목','금','토'];
+  const dkey=ts=>{const d=new Date(ts);return d.getFullYear()+'-'+z2(d.getMonth()+1)+'-'+z2(d.getDate());};
+  const map={}; rows.forEach(r=>{const k=dkey(r.ts);(map[k]=map[k]||{amt:0,cnt:0}).amt+=r.amount;map[k].cnt++;});
+  const keys=Object.keys(map).sort();
+  const start=new Date(keys[0]+'T00:00:00'), end=new Date(keys[keys.length-1]+'T00:00:00');
+  const allDays=[]; for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){ const k=d.getFullYear()+'-'+z2(d.getMonth()+1)+'-'+z2(d.getDate()); allDays.push({key:k,date:new Date(d),amt:map[k]?map[k].amt:0,cnt:map[k]?map[k].cnt:0}); }
+  const MAXBARS=31, trimmed=allDays.length>MAXBARS, shown=trimmed?allDays.slice(-MAXBARS):allDays;
+  const peak=shown.reduce((a,b)=>b.amt>a.amt?b:a,shown[0]);
+  const colRows=shown.map((x,i)=>({val:x.amt, label:(shown.length<=16||i===0||i===shown.length-1||x.key===peak.key||x.date.getDate()===1)?`${x.date.getMonth()+1}/${x.date.getDate()}`:'', _k:x.key}));
+  const chart=columnChart(colRows,{hot:r=>r._k===peak.key, top:r=>(r._k===peak.key&&r.val)?won(r.val):''});
+  const activeDays=shown.filter(x=>x.amt>0).length;
+  const totalAmt=shown.reduce((s,x)=>s+x.amt,0), totalCnt=shown.reduce((s,x)=>s+x.cnt,0);
+  const dayAvg=activeDays?Math.round(totalAmt/activeDays):0;
+  const half=Math.floor(shown.length/2);
+  const early=shown.slice(0,half).reduce((s,x)=>s+x.amt,0), late=shown.slice(half).reduce((s,x)=>s+x.amt,0);
+  const trend=early?Math.round((late-early)/early*100):(late>0?100:0);
+  const wdAmt=[0,0,0,0,0,0,0], wdCnt=[0,0,0,0,0,0,0]; shown.forEach(x=>{wdAmt[x.date.getDay()]+=x.amt;wdCnt[x.date.getDay()]+=x.cnt;});
+  const bestWd=wdAmt.indexOf(Math.max(...wdAmt));
+  const rangeLbl=`${shown[0].date.getMonth()+1}/${shown[0].date.getDate()} ~ ${shown[shown.length-1].date.getMonth()+1}/${shown[shown.length-1].date.getDate()}`;
+  body.innerHTML=`
+    <div class="helper" style="margin-bottom:10px">${rangeLbl} · 총 <b style="color:var(--text)">${won(totalAmt)}</b>캐시 / ${won(totalCnt)}건${trimmed?` · <span style="color:var(--muted-2)">최근 ${MAXBARS}일 표시</span>`:''}</div>
+    <div class="dlt-chartbox">${chart}</div>
+    <div class="td-kpis" style="margin-top:18px">
+      <div class="td-kpi"><div class="k">🏆 최고 후원일</div><div class="v tnum">${peak.date.getMonth()+1}/${peak.date.getDate()}</div><div class="s">${won(peak.amt)}캐시 · ${WD[peak.date.getDay()]}요일</div></div>
+      <div class="td-kpi"><div class="k">📊 일 평균</div><div class="v tnum">${won(dayAvg)}<small>캐시</small></div><div class="s">후원 발생일 ${won(activeDays)}일 기준</div></div>
+      <div class="td-kpi"><div class="k">📈 최근 추세</div><div class="v tnum"><span class="${trend>=0?'up':'down'}">${trend>=0?'▲':'▼'}${Math.abs(trend)}%</span></div><div class="s">구간 후반 vs 전반</div></div>
+      <div class="td-kpi"><div class="k">📅 후원 발생일</div><div class="v tnum">${won(activeDays)}<small>/${won(shown.length)}일</small></div><div class="s">${Math.round(activeDays/shown.length*100)}% 활동</div></div>
+    </div>
+    <div class="dlt-insight">💡 <b>인사이트</b>
+      <ul>
+        <li>가장 후원이 많았던 날은 <b>${peak.date.getMonth()+1}월 ${peak.date.getDate()}일(${WD[peak.date.getDay()]})</b>로 <b>${won(peak.amt)}캐시</b>가 모였어요.</li>
+        <li>이 구간 후원은 전반 대비 <b class="${trend>=0?'up':'down'}">${trend>=0?'▲':'▼'}${Math.abs(trend)}%</b> ${trend>=0?'증가':'감소'}했어요.</li>
+        <li>요일별로는 <b>${WD[bestWd]}요일</b>에 후원이 가장 많이 모였어요(${won(wdAmt[bestWd])}캐시). 라이브·이벤트 편성 시 참고하세요.</li>
+        <li>후원 발생일은 ${won(shown.length)}일 중 <b>${won(activeDays)}일</b>(${Math.round(activeDays/shown.length*100)}%) — ${activeDays/shown.length>=0.7?'꾸준히 후원이 들어오고 있어요.':'후원이 특정 날짜에 집중되는 편이에요.'}</li>
+      </ul></div>`;
+  byId('dlTrendOverlay').classList.add('show');
+}
+byId('dlTrendBtn').onclick=openDlTrend;
+byId('dlTrendClose').onclick=byId('dlTrendCloseBtn').onclick=()=>byId('dlTrendOverlay').classList.remove('show');
+byId('dlTrendOverlay').onclick=e=>{if(e.target===byId('dlTrendOverlay'))byId('dlTrendOverlay').classList.remove('show');};
 function renderGradeMix(){const{rows,total}=gradeMixData();byId('gradeMix').innerHTML=rows.length?donutChart(rows,total):'<div class="helper">데이터가 없습니다</div>';}
 /* --- 후원 금액 분포 --- */
 function renderAmtDist(){
