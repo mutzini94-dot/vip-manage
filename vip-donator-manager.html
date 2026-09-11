@@ -1281,6 +1281,27 @@ tbody tr.blocked:hover{opacity:.72}
 .fc-foot{padding:14px 20px;text-align:center;font-size:12.5px;font-weight:800;color:var(--muted);background:var(--surface-2)}
 .fc-actions{display:flex;gap:10px}
 .fc-note{font-size:11px;color:var(--muted-2);text-align:center;max-width:340px}
+.fc-achv{display:flex;flex-wrap:wrap;gap:6px;padding:14px 20px;border-bottom:1px solid var(--line)}
+.fc-achv-b{--ac:#8b8fa3;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid var(--ac);color:var(--ac);background:var(--surface-2)}
+/* ===== 열혈업적 배지 ===== */
+.dr-achv-count{font-size:11px;font-weight:800;color:var(--muted);margin-left:auto}
+.achv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:9px}
+.achv{--ac:#8b8fa3;display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 5px 9px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);text-align:center;transition:.15s}
+.achv.on{border-color:var(--ac);box-shadow:inset 0 0 0 1px var(--ac)}
+.achv.locked{opacity:.42;filter:grayscale(.9)}
+.achv-ic{font-size:22px;line-height:1}
+.achv-nm{font-size:10.5px;font-weight:700;color:var(--text);line-height:1.2}
+.achv.locked .achv-nm{color:var(--muted)}
+.achv-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.achv-card{--ac:#8b8fa3;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--ac);border-radius:16px;padding:16px 17px;text-align:center}
+.achv-card .ac-ic{font-size:34px;line-height:1}
+.achv-card .ac-nm{font-weight:800;font-size:15px;margin-top:9px}
+.achv-card .ac-desc{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.5;min-height:34px}
+.achv-card .ac-stat{font-size:12px;color:var(--muted);margin-top:8px}
+.achv-card .ac-stat b{color:var(--ac);font-variant-numeric:tabular-nums}
+.achv-card .ac-bar{height:6px;border-radius:4px;background:var(--surface-3);overflow:hidden;margin-top:8px}
+.achv-card .ac-bar i{display:block;height:100%;background:var(--ac);border-radius:4px}
+@media(max-width:640px){.achv-cards{grid-template-columns:1fr 1fr}}
 /* ===== 구독 멤버십 ===== */
 .sub-tier-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:16px}
 .sub-tier{--tc:#8b8fa3;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--tc);border-radius:16px;padding:16px 17px;position:relative}
@@ -2023,9 +2044,9 @@ tbody tr.blocked:hover{opacity:.72}
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
       멤버십 <span class="cnt" id="tabCntSub">0</span>
     </button>
-    <button class="tab" data-tab="title">
-      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 21l5-3 5 3-1.5-8.5"/></svg>
-      칭호 관리 <span class="cnt" id="tabCntTitle">0</span>
+    <button class="tab" data-tab="achv">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.5 12.5 17 21l-5-3-5 3 1.5-8.5"/></svg>
+      업적 <span class="cnt" id="tabCntAchv">0</span>
     </button>
     <button class="tab" data-tab="donator">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 6.5a3 3 0 0 1 0 5.6M20.5 20a4.8 4.8 0 0 0-3-4.4"/></svg>
@@ -2259,65 +2280,14 @@ tbody tr.blocked:hover{opacity:.72}
     </section>
 
     <!-- ============ TAB: 칭호 관리 ============ -->
-    <section id="page-title" class="hidden">
+    <section id="page-achv" class="hidden">
       <div class="page-head">
         <div>
-          <h1>칭호 관리</h1>
-          <p>누적 후원 금액 기준을 정하면 도달한 도네이터에게 칭호가 <b>자동 지급</b>됩니다. 아이콘·설명을 넣고 CSV로 관리할 수 있어요.</p>
-        </div>
-        <div class="spacer"></div>
-      </div>
-
-      <div class="cols">
-        <div class="panel">
-          <div class="panel-head"><h3>칭호 목록</h3><span class="hint">누적 후원 금액 이상 시 자동 부여</span><div class="spacer"></div>
-            <button class="btn ghost sm" id="titleCsvDl" title="칭호 목록 CSV 내보내기">⬇ CSV</button>
-            <button class="btn ghost sm" id="titleCsvUp" title="CSV로 칭호 목록 가져오기">⬆ CSV</button>
-            <input type="file" id="titleCsvFile" accept=".csv,text/csv" class="hidden">
-          </div>
-          <div class="panel-body"><div id="titleList"></div></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head"><h3 id="tfTitle">새 칭호 만들기</h3></div>
-          <div class="panel-body">
-            <div class="field">
-              <label>칭호 명 <span class="req">*</span></label>
-              <input class="inp" id="tfName" placeholder="예: 열혈팬, 골드 서포터, 큰손…" maxlength="14">
-            </div>
-            <div class="field">
-              <label>아이콘</label>
-              <div class="emoji-grid" id="tfIcons"></div>
-              <input type="file" id="tfIconFile" accept="image/*" class="hidden">
-              <div class="helper">이모지를 고르거나 <b>＋</b> 타일로 이미지를 업로드하세요 (정사각형 권장, 자동 64px 축소).</div>
-            </div>
-            <div class="field">
-              <label>색상</label>
-              <div class="swatches" id="tfSwatches"></div>
-            </div>
-            <div class="field">
-              <label>칭호 설명</label>
-              <input class="inp" id="tfDesc" placeholder="예: 꾸준히 응원해 주는 든든한 열혈팬" maxlength="40">
-            </div>
-            <div class="field">
-              <label>지급 조건 · 누적 후원 금액 <span class="req">*</span></label>
-              <div class="amt-wrap">
-                <input class="inp tnum" id="tfValue" inputmode="numeric" placeholder="100,000">
-                <span class="to">원 이상</span>
-              </div>
-              <div class="helper">누적 후원 금액이 이 금액 <b>이상</b>이면 칭호가 자동으로 지급됩니다.</div>
-            </div>
-            <div class="field">
-              <label>미리보기</label>
-              <div id="tfPreview" style="padding:6px 0"></div>
-            </div>
-            <div class="form-actions">
-              <button class="btn ghost" id="tfCancel">취소</button>
-              <button class="btn primary" id="tfSave">저장</button>
-            </div>
-          </div>
+          <h1>🔥 열혈업적</h1>
+          <p>팬의 활동에 따라 자동으로 달성되는 업적 배지입니다. 프로필과 팬 카드에 표시돼 재후원 동기를 높여줘요.</p>
         </div>
       </div>
+      <div class="achv-cards" id="achvGrid"></div>
     </section>
 
     <!-- ============ TAB: 도네이터 관리 ============ -->
@@ -2889,9 +2859,8 @@ tbody tr.blocked:hover{opacity:.72}
         <div id="drPerks"></div>
       </div>
       <div class="dr-sec">
-        <div class="h">🏆 획득한 칭호</div>
-        <div class="titles" id="drTitles"></div>
-        <div class="grant-row" id="drGrant"></div>
+        <div class="h">🔥 열혈업적 <span class="dr-achv-count" id="drAchvCount"></span></div>
+        <div class="achv-grid" id="drAchv"></div>
       </div>
     </div>
     <div class="dr-group" id="drg-activity">
@@ -3473,7 +3442,6 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="field"><label>아이콘 (이모지)</label><input class="inp" id="stIcon" maxlength="4" placeholder="💜"></div>
       <div class="field"><label>대표 색상</label><div class="st-sw-row" id="stColors"></div></div>
       <div class="field"><label>혜택 <span class="helper" style="display:inline;font-weight:500">· 줄바꿈으로 구분</span></label><textarea class="inp" id="stBenefits" rows="3" placeholder="전용 뱃지&#10;월말 감사 메시지&#10;방송 우선 인사"></textarea></div>
-      <div class="field"><label>구독 시 자동 지급 칭호 <span class="helper" style="display:inline;font-weight:500">· 선택</span></label><select class="inp" id="stTitle"></select></div>
     </div>
     <div class="modal-foot">
       <button class="btn ghost" id="stDelete" style="margin-right:auto;color:#ff6b81">삭제</button>
@@ -3920,7 +3888,7 @@ function titleBadge(t){return `<span class="tbadge" style="--tc:${t.color}"><spa
 /* =========================================================
    Tabs
    ========================================================= */
-const pages={insight:byId('page-insight'),hall:byId('page-hall'),grade:byId('page-grade'),sub:byId('page-sub'),title:byId('page-title'),donator:byId('page-donator'),donations:byId('page-donations'),auto:byId('page-auto'),credit:byId('page-credit'),toon:byId('page-toon'),sched:byId('page-sched')};
+const pages={insight:byId('page-insight'),hall:byId('page-hall'),grade:byId('page-grade'),sub:byId('page-sub'),achv:byId('page-achv'),donator:byId('page-donator'),donations:byId('page-donations'),auto:byId('page-auto'),credit:byId('page-credit'),toon:byId('page-toon'),sched:byId('page-sched')};
 function byId(id){return document.getElementById(id);}
 /* 라이브 페이지를 우측 고정 패널로 이전(도네이터 드로어와 동일한 UX) */
 (function(){const pl=byId('page-live'),body=byId('liveDrBody'); if(pl&&body){body.appendChild(pl);pl.classList.remove('hidden');}})();
@@ -3952,7 +3920,7 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   if(tab==='auto') renderAutos();
   if(tab==='grade') renderGrades();
   if(tab==='sub') renderSub();
-  if(tab==='title') renderTitles();
+  if(tab==='achv') renderAchv();
 });
 /* 라이브 우측 패널 열기/닫기 */
 function openLiveDrawer(){ liveRecapPage=1; byId('liveDrawerOverlay').classList.add('show'); byId('liveDrawer').classList.add('show'); renderLive(); }
@@ -5047,7 +5015,7 @@ function openDrawer(id){
     return `<div class="dtype ${has?'':'dim'}"><span class="di">${m.i}</span>${m.n}</div>`;
   }).join('');
   // titles
-  renderDrTitles(d);
+  renderDrAchv(d);
   // 활동 타임라인
   renderTimeline(d);
   byId('drawerOverlay').classList.add('show');
@@ -5948,7 +5916,7 @@ function openFanCard(id){
   const g=gradeForCash(d.cash), s=fanScore(d), gg=gaugeData(d);
   const rank=donatorRank(id), tier=rank?hallTier(rank):null;
   const totalRanked=hallRanking('total').length;
-  const titles=donatorTitles(d);
+  const achv=earnedAchv(d);
   const gc=g?g.color:'#8b8fa3';
   const card=byId('fanCard');
   card.style.cssText=`--gc:${gc};--gcSoft:${hexA(gc,.18)};--gcMid:${hexA(gc,.42)}`;
@@ -5965,7 +5933,7 @@ function openFanCard(id){
     ${gg.top
       ? `<div class="fc-grade-top">👑 최고 등급 달성 — 최고의 팬이에요!</div>`
       : `<div class="fc-next"><div class="fc-next-lb">다음 등급 <b>${gg.nx.name}</b>까지 <b>${won(gg.remaining)}원</b> · ${Math.round(gg.pct)}%</div><div class="fc-next-bar"><i style="width:${gg.pct}%"></i></div></div>`}
-    ${titles.length?`<div class="fc-titles">${titles.slice(0,6).map(t=>`<span class="fc-title" style="--tc:${t.color}">${iconHTML(t.icon,15)} ${(t.name||'').replace(/</g,'&lt;')}</span>`).join('')}</div>`:''}
+    ${achv.length?`<div class="fc-achv">${achv.slice(0,8).map(a=>`<span class="fc-achv-b" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}" title="${a.name} · ${a.desc}">${a.icon} ${a.name}</span>`).join('')}</div>`:''}
     ${rank?`<div class="fc-rank">🏅 전체 팬 <b>${won(totalRanked)}명</b> 중 <b>${won(rank)}위</b></div>`:''}
     <div class="fc-foot">함께해줘서 고마워요 💛</div>`;
   byId('fanCardOverlay').classList.add('show');
@@ -5984,10 +5952,8 @@ byId('fanCardCopy').onclick=()=>{
    ========================================================= */
 function deliverSubPerks(d,tier,kind){
   if(!tier)return false;
-  let granted=false;
-  if(tier.titleId && !(d.awards||[]).includes(tier.titleId)){ d.awards=[...(d.awards||[]),tier.titleId]; granted=true; }
   d.subLog=d.subLog||[]; d.subLog.unshift({ts:Date.now(),kind,tier:tier.name}); if(d.subLog.length>20)d.subLog.pop();
-  return granted;
+  return false;
 }
 let subFilter='all';
 function renderSub(){
@@ -6081,7 +6047,7 @@ byId('subPickConfirm').onclick=()=>{
   const granted=deliverSubPerks(d,t,changing?'change':'subscribe');
   if(!d.member){d.member=true; if(!d.memberSince)d.memberSince=todayStr();}
   save(); byId('subPickOverlay').classList.remove('show'); renderSub();
-  if(drId===d.id){renderDrMembership(d);if(typeof renderDrTitles==='function')renderDrTitles(d);}
+  if(drId===d.id){renderDrMembership(d);if(typeof renderDrAchv==='function')renderDrAchv(d);}
   if(typeof renderDonators==='function')renderDonators();
   toast(`${t.name} 구독을 ${changing?'변경':'시작'}했어요${granted?' · 칭호 자동 지급 🎉':''}`);
 };
@@ -6094,14 +6060,13 @@ function openSubTier(id){ if(viewerGuard())return; const t=id?subTier(id):null; 
   byId('stName').value=t?t.name:''; byId('stPrice').value=t?t.price:''; byId('stIcon').value=t?(t.icon||''):'💳'; byId('stBenefits').value=t?(t.benefits||[]).join('\n'):'';
   byId('stColors').innerHTML=SWATCH_COLORS.map(c=>`<button type="button" class="st-sw ${c===stEdit.color?'on':''}" data-c="${c}" style="background:${c}"></button>`).join('');
   byId('stColors').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{stEdit.color=b.dataset.c;byId('stColors').querySelectorAll('.st-sw').forEach(x=>x.classList.toggle('on',x.dataset.c===stEdit.color));});
-  byId('stTitle').innerHTML=`<option value="">없음</option>`+(DB.titles||[]).map(x=>`<option value="${x.id}" ${t&&t.titleId===x.id?'selected':''}>${(x.name||'').replace(/</g,'&lt;')}</option>`).join('');
   byId('stDelete').style.display=id?'':'none';
   byId('subTierOverlay').classList.add('show');
 }
 byId('stSave').onclick=()=>{
   const name=byId('stName').value.trim(); if(!name)return toast('티어 이름을 입력하세요','!');
   const price=Math.max(0,parseInt((byId('stPrice').value||'').replace(/[^\d]/g,''),10)||0);
-  const data={name,price,color:stEdit.color,icon:byId('stIcon').value.trim()||'💳',benefits:byId('stBenefits').value.split('\n').map(s=>s.trim()).filter(Boolean),titleId:byId('stTitle').value};
+  const data={name,price,color:stEdit.color,icon:byId('stIcon').value.trim()||'💳',benefits:byId('stBenefits').value.split('\n').map(s=>s.trim()).filter(Boolean)};
   if(stEdit.id){const t=subTier(stEdit.id);if(t)Object.assign(t,data);} else DB.subTiers.push({id:uid(),...data});
   save(); byId('subTierOverlay').classList.remove('show'); renderSub(); toast('구독 티어를 저장했어요');
 };
@@ -6199,190 +6164,51 @@ byId('insightRefresh').onclick=()=>{
 };
 
 /* =========================================================
-   TAB — 칭호 관리 (규칙 엔진)
+   TAB — 열혈업적 (자동 획득 배지)
    ========================================================= */
-let tfState={id:null,icon:TITLE_ICONS[1],color:'#a45bff'};
-
-function renderTfIcons(){
-  const box=byId('tfIcons');box.innerHTML='';
-  // 업로드된 이미지가 선택된 경우 맨 앞에 썸네일 타일
-  if(isImgIcon(tfState.icon)){
-    const el=document.createElement('div');el.className='em img on';el.title='업로드한 이미지 · 클릭 시 변경';
-    el.innerHTML=`<img src="${tfState.icon}" alt="">`;
-    el.onclick=()=>byId('tfIconFile').click();
-    box.appendChild(el);
-  }
-  TITLE_ICONS.forEach(e=>{const el=document.createElement('div');el.className='em'+(e===tfState.icon?' on':'');el.textContent=e;
-    el.onclick=()=>{tfState.icon=e;renderTfIcons();renderTfPreview();};box.appendChild(el);});
-  // 이미지 업로드 타일
-  const up=document.createElement('div');up.className='em up';up.title='이미지 업로드';
-  up.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
-  up.onclick=()=>byId('tfIconFile').click();
-  box.appendChild(up);
+const ACHV_COLORS={bronze:'#c9885a',silver:'#9aa3b2',gold:'#ffcb45',epic:'#a45bff',live:'#ff3d68'};
+const ACHIEVEMENTS=[
+  {id:'first',icon:'🔥',name:'첫 후원',desc:'첫 후원을 남긴 소중한 순간',c:'bronze',check:d=>(d.count||0)>=1},
+  {id:'don50',icon:'💌',name:'후원 50회',desc:'50번의 응원을 보냈어요',c:'bronze',check:d=>(d.count||0)>=50},
+  {id:'don100',icon:'🧧',name:'후원 100회',desc:'100번의 마음을 전했어요',c:'silver',check:d=>(d.count||0)>=100},
+  {id:'don300',icon:'🏵️',name:'후원 300회',desc:'300회 후원의 진심',c:'gold',check:d=>(d.count||0)>=300},
+  {id:'cash100',icon:'💰',name:'누적 100만',desc:'누적 후원 100만 캐시 달성',c:'silver',check:d=>(d.cash||0)>=1000000},
+  {id:'cash1000',icon:'💎',name:'누적 1000만',desc:'누적 후원 1000만 캐시 달성',c:'epic',check:d=>(d.cash||0)>=10000000},
+  {id:'vvip',icon:'👑',name:'VVIP 등극',desc:'최고 등급에 도달한 최상위 팬',c:'gold',check:d=>{const g=gradeForCash(d.cash);return !!g&&clsOf(g)==='vvip';}},
+  {id:'anniv1',icon:'🎂',name:'1주년 단골',desc:'함께한 지 1년이 넘었어요',c:'silver',check:d=>daysSinceJoin(d)>=365},
+  {id:'anniv2',icon:'🎊',name:'2주년 단골',desc:'함께한 지 2년이 넘었어요',c:'gold',check:d=>daysSinceJoin(d)>=730},
+  {id:'sub',icon:'🎫',name:'유료 구독자',desc:'유료 멤버십으로 함께해요',c:'epic',check:d=>subActive(d)},
+  {id:'sublong',icon:'🗓️',name:'장기 구독',desc:'6개월 이상 이어온 구독',c:'epic',check:d=>!!(d.sub&&d.sub.status==='active'&&(d.sub.months||0)>=6)},
+  {id:'hot',icon:'⭐',name:'뜨거운 팬',desc:'관계 온도 80도 이상',c:'live',check:d=>fanScore(d).temp>=80},
+  {id:'toon',icon:'💬',name:'투네톡 후원',desc:'댓글과 함께 후원을 보냈어요',c:'bronze',check:d=>(DB.toontalks||[]).some(t=>t.donatorId===d.id&&t.status==='done')},
+  {id:'king',icon:'🏆',name:'후원왕',desc:'역대 누적 후원 1위',c:'gold',check:d=>donatorRank(d.id)===1},
+  {id:'hall',icon:'🏅',name:'명예의 전당',desc:'역대 누적 후원 TOP 5',c:'gold',check:d=>{const r=donatorRank(d.id);return !!r&&r<=5;}},
+];
+function daysSinceJoin(d){ return Math.round((refNow()-parseD(d.join||d.memberSince||'2024-01-01'))/864e5); }
+function earnedAchv(d){ return ACHIEVEMENTS.filter(a=>{try{return a.check(d);}catch(e){return false;}}); }
+function achvBadge(a,earned){ return `<div class="achv ${earned?'on':'locked'}" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}" title="${a.name} · ${a.desc}"><div class="achv-ic">${a.icon}</div><div class="achv-nm">${a.name}</div></div>`; }
+/* 열혈업적 개요 페이지 */
+function renderAchv(){
+  if(!byId('page-achv'))return;
+  const members=(DB.donators||[]).filter(d=>!d.blocked);
+  byId('tabCntAchv').textContent=ACHIEVEMENTS.length;
+  byId('achvGrid').innerHTML=ACHIEVEMENTS.map(a=>{
+    const cnt=members.filter(d=>{try{return a.check(d);}catch(e){return false;}}).length;
+    const pct=members.length?Math.round(cnt/members.length*100):0;
+    return `<div class="achv-card" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}">
+      <div class="ac-ic">${a.icon}</div>
+      <div class="ac-nm">${a.name}</div>
+      <div class="ac-desc">${a.desc}</div>
+      <div class="ac-stat"><b>${won(cnt)}</b>명 획득 · ${pct}%</div>
+      <div class="ac-bar"><i style="width:${pct}%"></i></div></div>`;
+  }).join('');
 }
-/* 업로드 이미지를 64px 정사각형 data URI로 변환 */
-function readIconImage(file,cb){
-  const rd=new FileReader();
-  rd.onload=()=>{ const img=new Image();
-    img.onload=()=>{ const S=64,c=document.createElement('canvas');c.width=S;c.height=S;
-      const ctx=c.getContext('2d');
-      const scale=Math.max(S/img.width,S/img.height),w=img.width*scale,h=img.height*scale;
-      ctx.drawImage(img,(S-w)/2,(S-h)/2,w,h);
-      try{cb(c.toDataURL('image/png'));}catch(e){cb(null);}
-    };
-    img.onerror=()=>cb(null); img.src=rd.result;
-  };
-  rd.onerror=()=>cb(null); rd.readAsDataURL(file);
-}
-byId('tfIconFile').onchange=e=>{
-  const f=e.target.files[0]; if(!f){return;}
-  if(!/^image\//.test(f.type)) return toast('이미지 파일만 업로드할 수 있습니다','!');
-  if(f.size>4*1024*1024) return toast('4MB 이하 이미지를 올려주세요','!');
-  readIconImage(f,url=>{ if(!url) return toast('이미지 처리에 실패했습니다','!');
-    tfState.icon=url; renderTfIcons(); renderTfPreview(); toast('아이콘 이미지를 적용했습니다 🖼️'); });
-  e.target.value='';
-};
-function renderTfSwatches(){
-  const box=byId('tfSwatches');box.innerHTML='';
-  SWATCH_COLORS.forEach(c=>{const s=document.createElement('div');s.className='swatch'+(c===tfState.color?' on':'');s.style.background=c;
-    s.onclick=()=>{tfState.color=c;renderTfSwatches();renderTfPreview();};box.appendChild(s);});
-}
-byId('tfValue').addEventListener('input',e=>{const v=e.target.value.replace(/[^\d]/g,'');e.target.value=v?won(+v):'';renderTfPreview();});
-byId('tfName').addEventListener('input',renderTfPreview);
-byId('tfDesc').addEventListener('input',renderTfPreview);
-function currentTfRule(){ return {type:'cumulative',n:+byId('tfValue').value.replace(/[^\d]/g,'')||0}; }
-function renderTfPreview(){
-  const name=byId('tfName').value.trim()||'칭호 명';
-  const desc=byId('tfDesc').value.trim();
-  const t={name,icon:tfState.icon,color:tfState.color,rule:currentTfRule()};
-  byId('tfPreview').innerHTML=`${titleBadge(t)} <span class="helper" style="display:inline;margin-left:8px">${titleRuleText(t)}</span>`
-    +(desc?`<div class="helper" style="margin-top:6px">${desc}</div>`:'');
-}
-byId('tfSave').onclick=()=>{
-  const name=byId('tfName').value.trim();
-  if(!name) return toast('칭호 명을 입력하세요','!');
-  const rule=currentTfRule();
-  if(!rule.n) return toast('누적 후원 금액 기준을 입력하세요','!');
-  const desc=byId('tfDesc').value.trim();
-  if(tfState.id){const t=DB.titles.find(x=>x.id===tfState.id);Object.assign(t,{name,icon:tfState.icon,color:tfState.color,desc,rule});}
-  else DB.titles.push({id:uid(),name,icon:tfState.icon,color:tfState.color,desc,rule});
-  const wasEdit=!!tfState.id;
-  save();resetTitleForm();renderTitles();toast(wasEdit?'칭호가 수정되었습니다':'칭호가 생성되었습니다');
-};
-byId('tfCancel').onclick=resetTitleForm;
-function resetTitleForm(){
-  tfState={id:null,icon:TITLE_ICONS[1],color:'#a45bff'};
-  byId('tfName').value='';byId('tfValue').value='';byId('tfDesc').value='';
-  byId('tfTitle').textContent='새 칭호 만들기';byId('tfSave').textContent='저장';
-  renderTfIcons();renderTfSwatches();renderTfPreview();
-}
-function editTitle(id){
-  const t=DB.titles.find(x=>x.id===id);if(!t)return;
-  tfState={id:t.id,icon:t.icon,color:t.color};
-  byId('tfName').value=t.name;
-  byId('tfDesc').value=t.desc||'';
-  byId('tfTitle').textContent='칭호 수정';byId('tfSave').textContent='수정 저장';
-  renderTfIcons();renderTfSwatches();
-  byId('tfValue').value=t.rule&&t.rule.n?won(t.rule.n):'';
-  renderTfPreview();
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-function renderTitles(){
-  const list=byId('titleList');list.innerHTML='';
-  const sorted=DB.titles.slice().sort((a,b)=>(a.rule&&a.rule.n||0)-(b.rule&&b.rule.n||0));
-  sorted.forEach(t=>{
-    const holders=titleHolders(t).length;
-    const row=document.createElement('div');row.className='title-item';
-    row.innerHTML=`
-      <div class="tic" style="background:${t.color}22;color:${t.color}">${iconHTML(t.icon,30)}</div>
-      <div class="meta"><div class="nm">${t.name} <span class="tthresh">${won(t.rule&&t.rule.n||0)}원↑</span></div>
-        <div class="rl">${t.desc?t.desc:titleRuleText(t)}</div></div>
-      <div class="cntpill">${holders}명 보유</div>
-      <div class="acts">
-        <button class="icobtn" title="수정" data-e="${t.id}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
-        <button class="icobtn del" title="삭제" data-d="${t.id}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
-      </div>`;
-    row.querySelector('[data-e]').onclick=()=>editTitle(t.id);
-    row.querySelector('[data-d]').onclick=()=>askConfirm(`‘${t.name}’ 칭호 삭제`,'이 칭호를 보유한 도네이터의 칭호도 제거됩니다.',()=>{
-      DB.titles=DB.titles.filter(x=>x.id!==t.id);
-      DB.donators.forEach(d=>{d.awards=(d.awards||[]).filter(a=>a!==t.id);});
-      save();renderTitles();toast('칭호가 삭제되었습니다');
-    });
-    list.appendChild(row);
-  });
-  byId('tabCntTitle').textContent=DB.titles.length;
-}
-/* --- 칭호 목록 CSV 내보내기 / 가져오기 --- */
-function titlesToCSV(){
-  const head=['칭호명','아이콘','설명','색상','누적후원금액'];
-  const lines=[head.join(',')];
-  DB.titles.slice().sort((a,b)=>(a.rule&&a.rule.n||0)-(b.rule&&b.rule.n||0))
-    .forEach(t=>lines.push([t.name,t.icon,t.desc||'',t.color,(t.rule&&t.rule.n)||0].map(csvEscape).join(',')));
-  return '﻿'+lines.join('\r\n');
-}
-function parseCSVLine(line){
-  const out=[];let cur='',q=false;
-  for(let i=0;i<line.length;i++){const c=line[i];
-    if(q){ if(c==='"'){ if(line[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
-    else { if(c==='"')q=true; else if(c===','){out.push(cur);cur='';} else cur+=c; }
-  }
-  out.push(cur);return out;
-}
-function importTitlesCSV(text){
-  const rows=text.replace(/^﻿/,'').split(/\r?\n/).filter(l=>l.trim().length);
-  if(rows.length<2) throw new Error('빈 파일');
-  const out=[];
-  for(let i=1;i<rows.length;i++){
-    const c=parseCSVLine(rows[i]);
-    const name=(c[0]||'').trim(); if(!name)continue;
-    const icon=(c[1]||'').trim()||'🏅';
-    const desc=(c[2]||'').trim();
-    const color=(c[3]||'').trim()||'#a45bff';
-    const n=parseInt(String(c[4]||'').replace(/[^\d]/g,''),10)||0;
-    out.push({id:uid(),name:name.slice(0,14),icon,desc:desc.slice(0,40),color,rule:{type:'cumulative',n}});
-  }
-  if(!out.length) throw new Error('유효한 행이 없습니다');
-  return out;
-}
-byId('titleCsvDl').onclick=()=>{
-  const blob=new Blob([titlesToCSV()],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);const a=document.createElement('a');
-  a.href=url;a.download=`칭호목록_${DB.titles.length}개.csv`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
-  toast(`칭호 ${DB.titles.length}개를 CSV로 내보냈습니다`);
-};
-byId('titleCsvUp').onclick=()=>byId('titleCsvFile').click();
-byId('titleCsvFile').onchange=e=>{
-  const f=e.target.files[0];if(!f)return;const rd=new FileReader();
-  rd.onload=()=>{ let parsed;
-    try{ parsed=importTitlesCSV(String(rd.result)); }catch(err){ return toast('CSV 파싱 실패: '+err.message,'!'); }
-    askConfirm('칭호 목록 가져오기',`CSV의 칭호 ${parsed.length}개로 현재 목록을 교체합니다. 계속할까요?`,()=>{
-      DB.titles=parsed;save();renderTitles();resetTitleForm();toast(`칭호 ${parsed.length}개를 가져왔습니다`);
-    });
-  };
-  rd.readAsText(f,'utf-8');e.target.value='';
-};
-
-/* --- 프로필: 획득한 칭호 + 수동 수여 --- */
-function renderDrTitles(d){
-  const earned=donatorTitles(d);
-  const box=byId('drTitles');
-  box.innerHTML = earned.length ? earned.map(t=>{
-    const manual=t.rule.type==='manual';
-    return `<div class="title-row"><div class="ti" style="background:${t.color}22;color:${t.color}">${iconHTML(t.icon,26)}</div>
-      <div style="flex:1;min-width:0"><div class="tn">${t.name}</div><div class="tr">${titleRuleText(t)}</div></div>
-      <span class="tflag ${manual?'manual':''}">${manual?'수동':'자동'}</span>
-      ${manual?`<button class="revoke" data-r="${t.id}" title="회수">×</button>`:''}</div>`;
-  }).join('') : '<div class="helper">아직 획득한 칭호가 없습니다</div>';
-  box.querySelectorAll('.revoke').forEach(b=>b.onclick=()=>{
-    d.awards=(d.awards||[]).filter(a=>a!==b.dataset.r);save();renderDrTitles(d);toast('칭호를 회수했습니다');
-  });
-  // 수동 수여 가능한 칭호
-  const grantable=DB.titles.filter(t=>t.rule.type==='manual'&&!(d.awards||[]).includes(t.id));
-  const g=byId('drGrant');
-  g.innerHTML=grantable.map(t=>`<button class="gt" data-g="${t.id}">${iconHTML(t.icon,16)} ${t.name}</button>`).join('');
-  g.querySelectorAll('.gt').forEach(b=>b.onclick=()=>{
-    d.awards=[...(d.awards||[]),b.dataset.g];save();renderDrTitles(d);toast('칭호를 수여했습니다 🎉');
-  });
+/* 프로필: 열혈업적 배지 */
+function renderDrAchv(d){
+  const box=byId('drAchv'); if(!box)return;
+  const earned=new Set(earnedAchv(d).map(a=>a.id));
+  const cn=byId('drAchvCount'); if(cn)cn.textContent=`${earned.size} / ${ACHIEVEMENTS.length}`;
+  box.innerHTML=ACHIEVEMENTS.map(a=>achvBadge(a,earned.has(a.id))).join('');
 }
 
 /* =========================================================
@@ -8440,8 +8266,7 @@ function renderAll(){
   renderDonators();
   renderAutos();
   renderInsights();
-  resetTitleForm();
-  renderTitles();
+  renderAchv();
   renderLive();
   renderToonStats();
   renderScheduleCount();
