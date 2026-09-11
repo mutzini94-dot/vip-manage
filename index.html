@@ -1326,6 +1326,27 @@ tbody tr.blocked:hover{opacity:.72}
 .dsub-sub{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.45}
 .dsub-act{display:flex;gap:8px}
 .dsub-act .btn{flex:1}
+/* 통합 멤버십 카드(드로어) */
+.dr-mem-card{--tc:#8b8fa3;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 15px;margin:0 0 11px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.dr-mem-card.paid{border-left:3px solid var(--tc)}
+.dr-mem-card.free{border-left:3px solid #8b8fa3}
+.dr-mem-card.none{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.dr-mem-card.none .dm-meta{flex:1;min-width:150px}
+.dm-head{display:flex;align-items:center;gap:11px;margin-bottom:12px}
+.dm-ic{font-size:22px;flex:none}
+.dm-meta{min-width:0}
+.dm-nm{font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.dm-sub{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+.dm-badge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:20px}
+.dm-badge.paid{color:var(--tc);background:var(--surface-2);border:1px solid var(--tc)}
+.dm-badge.free{color:var(--muted);background:var(--surface-3)}
+.dm-act{display:flex;gap:8px}
+.dm-act .btn{flex:1}
+.dm-act2{display:flex;gap:8px;flex:none}
+/* 멤버십 페이지 무료 티어 카드 / 상태 */
+.sub-tier.free{border-top-color:#8b8fa3;background:var(--surface-2)}
+.stier-flag{font-size:10.5px;font-weight:800;color:var(--muted);background:var(--surface-3);padding:2px 8px;border-radius:20px;margin-left:auto}
+.sub-st.free{color:var(--muted);background:var(--surface-3)}
 /* 티어 편집 색상 / 구독 선택 */
 .st-sw-row{display:flex;gap:8px;flex-wrap:wrap}
 .st-sw{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}
@@ -2000,7 +2021,7 @@ tbody tr.blocked:hover{opacity:.72}
     </button>
     <button class="tab" data-tab="sub">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>
-      구독 <span class="cnt" id="tabCntSub">0</span>
+      멤버십 <span class="cnt" id="tabCntSub">0</span>
     </button>
     <button class="tab" data-tab="title">
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 21l5-3 5 3-1.5-8.5"/></svg>
@@ -2218,19 +2239,19 @@ tbody tr.blocked:hover{opacity:.72}
     <section id="page-sub" class="hidden">
       <div class="page-head">
         <div>
-          <h1>💳 구독 멤버십</h1>
-          <p>유료 구독으로 팬과 지속적인 관계를 만드세요. 티어·갱신·이탈을 한눈에 관리하고 혜택을 자동 지급합니다.</p>
+          <h1>💳 멤버십</h1>
+          <p>무료 멤버십부터 유료 구독까지 하나로 관리하세요. 멤버 현황·갱신·이탈을 한눈에 보고 혜택을 자동 지급합니다.</p>
         </div>
         <div class="spacer"></div>
         <button class="btn ghost" id="subRenewBtn">🔄 갱신 처리(시뮬)</button>
-        <button class="btn primary" id="subTierAdd">＋ 구독 티어</button>
+        <button class="btn primary" id="subTierAdd">＋ 유료 티어</button>
       </div>
       <div class="stats" id="subStats"></div>
       <div class="sub-tier-grid" id="subTierGrid"></div>
       <div class="panel" style="margin-top:18px">
         <div class="panel-head"><h3>👥 구독자</h3><span class="hint" id="subListHint"></span><div class="spacer"></div>
           <div class="seg" id="subFilter" style="flex:none">
-            <button data-f="all" class="on">전체</button><button data-f="active">활성</button><button data-f="due">갱신 임박</button><button data-f="canceled">해지</button>
+            <button data-f="all" class="on">전체</button><button data-f="free">무료</button><button data-f="paid">유료</button><button data-f="due">갱신 임박</button><button data-f="canceled">해지</button>
           </div>
         </div>
         <div class="panel-body"><div id="subList" class="sub-list"></div></div>
@@ -2846,8 +2867,7 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
   <div class="dr-body">
     <div class="dr-group" id="drg-manage">
-      <div id="drMember"></div>
-      <div id="drSub"></div>
+      <div id="drMembership"></div>
       <div id="drConsent"></div>
       <div class="dr-sec">
         <div class="h">🏷 태그</div>
@@ -5007,10 +5027,8 @@ function openDrawer(id){
   byId('drCash').innerHTML=`${won(d.cash)}<small>캐시</small>`;
   // 개인 목표 카드
   renderGoalCard(d);
-  // 무료 멤버십
-  renderDrMember(d);
-  // 구독 멤버십
-  renderDrSub(d);
+  // 멤버십(무료·유료 통합)
+  renderDrMembership(d);
   // 관계 온도
   renderDrTemp(d);
   // 전용 혜택
@@ -5103,16 +5121,19 @@ function ensureSubs(){
   });
   DB._subsSeeded=true;
 }
+const FREE_TIER={id:'st_free',name:'무료 멤버십',price:0,color:'#8b8fa3',icon:'🎫',benefits:['시스템 관리 대상','기본 소식·알림톡 수신','관계 온도·칭호 적용'],free:true};
+function memPlan(d){ return !isMember(d)?'none':(subActive(d)?'paid':'free'); }
 function subMetrics(){
   ensureSubs();
-  const subs=(DB.donators||[]).filter(d=>d.sub).map(d=>({d,s:d.sub,t:subTier(d.sub.tierId)})).filter(x=>x.t);
-  const active=subs.filter(x=>x.s.status==='active');
-  const mrr=active.reduce((s,x)=>s+(x.t.price||0),0);
-  const due7=active.filter(x=>{const u=daysUntil(x.s.nextBill);return u>=0&&u<=7;});
+  const members=(DB.donators||[]).filter(d=>isMember(d)&&!d.blocked);
+  const paid=members.filter(d=>subActive(d));
+  const mrr=paid.reduce((s,d)=>s+((subTier(d.sub.tierId)||{}).price||0),0);
+  const due7=paid.filter(d=>{const u=daysUntil(d.sub.nextBill);return u>=0&&u<=7;});
   const nowM=todayStr().slice(0,7);
-  const churnM=subs.filter(x=>x.s.status==='canceled'&&(x.s.cancelAt||'').slice(0,7)===nowM);
-  const perTier={}; active.forEach(x=>perTier[x.t.id]=(perTier[x.t.id]||0)+1);
-  return {subs,active,mrr,due7,churnM,perTier};
+  const churnM=(DB.donators||[]).filter(d=>d.sub&&d.sub.status==='canceled'&&(d.sub.cancelAt||'').slice(0,7)===nowM);
+  const freeCount=members.length-paid.length;
+  const perTier={}; paid.forEach(d=>perTier[d.sub.tierId]=(perTier[d.sub.tierId]||0)+1);
+  return {members,paid,mrr,due7,churnM,freeCount,perTier};
 }
 /* 데이터 버전 기반 캐시 — 대량 데이터(수백~천명)에서 O(n³) 재계산 방지 */
 let _dataVer=0, _refNowC={ver:-1,val:0};
@@ -5972,40 +5993,49 @@ let subFilter='all';
 function renderSub(){
   if(!byId('page-sub'))return;
   const m=subMetrics();
-  byId('tabCntSub').textContent=m.active.length;
+  byId('tabCntSub').textContent=m.members.length;
   byId('subStats').innerHTML=`
-    <div class="stat"><div class="k">👥 활성 구독자</div><div class="v tnum">${won(m.active.length)}<small>명</small></div></div>
-    <div class="stat" style="flex:1.7;min-width:200px"><div class="k">💰 월 반복 매출 (MRR)</div><div class="v tnum">${won(m.mrr)}<small>원/월</small></div></div>
-    <div class="stat"><div class="k">🔄 7일 내 갱신</div><div class="v tnum">${won(m.due7.length)}<small>건</small></div></div>
+    <div class="stat"><div class="k">🎫 전체 멤버</div><div class="v tnum">${won(m.members.length)}<small>명</small></div><div class="sub" style="font-size:11px;color:var(--muted);margin-top:4px">무료 ${won(m.freeCount)} · 유료 ${won(m.paid.length)}</div></div>
+    <div class="stat"><div class="k">💳 유료 구독자</div><div class="v tnum">${won(m.paid.length)}<small>명</small></div></div>
+    <div class="stat" style="flex:1.6;min-width:190px"><div class="k">💰 월 반복 매출 (MRR)</div><div class="v tnum">${won(m.mrr)}<small>원/월</small></div></div>
     <div class="stat"><div class="k">📉 이번 달 해지</div><div class="v tnum">${won(m.churnM.length)}<small>건</small></div></div>`;
-  byId('subTierGrid').innerHTML=(DB.subTiers||[]).map(t=>{const cnt=m.perTier[t.id]||0;
+  const freeCard=`<div class="sub-tier free" style="--tc:${FREE_TIER.color}">
+    <div class="stier-top"><span class="stier-ic">${FREE_TIER.icon}</span><div class="stier-nm">${FREE_TIER.name}</div><span class="stier-flag">기본</span></div>
+    <div class="stier-price">무료<small></small></div>
+    <div class="stier-sub">${won(m.freeCount)}명 가입</div>
+    <ul class="stier-benefits">${FREE_TIER.benefits.map(b=>`<li>${b}</li>`).join('')}</ul></div>`;
+  byId('subTierGrid').innerHTML=freeCard+(DB.subTiers||[]).map(t=>{const cnt=m.perTier[t.id]||0;
     return `<div class="sub-tier" style="--tc:${t.color}">
       <div class="stier-top"><span class="stier-ic">${t.icon||'💳'}</span><div class="stier-nm">${(t.name||'').replace(/</g,'&lt;')}</div><button class="stier-edit" data-edit="${t.id}" title="티어 수정">✎</button></div>
       <div class="stier-price">${won(t.price)}<small> 원 / 월</small></div>
       <div class="stier-sub">${won(cnt)}명 구독 · 월 ${won(cnt*t.price)}원</div>
       <ul class="stier-benefits">${(t.benefits||[]).map(b=>`<li>${(b||'').replace(/</g,'&lt;')}</li>`).join('')}</ul>
-    </div>`;}).join('')+`<button class="sub-tier add" id="subTierAdd2">＋ 티어 추가</button>`;
+    </div>`;}).join('')+`<button class="sub-tier add" id="subTierAdd2">＋ 유료 티어 추가</button>`;
   byId('subTierGrid').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openSubTier(b.dataset.edit));
   byId('subTierAdd2').onclick=()=>openSubTier(null);
-  let rows=m.subs.slice();
-  if(subFilter==='active')rows=rows.filter(x=>x.s.status==='active');
-  else if(subFilter==='canceled')rows=rows.filter(x=>x.s.status==='canceled');
-  else if(subFilter==='due')rows=rows.filter(x=>x.s.status==='active'&&daysUntil(x.s.nextBill)>=0&&daysUntil(x.s.nextBill)<=7);
-  rows.sort((a,b)=>{ if(a.s.status!==b.s.status)return a.s.status==='active'?-1:1; return parseD(a.s.nextBill)-parseD(b.s.nextBill); });
-  byId('subListHint').textContent=`총 ${won(m.subs.length)}명 · 활성 ${won(m.active.length)}명`;
+  let rows=m.members.slice();
+  if(subFilter==='free')rows=rows.filter(d=>!subActive(d));
+  else if(subFilter==='paid')rows=rows.filter(d=>subActive(d));
+  else if(subFilter==='due')rows=rows.filter(d=>subActive(d)&&daysUntil(d.sub.nextBill)>=0&&daysUntil(d.sub.nextBill)<=7);
+  else if(subFilter==='canceled')rows=rows.filter(d=>d.sub&&d.sub.status==='canceled');
+  rows.sort((a,b)=>{const pa=subActive(a),pb=subActive(b); if(pa!==pb)return pa?-1:1; if(pa)return parseD(a.sub.nextBill)-parseD(b.sub.nextBill); return (b.cash||0)-(a.cash||0);});
+  byId('subListHint').textContent=`전체 ${won(m.members.length)}명 · 무료 ${won(m.freeCount)} · 유료 ${won(m.paid.length)}`;
   byId('subFilter').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.f===subFilter));
-  byId('subList').innerHTML=rows.length?rows.slice(0,50).map(({d,s,t})=>{
-    const u=daysUntil(s.nextBill), active=s.status==='active', due=active&&u>=0&&u<=7, g=gradeForCash(d.cash);
-    const st=active?(due?`<span class="sub-st due">🔄 ${u===0?'오늘':'D-'+u}</span>`:`<span class="sub-st ok">✓ 활성</span>`):`<span class="sub-st off">✕ 해지</span>`;
+  byId('subList').innerHTML=rows.length?rows.slice(0,50).map(d=>{
+    const paid=subActive(d), t=paid?subTier(d.sub.tierId):FREE_TIER, g=gradeForCash(d.cash);
+    const canceled=d.sub&&d.sub.status==='canceled', u=paid?daysUntil(d.sub.nextBill):null, due=paid&&u>=0&&u<=7;
+    const st=paid?(due?`<span class="sub-st due">🔄 ${u===0?'오늘':'D-'+u}</span>`:`<span class="sub-st ok">💳 유료</span>`):`<span class="sub-st free">🎫 무료</span>`;
+    const meta=paid?`${d.sub.since} 시작 · ${won(d.sub.months||1)}개월째`:(canceled?`${(subTier(d.sub.tierId)||{}).name||'유료'} 해지 · ${d.sub.cancelAt||''}`:`가입 ${d.memberSince||d.join||'-'}`);
+    const next=paid?`다음 결제 · <b>${d.sub.nextBill}</b>`:(canceled?`해지 · <b>${d.sub.cancelAt||'-'}</b>`:`<span style="color:var(--muted-2)">—</span>`);
     return `<div class="sub-row" data-don="${d.id}">
       <div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
-      <div class="sr-meta"><div class="sr-nm">${d.alias||d.name} ${g?gradeBadge(g):''}</div><div class="sr-sub">${s.since} 시작 · ${won(s.months||1)}개월째</div></div>
+      <div class="sr-meta"><div class="sr-nm">${d.alias||d.name} ${g?gradeBadge(g):''}</div><div class="sr-sub">${meta}</div></div>
       <div class="sr-tier" style="--tc:${t.color}">${t.icon||''} ${(t.name||'').replace(/</g,'&lt;')}</div>
-      <div class="sr-next">${active?`다음 결제 · <b>${s.nextBill}</b>`:`해지 · <b>${s.cancelAt||'-'}</b>`}</div>
+      <div class="sr-next">${next}</div>
       ${st}
-      <div class="sr-act">${active?`<button class="btn ghost sm" data-cancel="${d.id}">해지</button>`:`<button class="btn primary sm" data-resub="${d.id}">재구독</button>`}</div>
+      <div class="sr-act">${paid?`<button class="btn ghost sm" data-cancel="${d.id}">해지</button>`:`<button class="btn primary sm" data-resub="${d.id}">유료 구독</button>`}</div>
     </div>`;
-  }).join(''):`<div class="helper" style="padding:26px;text-align:center">해당하는 구독자가 없습니다</div>`;
+  }).join(''):`<div class="helper" style="padding:26px;text-align:center">해당하는 멤버가 없습니다</div>`;
   byId('subList').querySelectorAll('[data-cancel]').forEach(b=>b.onclick=e=>{e.stopPropagation();cancelSub(b.dataset.cancel);});
   byId('subList').querySelectorAll('[data-resub]').forEach(b=>b.onclick=e=>{e.stopPropagation();openSubPick(b.dataset.resub);});
   byId('subList').querySelectorAll('.sub-row').forEach(el=>el.onclick=()=>openDrawer(el.dataset.don));
@@ -6014,17 +6044,18 @@ byId('subFilter').querySelectorAll('button').forEach(b=>b.onclick=()=>{subFilter
 byId('subTierAdd').onclick=()=>openSubTier(null);
 byId('subRenewBtn').onclick=runSubRenewal;
 function cancelSub(id){ if(viewerGuard())return; const d=DB.donators.find(x=>x.id===id); if(!d||!d.sub)return;
-  askConfirm('구독 해지', `${d.alias||d.name} 님의 구독을 해지할까요? 다음 결제부터 청구되지 않습니다.`, ()=>{
+  askConfirm('유료 구독 해지', `${d.alias||d.name} 님의 유료 구독을 해지할까요? 다음 결제부터 청구되지 않으며 무료 멤버십으로 유지됩니다.`, ()=>{
     d.sub.status='canceled'; d.sub.autoRenew=false; d.sub.cancelAt=todayStr();
-    save(); renderSub(); if(drId===id)renderDrSub(d); if(typeof renderDonators==='function')renderDonators(); toast('구독을 해지했습니다'); });
+    save(); renderSub(); if(drId===id)renderDrMembership(d); if(typeof renderDonators==='function')renderDonators(); toast('유료 구독을 해지했습니다 · 무료 멤버십 유지'); });
 }
 function runSubRenewal(){ if(viewerGuard())return;
-  const due=subMetrics().active.filter(x=>daysUntil(x.s.nextBill)<=7);
-  if(!due.length)return toast('7일 내 갱신 예정인 구독이 없습니다');
+  const due=subMetrics().paid.filter(d=>daysUntil(d.sub.nextBill)<=7);
+  if(!due.length)return toast('7일 내 갱신 예정인 유료 구독이 없습니다');
   let renewed=0,churned=0,perks=0;
-  due.forEach(({d,s,t})=>{ if(s.autoRenew && Math.random()>0.1){ s.months=(s.months||1)+1; s.nextBill=addMonthsStr(todayStr(),1); if(deliverSubPerks(d,t,'renew'))perks++; renewed++; }
-    else { s.status='canceled'; s.autoRenew=false; s.cancelAt=todayStr(); churned++; } });
-  save(); renderSub(); if(drId){const d=DB.donators.find(x=>x.id===drId);if(d)renderDrSub(d);}
+  due.forEach(d=>{ const t=subTier(d.sub.tierId);
+    if(d.sub.autoRenew && Math.random()>0.1){ d.sub.months=(d.sub.months||1)+1; d.sub.nextBill=addMonthsStr(todayStr(),1); if(deliverSubPerks(d,t,'renew'))perks++; renewed++; }
+    else { d.sub.status='canceled'; d.sub.autoRenew=false; d.sub.cancelAt=todayStr(); churned++; } });
+  save(); renderSub(); if(drId){const d=DB.donators.find(x=>x.id===drId);if(d)renderDrMembership(d);}
   toast(`갱신 처리 완료 · 갱신 ${won(renewed)}건${churned?` · 이탈 ${won(churned)}건`:''}${perks?` · 혜택 자동 지급 ${won(perks)}건`:''}`);
 }
 /* 구독 시작/변경 모달 */
@@ -6034,7 +6065,7 @@ function openSubPick(id){ if(viewerGuard())return; const d=DB.donators.find(x=>x
   const g=gradeForCash(d.cash), changing=subActive(d);
   byId('subPickTitle').textContent=changing?'구독 티어 변경':'구독 시작';
   byId('subPickConfirm').textContent=changing?'티어 변경':'구독 시작';
-  byId('subPickFan').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div><div><div class="sr-nm">${d.alias||d.name} ${g?gradeBadge(g):''}</div><div class="helper">${changing?'현재 '+(subTier(d.sub.tierId)?.name||'')+' 구독 중':'구독 멤버십 미가입'}</div></div>`;
+  byId('subPickFan').innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div><div><div class="sr-nm">${d.alias||d.name} ${g?gradeBadge(g):''}</div><div class="helper">${changing?'현재 '+(subTier(d.sub.tierId)?.name||'')+' 구독 중':(isMember(d)?'현재 무료 멤버십':'멤버십 미가입')}</div></div>`;
   renderSubPickTiers(); byId('subPickOverlay').classList.add('show');
 }
 function renderSubPickTiers(){
@@ -6050,7 +6081,7 @@ byId('subPickConfirm').onclick=()=>{
   const granted=deliverSubPerks(d,t,changing?'change':'subscribe');
   if(!d.member){d.member=true; if(!d.memberSince)d.memberSince=todayStr();}
   save(); byId('subPickOverlay').classList.remove('show'); renderSub();
-  if(drId===d.id){renderDrSub(d);renderDrMember(d);if(typeof renderDrTitles==='function')renderDrTitles(d);}
+  if(drId===d.id){renderDrMembership(d);if(typeof renderDrTitles==='function')renderDrTitles(d);}
   if(typeof renderDonators==='function')renderDonators();
   toast(`${t.name} 구독을 ${changing?'변경':'시작'}했어요${granted?' · 칭호 자동 지급 🎉':''}`);
 };
@@ -6083,24 +6114,39 @@ byId('stDelete').onclick=()=>{ if(!stEdit.id)return;
 };
 byId('subTierClose').onclick=()=>byId('subTierOverlay').classList.remove('show');
 byId('subTierOverlay').onclick=e=>{if(e.target===byId('subTierOverlay'))byId('subTierOverlay').classList.remove('show');};
-/* 드로어 구독 카드 */
-function renderDrSub(d){
-  const box=byId('drSub'); if(!box)return;
-  ensureSubs();
-  const active=subActive(d), t=d.sub?subTier(d.sub.tierId):null;
-  if(active&&t){ const u=daysUntil(d.sub.nextBill);
-    box.innerHTML=`<div class="dr-sub-card on" style="--tc:${t.color}">
-      <div class="dsub-head"><span class="dsub-ic">${t.icon||'💳'}</span>
-        <div class="dsub-meta"><div class="dsub-nm">${(t.name||'').replace(/</g,'&lt;')} 구독 중</div>
-          <div class="dsub-sub">${won(t.price)}원/월 · ${won(d.sub.months||1)}개월째 · 다음 결제 ${d.sub.nextBill}${u>=0&&u<=7?` (D-${u})`:''}</div></div></div>
-      <div class="dsub-act"><button class="btn ghost sm" id="drSubChange">티어 변경</button><button class="btn ghost sm" id="drSubCancel">해지</button></div></div>`;
-    byId('drSubChange').onclick=()=>openSubPick(d.id); byId('drSubCancel').onclick=()=>cancelSub(d.id);
-  } else if(d.sub&&d.sub.status==='canceled'){
-    box.innerHTML=`<div class="dr-sub-card off"><div class="dsub-meta"><div class="dsub-nm">✕ 구독 해지됨</div><div class="dsub-sub">${d.sub.cancelAt||''} 해지 · 재구독 시 혜택이 다시 지급돼요</div></div><button class="btn primary sm" id="drSubResub">재구독</button></div>`;
-    byId('drSubResub').onclick=()=>openSubPick(d.id);
+/* 드로어 멤버십 카드 (무료·유료 통합) */
+function setMembership(id,on){ if(viewerGuard())return; const d=DB.donators.find(x=>x.id===id); if(!d)return;
+  if(on){ d.member=true; if(!d.memberSince)d.memberSince=todayStr(); }
+  else { d.member=false; d.sub=null; }
+  save(); if(drId===id){renderDrMembership(d);renderDrConsent(d);}
+  if(typeof renderDonators==='function')renderDonators();
+  if(byId('page-sub')&&!byId('page-sub').classList.contains('hidden'))renderSub();
+  if(typeof renderInsights==='function')renderInsights();
+  toast(on?'무료 멤버십으로 가입했습니다 🎫':'멤버십을 해제했습니다');
+}
+function renderDrMembership(d){
+  const box=byId('drMembership'); if(!box)return; ensureSubs();
+  const paid=subActive(d), t=paid?subTier(d.sub.tierId):null, member=isMember(d);
+  if(paid&&t){ const u=daysUntil(d.sub.nextBill);
+    box.innerHTML=`<div class="dr-mem-card paid" style="--tc:${t.color}">
+      <div class="dm-head"><span class="dm-ic">${t.icon||'💳'}</span>
+        <div class="dm-meta"><div class="dm-nm">${(t.name||'').replace(/</g,'&lt;')} 구독 중 <span class="dm-badge paid">유료</span></div>
+          <div class="dm-sub">${won(t.price)}원/월 · ${won(d.sub.months||1)}개월째 · 다음 결제 ${d.sub.nextBill}${u>=0&&u<=7?` (D-${u})`:''}</div></div></div>
+      <div class="dm-act"><button class="btn ghost sm" id="dmChange">티어 변경</button><button class="btn ghost sm" id="dmCancel">유료 해지</button></div></div>`;
+    byId('dmChange').onclick=()=>openSubPick(d.id); byId('dmCancel').onclick=()=>cancelSub(d.id);
+  } else if(member){
+    const wasPaid=d.sub&&d.sub.status==='canceled'?subTier(d.sub.tierId):null;
+    box.innerHTML=`<div class="dr-mem-card free">
+      <div class="dm-head"><span class="dm-ic">🎫</span>
+        <div class="dm-meta"><div class="dm-nm">무료 멤버십 <span class="dm-badge free">무료</span></div>
+          <div class="dm-sub">가입일 ${d.memberSince||d.join||'-'} · 시스템 관리 대상${wasPaid?` · 이전 ${wasPaid.name} 해지`:''}</div></div></div>
+      <div class="dm-act"><button class="btn primary sm" id="dmUpgrade">유료 구독 시작</button><button class="btn ghost sm" id="dmLeave">멤버십 해제</button></div></div>`;
+    byId('dmUpgrade').onclick=()=>openSubPick(d.id); byId('dmLeave').onclick=()=>setMembership(d.id,false);
   } else {
-    box.innerHTML=`<div class="dr-sub-card none"><div class="dsub-meta"><div class="dsub-nm">💳 구독 멤버십 미가입</div><div class="dsub-sub">유료 구독으로 정기 후원·전용 혜택을 제공하세요</div></div><button class="btn primary sm" id="drSubStart">구독 시작</button></div>`;
-    byId('drSubStart').onclick=()=>openSubPick(d.id);
+    box.innerHTML=`<div class="dr-mem-card none">
+      <div class="dm-meta"><div class="dm-nm">💳 멤버십 미가입</div><div class="dm-sub">멤버십에 가입하면 시스템 관리·혜택 적용이 시작돼요</div></div>
+      <div class="dm-act2"><button class="btn ghost sm" id="dmJoinFree">무료 가입</button><button class="btn primary sm" id="dmJoinPaid">유료 구독</button></div></div>`;
+    byId('dmJoinFree').onclick=()=>setMembership(d.id,true); byId('dmJoinPaid').onclick=()=>openSubPick(d.id);
   }
 }
 
