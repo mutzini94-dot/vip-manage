@@ -6356,7 +6356,7 @@ function ruleCheck(r,d){ if(!r)return false;
     default: return false;
   }
 }
-function allAchievements(){ return ACHIEVEMENTS.concat((DB.achvCustom||[]).map(a=>({...a,builtin:false,check:d=>ruleCheck(a.rule,d)}))); }
+function allAchievements(){ return ACHIEVEMENTS.map(a=>({...a,builtin:true})).concat((DB.achvCustom||[]).map(a=>({...a,builtin:false,check:d=>ruleCheck(a.rule,d)}))); }
 function achvById(id){ return allAchievements().find(a=>a.id===id)||null; }
 function earnedAchv(d){ return allAchievements().filter(a=>{try{return a.check(d);}catch(e){return false;}}); }
 function achvBadge(a,earned){ return `<div class="achv ${earned?'on':'locked'}" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}" title="${a.name} · ${a.desc}"><div class="achv-ic">${iconHTML(a.icon,22)}</div><div class="achv-nm">${a.name}</div></div>`; }
