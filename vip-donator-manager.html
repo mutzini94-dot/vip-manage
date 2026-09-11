@@ -1293,7 +1293,24 @@ tbody tr.blocked:hover{opacity:.72}
 .achv-nm{font-size:10.5px;font-weight:700;color:var(--text);line-height:1.2}
 .achv.locked .achv-nm{color:var(--muted)}
 .achv-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
-.achv-card{--ac:#8b8fa3;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--ac);border-radius:16px;padding:16px 17px;text-align:center}
+.achv-card{--ac:#8b8fa3;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--ac);border-radius:16px;padding:16px 17px;text-align:center;position:relative;cursor:pointer;transition:.14s}
+.achv-card[data-achv]:hover{border-color:var(--ac);transform:translateY(-2px)}
+.achv-card .ac-edit{position:absolute;top:9px;right:9px;width:24px;height:24px;border:none;background:var(--surface-2);color:var(--muted);border-radius:8px;cursor:pointer;font-size:11px;z-index:2}
+.achv-card .ac-edit:hover{background:var(--accent-soft);color:var(--accent)}
+.achv-card.add{display:flex;align-items:center;justify-content:center;border:1.5px dashed var(--line-strong);border-top:1.5px dashed var(--line-strong);background:var(--surface-2);color:var(--accent);font-weight:800;font-size:14px;min-height:150px}
+.achv-card.add:hover{border-color:var(--accent);background:var(--accent-soft);transform:none}
+.ae-icons{display:flex;flex-wrap:wrap;gap:6px}
+.ae-ic{width:38px;height:38px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);font-size:19px;cursor:pointer;display:grid;place-items:center;line-height:1}
+.ae-ic.on{border-color:var(--accent);background:var(--accent-soft)}
+.al-list{display:flex;flex-direction:column}
+.al-row{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.al-row:last-child{border-bottom:none}
+.al-row:hover{background:var(--surface-2)}
+.al-row .ava{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;flex:none;position:relative;overflow:hidden}
+.al-row .ava img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.al-meta{min-width:0}
+.al-nm{font-weight:800;font-size:13.5px}
+.al-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
 .achv-card .ac-ic{font-size:34px;line-height:1}
 .achv-card .ac-nm{font-weight:800;font-size:15px;margin-top:9px}
 .achv-card .ac-desc{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.5;min-height:34px}
@@ -1773,6 +1790,8 @@ tbody tr.blocked:hover{opacity:.72}
 :root[data-role="viewer"] #rcAutoSave,
 :root[data-role="viewer"] #subTierAdd,
 :root[data-role="viewer"] #subRenewBtn,
+:root[data-role="viewer"] #achvAdd,
+:root[data-role="viewer"] .ac-edit,
 :root[data-role="viewer"] #perkDelete,
 :root[data-role="viewer"] #schedDelete,
 :root[data-role="viewer"] .form-actions{display:none !important}
@@ -2284,8 +2303,10 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="page-head">
         <div>
           <h1>🔥 열혈업적</h1>
-          <p>팬의 활동에 따라 자동으로 달성되는 업적 배지입니다. 프로필과 팬 카드에 표시돼 재후원 동기를 높여줘요.</p>
+          <p>팬의 활동에 따라 자동으로 달성되는 업적 배지입니다. 커스텀 업적을 추가하고, 카드를 누르면 획득 도네이터를 볼 수 있어요.</p>
         </div>
+        <div class="spacer"></div>
+        <button class="btn primary" id="achvAdd">＋ 업적 추가</button>
       </div>
       <div class="achv-cards" id="achvGrid"></div>
     </section>
@@ -3463,6 +3484,34 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
 </div>
 
+<!-- ============ 업적 편집(커스텀) ============ -->
+<div class="overlay" id="achvEditOverlay">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head"><h2 id="achvEditTitle">새 업적</h2><div class="spacer"></div><button class="xbtn" id="achvEditClose">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>업적 이름</label><input class="inp" id="aeName" maxlength="20" placeholder="예: 백만 클럽"></div>
+      <div class="field"><label>아이콘</label><div class="ae-icons" id="aeIcons"></div></div>
+      <div class="field"><label>색상 · 희귀도</label><div class="st-sw-row" id="aeColors"></div></div>
+      <div class="field"><label>설명</label><input class="inp" id="aeDesc" maxlength="40" placeholder="예: 누적 100만 캐시를 후원한 팬"></div>
+      <div class="field"><label>획득 조건</label>
+        <select class="inp" id="aeRuleType"></select>
+        <div id="aeValWrap" style="margin-top:8px;display:flex;align-items:center;gap:8px"><input class="inp" id="aeRuleVal" inputmode="numeric" maxlength="10" style="flex:1" placeholder="기준값"><span class="helper" id="aeUnit" style="display:inline;font-weight:600"></span></div>
+        <div id="aeGradeWrap" style="margin-top:8px;display:none"><select class="inp" id="aeGradeSel"></select></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn ghost" id="aeDelete" style="margin-right:auto;color:#ff6b81">삭제</button><button class="btn ghost" id="achvEditCancel">취소</button><button class="btn primary" id="aeSave">저장</button></div>
+  </div>
+</div>
+
+<!-- ============ 업적별 획득 도네이터 ============ -->
+<div class="overlay" id="achvListOverlay">
+  <div class="modal wide" style="max-width:560px">
+    <div class="modal-head"><h2 id="achvListTitle">업적</h2><div class="spacer"></div><button class="xbtn" id="achvListClose">✕</button></div>
+    <div class="modal-body"><div class="sl-sum" id="achvListSum"></div><div class="al-list" id="achvListBody"></div></div>
+    <div class="modal-foot"><div class="sl-pager" id="achvListPager"></div><div class="spacer"></div><button class="btn primary" id="achvListCloseBtn">닫기</button></div>
+  </div>
+</div>
+
 <!-- ============ 날짜별 후원 인사이트 ============ -->
 <div class="overlay" id="dayOverlay">
   <div class="modal wide">
@@ -3746,6 +3795,7 @@ function normalize(){
   if(DB.toonUnreadAlert===undefined) DB.toonUnreadAlert=true;
   if(!DB.schedules) DB.schedules=[];
   if(!DB.recaps) DB.recaps=[];
+  if(!DB.achvCustom) DB.achvCustom=[];
   if(DB.recaps.length<3 && DB.donators&&DB.donators.length) DB.recaps=seedRecaps(DB.donators);  // 방송 성과 로그가 비면 예시 이력 채움
   if(!DB.outreach) DB.outreach=seedOutreach();
   if(!DB.msgCredit) DB.msgCredit=seedCreditLog();
@@ -5061,7 +5111,7 @@ function toast(msg,ic='✓'){
   setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2200);
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();if(typeof closeLiveDrawer==='function')closeLiveDrawer();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','bulkSendOverlay','blockOverlay','happyOverlay','replyOverlay','imgViewOverlay','fanCardOverlay','subTierOverlay','subPickOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','trendOverlay','dlTrendOverlay','creditOverlay','sendLogOverlay','activityLogOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay','perkOverlay','thanksOverlay','insightCustomOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWizard();closeDrawer();closeTpl();if(typeof closeLiveDrawer==='function')closeLiveDrawer();['confirmOverlay','nudgeOverlay','celebOverlay','reOverlay','bulkSendOverlay','blockOverlay','happyOverlay','replyOverlay','imgViewOverlay','fanCardOverlay','subTierOverlay','subPickOverlay','achvEditOverlay','achvListOverlay','tsimOverlay','schedOverlay','remindOverlay','dayOverlay','recapOverlay','trendOverlay','dlTrendOverlay','creditOverlay','sendLogOverlay','activityLogOverlay','outreachOverlay','autoStatsOverlay','settingsOverlay','perkOverlay','thanksOverlay','insightCustomOverlay'].forEach(id=>byId(id).classList.remove('show'));}});
 
 /* =========================================================
    TAB 0 — 인사이트 (대시보드 + 이탈 위험 VIP)
@@ -6185,31 +6235,126 @@ const ACHIEVEMENTS=[
   {id:'hall',icon:'🏅',name:'명예의 전당',desc:'역대 누적 후원 TOP 5',c:'gold',check:d=>{const r=donatorRank(d.id);return !!r&&r<=5;}},
 ];
 function daysSinceJoin(d){ return Math.round((refNow()-parseD(d.join||d.memberSince||'2024-01-01'))/864e5); }
-function earnedAchv(d){ return ACHIEVEMENTS.filter(a=>{try{return a.check(d);}catch(e){return false;}}); }
+/* 커스텀 업적 규칙 엔진 */
+const ACHV_RULES=[
+  {t:'cash',label:'누적 후원 금액 이상',unit:'캐시',num:true},
+  {t:'count',label:'후원 횟수 이상',unit:'회',num:true},
+  {t:'joindays',label:'함께한 일수 이상',unit:'일',num:true},
+  {t:'temp',label:'관계 온도 이상',unit:'도',num:true},
+  {t:'rank',label:'역대 랭킹 이내',unit:'위',num:true},
+  {t:'submonths',label:'구독 개월 이상',unit:'개월',num:true},
+  {t:'grade',label:'등급 달성',unit:'',num:false,grade:true},
+  {t:'paid',label:'유료 구독자',unit:'',num:false},
+  {t:'toon',label:'투네톡 후원 경험',unit:'',num:false},
+];
+function ruleCheck(r,d){ if(!r)return false;
+  switch(r.t){
+    case 'cash': return (d.cash||0)>=(r.n||0);
+    case 'count': return (d.count||0)>=(r.n||0);
+    case 'joindays': return daysSinceJoin(d)>=(r.n||0);
+    case 'temp': return fanScore(d).temp>=(r.n||0);
+    case 'rank': {const rk=donatorRank(d.id); return !!rk&&rk<=(r.n||0);}
+    case 'submonths': return !!(d.sub&&d.sub.status==='active'&&(d.sub.months||0)>=(r.n||0));
+    case 'grade': {const g=gradeForCash(d.cash); return !!g&&clsOf(g)===r.cls;}
+    case 'paid': return subActive(d);
+    case 'toon': return (DB.toontalks||[]).some(t=>t.donatorId===d.id&&t.status==='done');
+    default: return false;
+  }
+}
+function allAchievements(){ return ACHIEVEMENTS.concat((DB.achvCustom||[]).map(a=>({...a,builtin:false,check:d=>ruleCheck(a.rule,d)}))); }
+function achvById(id){ return allAchievements().find(a=>a.id===id)||null; }
+function earnedAchv(d){ return allAchievements().filter(a=>{try{return a.check(d);}catch(e){return false;}}); }
 function achvBadge(a,earned){ return `<div class="achv ${earned?'on':'locked'}" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}" title="${a.name} · ${a.desc}"><div class="achv-ic">${a.icon}</div><div class="achv-nm">${a.name}</div></div>`; }
 /* 열혈업적 개요 페이지 */
 function renderAchv(){
   if(!byId('page-achv'))return;
-  const members=(DB.donators||[]).filter(d=>!d.blocked);
-  byId('tabCntAchv').textContent=ACHIEVEMENTS.length;
-  byId('achvGrid').innerHTML=ACHIEVEMENTS.map(a=>{
+  const members=(DB.donators||[]).filter(d=>!d.blocked), list=allAchievements();
+  byId('tabCntAchv').textContent=list.length;
+  byId('achvGrid').innerHTML=list.map(a=>{
     const cnt=members.filter(d=>{try{return a.check(d);}catch(e){return false;}}).length;
     const pct=members.length?Math.round(cnt/members.length*100):0;
-    return `<div class="achv-card" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}">
+    return `<div class="achv-card" data-achv="${a.id}" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}">
+      ${a.builtin?'':`<button class="ac-edit" data-edit="${a.id}" title="업적 수정">✎</button>`}
       <div class="ac-ic">${a.icon}</div>
-      <div class="ac-nm">${a.name}</div>
-      <div class="ac-desc">${a.desc}</div>
+      <div class="ac-nm">${(a.name||'').replace(/</g,'&lt;')}</div>
+      <div class="ac-desc">${(a.desc||'').replace(/</g,'&lt;')}</div>
       <div class="ac-stat"><b>${won(cnt)}</b>명 획득 · ${pct}%</div>
       <div class="ac-bar"><i style="width:${pct}%"></i></div></div>`;
-  }).join('');
+  }).join('')+`<button class="achv-card add" id="achvAdd2">＋ 업적 추가</button>`;
+  byId('achvGrid').querySelectorAll('.achv-card[data-achv]').forEach(el=>el.onclick=e=>{ if(e.target.closest('[data-edit]'))return; openAchvList(el.dataset.achv); });
+  byId('achvGrid').querySelectorAll('[data-edit]').forEach(b=>b.onclick=e=>{e.stopPropagation();openAchvEdit(b.dataset.edit);});
+  byId('achvAdd2').onclick=()=>openAchvEdit(null);
 }
 /* 프로필: 열혈업적 배지 */
 function renderDrAchv(d){
   const box=byId('drAchv'); if(!box)return;
-  const earned=new Set(earnedAchv(d).map(a=>a.id));
-  const cn=byId('drAchvCount'); if(cn)cn.textContent=`${earned.size} / ${ACHIEVEMENTS.length}`;
-  box.innerHTML=ACHIEVEMENTS.map(a=>achvBadge(a,earned.has(a.id))).join('');
+  const list=allAchievements(), earned=new Set(earnedAchv(d).map(a=>a.id));
+  const cn=byId('drAchvCount'); if(cn)cn.textContent=`${earned.size} / ${list.length}`;
+  box.innerHTML=list.map(a=>achvBadge(a,earned.has(a.id))).join('');
 }
+/* 업적 편집(커스텀 추가/수정/삭제) */
+const ACHV_ICONS=['🏆','🔥','💎','👑','⭐','💰','🎯','🚀','🌟','💫','🎖️','🥇','❤️','🎁','🦸','🏅','💪','✨','🌈','🍀'];
+let achvEdit={id:null,icon:'🏆',c:'gold'};
+function openAchvEdit(id){ if(viewerGuard())return;
+  const a=id?(DB.achvCustom||[]).find(x=>x.id===id):null;
+  achvEdit={id:id||null,icon:a?a.icon:'🏆',c:a?a.c:'gold'};
+  byId('achvEditTitle').textContent=a?'업적 수정':'새 업적 만들기';
+  byId('aeName').value=a?a.name:''; byId('aeDesc').value=a?a.desc:'';
+  byId('aeIcons').innerHTML=ACHV_ICONS.map(e=>`<button type="button" class="ae-ic ${e===achvEdit.icon?'on':''}" data-i="${e}">${e}</button>`).join('');
+  byId('aeIcons').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{achvEdit.icon=b.dataset.i;byId('aeIcons').querySelectorAll('.ae-ic').forEach(x=>x.classList.toggle('on',x.dataset.i===achvEdit.icon));});
+  byId('aeColors').innerHTML=Object.entries(ACHV_COLORS).map(([k,v])=>`<button type="button" class="st-sw ${k===achvEdit.c?'on':''}" data-c="${k}" style="background:${v}"></button>`).join('');
+  byId('aeColors').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{achvEdit.c=b.dataset.c;byId('aeColors').querySelectorAll('.st-sw').forEach(x=>x.classList.toggle('on',x.dataset.c===achvEdit.c));});
+  byId('aeRuleType').innerHTML=ACHV_RULES.map(r=>`<option value="${r.t}">${r.label}${r.unit?' ('+r.unit+')':''}</option>`).join('');
+  const rule=a?a.rule:{t:'cash',n:1000000};
+  byId('aeRuleType').value=rule.t; byId('aeRuleVal').value=rule.n||'';
+  byId('aeGradeSel').innerHTML=DB.grades.slice().sort((x,y)=>y.min-x.min).map(g=>`<option value="${clsOf(g)}">${g.name}</option>`).join('');
+  if(rule.t==='grade')byId('aeGradeSel').value=rule.cls||clsOf(DB.grades[0]);
+  updateAchvRuleUI();
+  byId('aeDelete').style.display=id?'':'none';
+  byId('achvEditOverlay').classList.add('show');
+}
+function updateAchvRuleUI(){
+  const m=ACHV_RULES.find(x=>x.t===byId('aeRuleType').value);
+  byId('aeValWrap').style.display=(m&&m.num)?'':'none';
+  byId('aeGradeWrap').style.display=(m&&m.grade)?'':'none';
+  byId('aeUnit').textContent=m?m.unit:'';
+}
+byId('aeRuleType').onchange=updateAchvRuleUI;
+byId('aeSave').onclick=()=>{
+  const name=byId('aeName').value.trim(); if(!name)return toast('업적 이름을 입력하세요','!');
+  const m=ACHV_RULES.find(x=>x.t===byId('aeRuleType').value), rule={t:m.t};
+  if(m.num)rule.n=Math.max(0,parseInt((byId('aeRuleVal').value||'').replace(/[^\d]/g,''),10)||0);
+  if(m.grade)rule.cls=byId('aeGradeSel').value;
+  const data={name,desc:byId('aeDesc').value.trim(),icon:achvEdit.icon,c:achvEdit.c,rule};
+  DB.achvCustom=DB.achvCustom||[];
+  if(achvEdit.id){const a=DB.achvCustom.find(x=>x.id===achvEdit.id);if(a)Object.assign(a,data);} else DB.achvCustom.push({id:uid(),...data});
+  save(); byId('achvEditOverlay').classList.remove('show'); renderAchv(); if(drId){const d=DB.donators.find(x=>x.id===drId);if(d)renderDrAchv(d);}
+  toast('업적을 저장했어요 🏆');
+};
+byId('aeDelete').onclick=()=>{ if(!achvEdit.id)return; askConfirm('업적 삭제','이 커스텀 업적을 삭제할까요?',()=>{ DB.achvCustom=(DB.achvCustom||[]).filter(x=>x.id!==achvEdit.id); save(); byId('achvEditOverlay').classList.remove('show'); renderAchv(); toast('업적을 삭제했습니다'); }); };
+byId('achvEditClose').onclick=byId('achvEditCancel').onclick=()=>byId('achvEditOverlay').classList.remove('show');
+byId('achvEditOverlay').onclick=e=>{if(e.target===byId('achvEditOverlay'))byId('achvEditOverlay').classList.remove('show');};
+byId('achvAdd').onclick=()=>openAchvEdit(null);
+/* 업적별 획득 도네이터 리스트 */
+let achvListId=null, achvListPage=1; const ACHV_LIST_PP=12;
+function openAchvList(id){ achvListId=id; achvListPage=1; renderAchvList(); byId('achvListOverlay').classList.add('show'); }
+function renderAchvList(){
+  const a=achvById(achvListId); if(!a)return;
+  const earned=(DB.donators||[]).filter(d=>!d.blocked).filter(d=>{try{return a.check(d);}catch(e){return false;}}).sort((x,y)=>(y.cash||0)-(x.cash||0));
+  byId('achvListTitle').innerHTML=`${a.icon} ${(a.name||'').replace(/</g,'&lt;')}`;
+  byId('achvListSum').innerHTML=`${(a.desc||'').replace(/</g,'&lt;')} · 획득 <b>${won(earned.length)}명</b>`;
+  const pages=Math.max(1,Math.ceil(earned.length/ACHV_LIST_PP)); if(achvListPage>pages)achvListPage=pages;
+  const slice=earned.slice((achvListPage-1)*ACHV_LIST_PP,achvListPage*ACHV_LIST_PP);
+  byId('achvListBody').innerHTML=slice.length?slice.map(d=>{const g=gradeForCash(d.cash);
+    return `<div class="al-row" data-don="${d.id}"><div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
+      <div class="al-meta"><div class="al-nm">${d.alias||d.name} ${g?gradeBadge(g):''}</div><div class="al-sub">누적 ${won(d.cash)}캐시 · ${won(d.count)}건</div></div></div>`;
+  }).join(''):`<div class="helper" style="padding:26px;text-align:center">아직 이 업적을 획득한 도네이터가 없습니다</div>`;
+  byId('achvListBody').querySelectorAll('[data-don]').forEach(el=>el.onclick=()=>{byId('achvListOverlay').classList.remove('show');openDrawer(el.dataset.don);});
+  byId('achvListPager').innerHTML=earned.length>ACHV_LIST_PP?`<button class="btn ghost sm" id="alPrev" ${achvListPage<=1?'disabled':''}>◀ 이전</button><span class="sl-pageinfo">${achvListPage} / ${pages}</span><button class="btn ghost sm" id="alNext" ${achvListPage>=pages?'disabled':''}>다음 ▶</button>`:'';
+  const pv=byId('alPrev'),nx=byId('alNext'); if(pv)pv.onclick=()=>{if(achvListPage>1){achvListPage--;renderAchvList();}}; if(nx)nx.onclick=()=>{if(achvListPage<pages){achvListPage++;renderAchvList();}};
+}
+byId('achvListClose').onclick=byId('achvListCloseBtn').onclick=()=>byId('achvListOverlay').classList.remove('show');
+byId('achvListOverlay').onclick=e=>{if(e.target===byId('achvListOverlay'))byId('achvListOverlay').classList.remove('show');};
 
 /* =========================================================
    블랙리스트 (도네이터 차단)
