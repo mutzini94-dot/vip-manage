@@ -3543,7 +3543,7 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="field"><label>아이콘 <span class="helper" style="display:inline;font-weight:500">· 이모지 또는 이미지 업로드</span></label><div class="ae-icons" id="aeIcons"></div><input type="file" id="aeIconFile" accept="image/*" hidden></div>
       <div class="field"><label>색상 · 희귀도</label><div class="st-sw-row" id="aeColors"></div></div>
       <div class="field"><label>설명</label><input class="inp" id="aeDesc" maxlength="40" placeholder="예: 누적 100만 캐시를 후원한 팬"></div>
-      <div class="field"><label>획득 조건</label>
+      <div class="field" id="aeRuleField"><label>획득 조건</label>
         <select class="inp" id="aeRuleType"></select>
         <div id="aeValWrap" style="margin-top:8px;display:flex;align-items:center;gap:8px"><input class="inp" id="aeRuleVal" inputmode="numeric" maxlength="10" style="flex:1" placeholder="기준값"><span class="helper" id="aeUnit" style="display:inline;font-weight:600"></span></div>
         <div id="aeGradeWrap" style="margin-top:8px;display:none"><select class="inp" id="aeGradeSel"></select></div>
@@ -6356,7 +6356,7 @@ function ruleCheck(r,d){ if(!r)return false;
     default: return false;
   }
 }
-function allAchievements(){ return ACHIEVEMENTS.map(a=>({...a,builtin:true})).concat((DB.achvCustom||[]).map(a=>({...a,builtin:false,check:d=>ruleCheck(a.rule,d)}))); }
+function allAchievements(){ const ov=DB.achvOverride||{}; return ACHIEVEMENTS.map(a=>({...a,...(ov[a.id]||{}),builtin:true})).concat((DB.achvCustom||[]).map(a=>({...a,builtin:false,check:d=>ruleCheck(a.rule,d)}))); }
 function achvById(id){ return allAchievements().find(a=>a.id===id)||null; }
 function earnedAchv(d){ return allAchievements().filter(a=>{try{return a.check(d);}catch(e){return false;}}); }
 function achvBadge(a,earned){ return `<div class="achv ${earned?'on':'locked'}" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}" title="${a.name} · ${a.desc}"><div class="achv-ic">${iconHTML(a.icon,22)}</div><div class="achv-nm">${a.name}</div></div>`; }
@@ -6369,7 +6369,7 @@ function renderAchv(){
     const cnt=members.filter(d=>{try{return a.check(d);}catch(e){return false;}}).length;
     const pct=members.length?Math.round(cnt/members.length*100):0;
     return `<div class="achv-card" data-achv="${a.id}" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}">
-      ${a.builtin?'':`<button class="ac-edit" data-edit="${a.id}" title="업적 수정">✎</button>`}
+      <button class="ac-edit" data-edit="${a.id}" title="업적 수정">✎</button>
       <div class="ac-ic">${iconHTML(a.icon,34)}</div>
       <div class="ac-nm">${(a.name||'').replace(/</g,'&lt;')}</div>
       <div class="ac-desc">${(a.desc||'').replace(/</g,'&lt;')}</div>
@@ -6391,20 +6391,24 @@ function renderDrAchv(d){
 const ACHV_ICONS=['🏆','🔥','💎','👑','⭐','💰','🎯','🚀','🌟','💫','🎖️','🥇','❤️','🎁','🦸','🏅','💪','✨','🌈','🍀'];
 let achvEdit={id:null,icon:'🏆',c:'gold'};
 function openAchvEdit(id){ if(viewerGuard())return;
-  const a=id?(DB.achvCustom||[]).find(x=>x.id===id):null;
-  achvEdit={id:id||null,icon:a?a.icon:'🏆',c:a?a.c:'gold'};
+  const a=id?achvById(id):null, builtin=!!(a&&a.builtin);
+  achvEdit={id:id||null,builtin,icon:a?a.icon:'🏆',c:a?a.c:'gold'};
   byId('achvEditTitle').textContent=a?'업적 수정':'새 업적 만들기';
   byId('aeName').value=a?a.name:''; byId('aeDesc').value=a?a.desc:'';
   renderAeIcons();
   byId('aeColors').innerHTML=Object.entries(ACHV_COLORS).map(([k,v])=>`<button type="button" class="st-sw ${k===achvEdit.c?'on':''}" data-c="${k}" style="background:${v}"></button>`).join('');
   byId('aeColors').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{achvEdit.c=b.dataset.c;byId('aeColors').querySelectorAll('.st-sw').forEach(x=>x.classList.toggle('on',x.dataset.c===achvEdit.c));});
   byId('aeRuleType').innerHTML=ACHV_RULES.map(r=>`<option value="${r.t}">${r.label}${r.unit?' ('+r.unit+')':''}</option>`).join('');
-  const rule=a?a.rule:{t:'cash',n:1000000};
+  const rule=(a&&a.rule)?a.rule:{t:'cash',n:1000000};
   byId('aeRuleType').value=rule.t; byId('aeRuleVal').value=rule.n||'';
   byId('aeGradeSel').innerHTML=DB.grades.slice().sort((x,y)=>y.min-x.min).map(g=>`<option value="${clsOf(g)}">${g.name}</option>`).join('');
   if(rule.t==='grade')byId('aeGradeSel').value=rule.cls||clsOf(DB.grades[0]);
   updateAchvRuleUI();
-  byId('aeDelete').style.display=id?'':'none';
+  // 기본 업적의 획득 조건은 시스템 고정 → 조건 영역 숨김
+  byId('aeRuleField').style.display=builtin?'none':'';
+  const delBtn=byId('aeDelete');
+  if(builtin){ delBtn.style.display=(DB.achvOverride&&DB.achvOverride[id])?'':'none'; delBtn.textContent='기본값 복원'; }
+  else { delBtn.style.display=id?'':'none'; delBtn.textContent='삭제'; }
   byId('achvEditOverlay').classList.add('show');
 }
 function updateAchvRuleUI(){
@@ -6437,6 +6441,12 @@ byId('aeIconFile').onchange=e=>{ const f=e.target.files&&e.target.files[0]; e.ta
 };
 byId('aeSave').onclick=()=>{
   const name=byId('aeName').value.trim(); if(!name)return toast('업적 이름을 입력하세요','!');
+  if(achvEdit.builtin){
+    DB.achvOverride=DB.achvOverride||{};
+    DB.achvOverride[achvEdit.id]={name,desc:byId('aeDesc').value.trim(),icon:achvEdit.icon,c:achvEdit.c};
+    save(); byId('achvEditOverlay').classList.remove('show'); renderAchv(); if(drId){const d=DB.donators.find(x=>x.id===drId);if(d)renderDrAchv(d);}
+    toast('업적을 저장했어요 🏆'); return;
+  }
   const m=ACHV_RULES.find(x=>x.t===byId('aeRuleType').value), rule={t:m.t};
   if(m.num)rule.n=Math.max(0,parseInt((byId('aeRuleVal').value||'').replace(/[^\d]/g,''),10)||0);
   if(m.grade)rule.cls=byId('aeGradeSel').value;
@@ -6446,7 +6456,9 @@ byId('aeSave').onclick=()=>{
   save(); byId('achvEditOverlay').classList.remove('show'); renderAchv(); if(drId){const d=DB.donators.find(x=>x.id===drId);if(d)renderDrAchv(d);}
   toast('업적을 저장했어요 🏆');
 };
-byId('aeDelete').onclick=()=>{ if(!achvEdit.id)return; askConfirm('업적 삭제','이 커스텀 업적을 삭제할까요?',()=>{ DB.achvCustom=(DB.achvCustom||[]).filter(x=>x.id!==achvEdit.id); save(); byId('achvEditOverlay').classList.remove('show'); renderAchv(); toast('업적을 삭제했습니다'); }); };
+byId('aeDelete').onclick=()=>{ if(!achvEdit.id)return;
+  if(achvEdit.builtin){ askConfirm('기본값 복원','이 업적을 기본 이름·아이콘으로 되돌릴까요?',()=>{ if(DB.achvOverride)delete DB.achvOverride[achvEdit.id]; save(); byId('achvEditOverlay').classList.remove('show'); renderAchv(); if(drId){const d=DB.donators.find(x=>x.id===drId);if(d)renderDrAchv(d);} toast('기본값으로 복원했어요'); }); return; }
+  askConfirm('업적 삭제','이 커스텀 업적을 삭제할까요?',()=>{ DB.achvCustom=(DB.achvCustom||[]).filter(x=>x.id!==achvEdit.id); save(); byId('achvEditOverlay').classList.remove('show'); renderAchv(); toast('업적을 삭제했습니다'); }); };
 byId('achvEditClose').onclick=byId('achvEditCancel').onclick=()=>byId('achvEditOverlay').classList.remove('show');
 byId('achvEditOverlay').onclick=e=>{if(e.target===byId('achvEditOverlay'))byId('achvEditOverlay').classList.remove('show');};
 byId('achvAdd').onclick=()=>openAchvEdit(null);
