@@ -333,8 +333,17 @@ input,textarea,select{font-family:inherit}
 body.nav-lock{overflow:hidden}                        /* 햄버거 메뉴 열림 중 배경 스크롤 잠금 */
 /* 모바일: 탭바를 가로 스와이프 대신 햄버거 드롭다운으로 전환
    (base 규칙 뒤에 위치해야 캐스케이드에서 우선 적용됨) */
+/* 모바일 하단 고정 탭바 */
+.mobile-nav{display:none;align-items:center}
+.mnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;color:var(--muted);font-size:11px;font-weight:700;padding:7px 4px 5px;cursor:pointer;border-radius:12px;transition:.12s}
+.mnav-item svg{width:23px;height:23px}
+.mnav-item.on{color:var(--accent)}
+.mnav-item.on svg{stroke-width:2.4}
+.mnav-item:active{background:var(--surface-2)}
 @media(max-width:640px){
   .gnb-burger{display:grid}
+  .mobile-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--surface);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));box-shadow:0 -6px 20px rgba(80,70,160,.12)}
+  .wrap{padding-bottom:82px}
   .tabbar{
     position:fixed;top:56px;left:0;right:0;z-index:39;
     height:auto;max-height:calc(100dvh - 56px);overflow-y:auto;
@@ -2113,6 +2122,26 @@ tbody tr.blocked:hover{opacity:.72}
     </button>
   </div>
   <div class="nav-backdrop" id="navBackdrop"></div>
+
+  <!-- 모바일 하단 고정 탭바 -->
+  <nav class="mobile-nav" id="mobileNav">
+    <button class="mnav-item" data-nav="insight">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/></svg>
+      <span>홈</span>
+    </button>
+    <button class="mnav-item" data-nav="donator">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 18l1.6-8L9 13l3-7 3 7 3.4-3L20 18z"/></svg>
+      <span>VIP</span>
+    </button>
+    <button class="mnav-item" data-nav="auto">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/></svg>
+      <span>자동화</span>
+    </button>
+    <button class="mnav-item" id="mnavMore">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+      <span>더보기</span>
+    </button>
+  </nav>
 
   <div class="wrap">
     <div class="role-banner" id="roleBanner">👁 뷰어(읽기 전용) 모드입니다 · 발송·수정·초대 권한이 없습니다</div>
@@ -3992,7 +4021,18 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   if(tab==='grade') renderGrades();
   if(tab==='sub') renderSub();
   if(tab==='achv') renderAchv();
+  syncMobileNav();
 });
+/* 모바일 하단 고정 탭바 */
+function syncMobileNav(){
+  const active=document.querySelector('.tab.on')?document.querySelector('.tab.on').dataset.tab:null;
+  document.querySelectorAll('#mobileNav .mnav-item[data-nav]').forEach(b=>b.classList.toggle('on',b.dataset.nav===active));
+  const more=byId('mnavMore'); if(more)more.classList.remove('on');
+}
+document.querySelectorAll('#mobileNav .mnav-item[data-nav]').forEach(b=>b.onclick=()=>{ const t=document.querySelector('.tab[data-tab="'+b.dataset.nav+'"]'); if(t)t.click(); });
+byId('mnavMore').onclick=()=>{ const open=!document.querySelector('.tabbar').classList.contains('open'); setNav(open); byId('mnavMore').classList.toggle('on',open); };
+byId('navBackdrop').addEventListener('click',()=>byId('mnavMore').classList.remove('on'));
+syncMobileNav();
 /* 라이브 우측 패널 열기/닫기 */
 function openLiveDrawer(){ liveRecapPage=1; byId('liveDrawerOverlay').classList.add('show'); byId('liveDrawer').classList.add('show'); renderLive(); }
 function closeLiveDrawer(){ byId('liveDrawerOverlay').classList.remove('show'); byId('liveDrawer').classList.remove('show'); }
