@@ -1281,8 +1281,12 @@ tbody tr.blocked:hover{opacity:.72}
 .fc-foot{padding:14px 20px;text-align:center;font-size:12.5px;font-weight:800;color:var(--muted);background:var(--surface-2)}
 .fc-actions{display:flex;gap:10px}
 .fc-note{font-size:11px;color:var(--muted-2);text-align:center;max-width:340px}
-.fc-achv{display:flex;flex-wrap:wrap;gap:6px;padding:14px 20px;border-bottom:1px solid var(--line)}
+.fc-achv-sec{padding:13px 20px;border-bottom:1px solid var(--line)}
+.fc-sec-lb{font-size:11.5px;font-weight:800;color:var(--muted);margin-bottom:8px}
+.fc-sec-lb b{color:var(--gc,var(--accent))}
+.fc-achv{display:flex;flex-wrap:wrap;gap:6px}
 .fc-achv-b{--ac:#8b8fa3;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid var(--ac);color:var(--ac);background:var(--surface-2)}
+.fc-achv-more{font-size:11px;font-weight:800;color:var(--muted);align-self:center;padding:0 4px}
 /* ===== 열혈업적 배지 ===== */
 .dr-achv-count{font-size:11px;font-weight:800;color:var(--muted);margin-left:auto}
 .achv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:9px}
@@ -5987,7 +5991,7 @@ function openFanCard(id){
     ${gg.top
       ? `<div class="fc-grade-top">👑 최고 등급 달성 — 최고의 팬이에요!</div>`
       : `<div class="fc-next"><div class="fc-next-lb">다음 등급 <b>${gg.nx.name}</b>까지 <b>${won(gg.remaining)}원</b> · ${Math.round(gg.pct)}%</div><div class="fc-next-bar"><i style="width:${gg.pct}%"></i></div></div>`}
-    ${achv.length?`<div class="fc-achv">${achv.slice(0,8).map(a=>`<span class="fc-achv-b" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}" title="${a.name} · ${a.desc}">${iconHTML(a.icon,14)} ${a.name}</span>`).join('')}</div>`:''}
+    ${achv.length?`<div class="fc-achv-sec"><div class="fc-sec-lb">🔥 열혈업적 <b>${won(achv.length)}개 달성</b></div><div class="fc-achv">${achv.slice(0,8).map(a=>`<span class="fc-achv-b" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}" title="${a.name} · ${a.desc}">${iconHTML(a.icon,14)} ${a.name}</span>`).join('')}${achv.length>8?`<span class="fc-achv-more">+${won(achv.length-8)}</span>`:''}</div></div>`:''}
     ${rank?`<div class="fc-rank">🏅 전체 팬 <b>${won(totalRanked)}명</b> 중 <b>${won(rank)}위</b></div>`:''}
     <div class="fc-foot">함께해줘서 고마워요 💛</div>`;
   byId('fanCardOverlay').classList.add('show');
