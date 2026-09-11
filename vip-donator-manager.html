@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <script>try{var _t=localStorage.getItem('toon_theme');if(_t==='light'||(_t==='system'&&!window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','light');}catch(e){}
 try{var _sk=localStorage.getItem('toon_skin');if(_sk&&_sk!=='default')document.documentElement.setAttribute('data-skin',_sk);}catch(e){}
+try{if(window.innerWidth<=640){document.documentElement.setAttribute('data-theme','light');document.documentElement.setAttribute('data-skin','bento');}}catch(e){}
 try{if(localStorage.getItem('toon_auth')==='1')document.documentElement.setAttribute('data-auth','1');}catch(e){}</script>
 <style>
 :root{
@@ -3162,6 +3163,7 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="set-sec" data-setsec="theme">
         <div class="set-h">🎨 표시 · 테마</div>
         <div class="set-row"><label>테마</label><div class="seg" id="setTheme"><button data-m="light">☀️ 라이트</button><button data-m="dark">🌙 다크</button><button data-m="system">🖥 시스템</button></div></div>
+        <div class="set-row"><label>앱 스타일 <span class="set-hint">모바일 시안과 같은 라이트·바이올렛 톤 · 모바일에선 자동 적용</span></label><button class="btn ghost sm" id="appTonePreset">📱 앱 스타일로 전환</button></div>
         <div class="set-row"><label>기본 시작 탭</label><select class="inp" id="setDefaultTab" style="max-width:220px"></select></div>
         <div class="set-row"><label>강조 색상</label><div class="swatches" id="setAccent"></div></div>
         <div class="set-row" style="align-items:flex-start;flex-direction:column"><label>UI 스타일 <span class="set-hint">화면 톤·모서리·그림자·포인트색 프리셋 (라이트/다크와 함께 적용)</span></label><div class="skin-grid" id="setSkin"></div></div>
@@ -8044,7 +8046,7 @@ function applyTheme(){
   if(effTheme()==='light')document.documentElement.setAttribute('data-theme','light');
   else document.documentElement.removeAttribute('data-theme');
 }
-function setTheme(mode){theme=mode;try{localStorage.setItem(THEME_KEY,mode);}catch(e){}applyTheme();if(byId('setTheme'))byId('setTheme').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.m===mode));}
+function setTheme(mode){theme=mode;try{localStorage.setItem(THEME_KEY,mode);}catch(e){}applyTheme();if(typeof applyResponsiveTone==='function')applyResponsiveTone();if(byId('setTheme'))byId('setTheme').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.m===mode));}
 themeMQ.addEventListener('change',()=>{if(theme==='system')applyTheme();});
 byId('themeToggle').onclick=()=>{const next=effTheme()==='light'?'dark':'light';setTheme(next);toast(next==='light'?'☀️ 라이트 모드':'🌙 다크 모드');};
 applyTheme();
@@ -8053,17 +8055,32 @@ applyTheme();
 const SKIN_KEY='toon_skin';
 const SKINS=[
   {id:'default',emoji:'🔴',name:'열혈 레드',desc:'기본 · 선명한 레드 포인트'},
-  {id:'bento',  emoji:'🧩',name:'Bento UI', desc:'큰 모서리 · 부드러운 그림자 · 바이올렛'},
+  {id:'bento',  emoji:'📱',name:'앱 스타일', desc:'모바일 앱 톤 · 큰 모서리 · 부드러운 그림자 · 바이올렛'},
   {id:'premium',emoji:'👑',name:'Dark Premium',desc:'딥 블랙 · 골드 포인트 · 은은한 광'},
   {id:'minimal',emoji:'⬜',name:'Minimal SaaS',desc:'플랫 · 헤어라인 · 인디고'},
 ];
 let skin=(()=>{try{return localStorage.getItem(SKIN_KEY)||'default';}catch(e){return 'default';}})();
 function applySkin(s){ if(s&&s!=='default')document.documentElement.setAttribute('data-skin',s); else document.documentElement.removeAttribute('data-skin'); }
-function setSkin(s){ skin=s; try{localStorage.setItem(SKIN_KEY,s);}catch(e){} applySkin(s);
+function setSkin(s){ skin=s; try{localStorage.setItem(SKIN_KEY,s);}catch(e){} applySkin(s); applyResponsiveTone();
   if(byId('setSkin'))byId('setSkin').querySelectorAll('.skin-card').forEach(c=>c.classList.toggle('on',c.dataset.skin===s));
   const meta=SKINS.find(x=>x.id===s); toast(`${meta?meta.emoji+' '+meta.name:'기본'} 스타일 적용`);
 }
 applySkin(skin);
+/* ===== 모바일 자동 앱 톤 (시안: 라이트·바이올렛) / 데스크톱 사용자 선택 복원 ===== */
+const MOBILE_TONE_BP=640;
+function applyResponsiveTone(){
+  if(window.innerWidth<=MOBILE_TONE_BP){
+    document.documentElement.setAttribute('data-theme','light');
+    document.documentElement.setAttribute('data-skin','bento');
+  } else {
+    applyTheme(); applySkin(skin);
+  }
+}
+let _toneRAF=0;
+window.addEventListener('resize',()=>{ if(_toneRAF)return; _toneRAF=requestAnimationFrame(()=>{_toneRAF=0;applyResponsiveTone();}); });
+applyResponsiveTone();
+/* PC 원클릭: 시안과 동일한 앱 스타일(라이트+바이올렛) */
+byId('appTonePreset').onclick=()=>{ setTheme('light'); setSkin('bento'); toast('📱 앱 스타일(모바일 톤)을 적용했어요'); };
 
 /* ---------- 강조 색상 · 크리에이터 UI ---------- */
 /* ---------- 팀 협업 (매니저 계정 · 역할/권한 · 활동 로그) ---------- */
