@@ -879,6 +879,15 @@ input.tnum.sm-inp{width:80px;text-align:right}
 .ins-masonry>.panel{break-inside:avoid;width:100%;margin:0 0 16px}
 .ins-masonry>.panel:last-child{margin-bottom:0}
 @media(max-width:900px){.ins-masonry{columns:1}}
+/* 인사이트 카드 드래그 정렬 */
+.ins-board{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;align-items:start}
+.ins-board>.panel{margin:0}
+.ins-board>.panel.span2{grid-column:1 / -1}
+.ins-board>.panel.dragging{opacity:.45;outline:2px dashed var(--accent);outline-offset:-2px}
+@media(max-width:900px){.ins-board{grid-template-columns:1fr}.ins-board>.panel.span2{grid-column:auto}}
+.ins-grip{cursor:grab;border:none;background:none;color:var(--muted-2);font-size:15px;line-height:1;padding:3px 5px;margin:-3px 3px -3px -5px;border-radius:6px;flex:none;touch-action:none}
+.ins-grip:hover{color:var(--accent);background:var(--surface-2)}
+.ins-grip:active{cursor:grabbing}
 /* 후원 금액 분포 차트 */
 .ad-row{display:flex;align-items:center;gap:10px;margin:11px 0}
 .ad-lb{width:64px;flex:none;text-align:right;font-size:12px;font-weight:700;color:var(--muted)}
@@ -2126,7 +2135,7 @@ tbody tr.blocked:hover{opacity:.72}
 
       <div class="kpi-row" id="kpiRow" data-insec="kpi"></div>
 
-      <div class="ins-masonry">
+      <div class="ins-board" id="insBoard">
         <div class="panel" data-insec="trend">
           <div class="panel-head"><h3>후원 추이</h3><span class="hint">최근 6개월</span><div class="spacer"></div><div id="trendDelta" class="trend-delta"></div><button class="mini-btn" id="trendMoreBtn" title="후원 추이 자세히 보기">자세히 보기 →</button></div>
           <div class="panel-body" id="trendChart"></div>
@@ -2156,9 +2165,8 @@ tbody tr.blocked:hover{opacity:.72}
           <div class="panel-head"><h3>상위 후원자 기여도</h3><span class="hint">파레토</span></div>
           <div class="panel-body" id="paretoBox"></div>
         </div>
-      </div>
 
-      <div class="panel" style="margin-bottom:16px" data-insec="fanTemp">
+        <div class="panel span2" data-insec="fanTemp">
         <div class="panel-head">
           <h3>🌡 관계 온도</h3><button class="help-ic" data-help="fantemp" aria-label="관계 온도 도움말" title="관계 온도란? · 사용법">?</button><span class="hint" id="fanTempHint">팬 관계 건강도</span><div class="spacer"></div>
           <div class="seg" id="fanTempMode" style="flex:none"><button data-m="cooling" class="on">🌥 식어가는 단골</button><button data-m="hot">🔥 뜨거운 팬</button></div>
@@ -2169,7 +2177,7 @@ tbody tr.blocked:hover{opacity:.72}
         </div>
       </div>
 
-      <div class="panel" style="margin-bottom:16px" data-insec="nudge">
+        <div class="panel span2" data-insec="nudge">
         <div class="panel-head">
           <h3>🎯 승급 임박 VIP</h3><span class="hint" id="nudgeHint"></span><div class="spacer"></div>
           <label class="auto-toggle" title="90% 도달 시 자동으로 승급톡 발송"><span>마일스톤 자동 승급톡</span><div class="tgl" id="msNudge"></div></label>
@@ -2180,7 +2188,7 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="panel-body"><div id="nudgeBox"></div></div>
       </div>
 
-      <div class="panel" style="margin-bottom:16px" data-insec="outreach">
+        <div class="panel span2" data-insec="outreach">
         <div class="panel-head">
           <h3>📈 복귀 유도·승급톡 성과</h3><button class="help-ic" data-help="outreach" aria-label="복귀 유도·승급톡 성과 도움말" title="복귀 유도·승급톡 성과란? · 사용법">?</button><span class="hint" id="outreachHint">발송 대비 전환 분석</span><div class="spacer"></div>
           <button class="btn ghost sm" id="outreachMore">전체 성과 보기 ▸</button>
@@ -2191,12 +2199,13 @@ tbody tr.blocked:hover{opacity:.72}
         </div>
       </div>
 
-      <div class="panel" style="margin-bottom:16px" data-insec="anniv">
+        <div class="panel span2" data-insec="anniv">
         <div class="panel-head">
           <h3>🎂 다가오는 기념일</h3><span class="hint" id="annivHint">가입 기념일 30일 이내</span><div class="spacer"></div>
           <label class="auto-toggle"><span>기념일 자동 축하</span><div class="tgl" id="annivAuto"></div></label>
         </div>
         <div class="panel-body"><div id="annivList" class="anniv-list"></div></div>
+      </div>
       </div>
     </section>
 
@@ -6175,7 +6184,41 @@ function renderDrMembership(d){
   }
 }
 
-function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderAmtDist();renderTopSig();renderChurn();renderPareto();renderFanTemp();renderNudge();renderOutreach();renderAnniv();applyInsightVisibility();if(typeof renderAlerts==='function')renderAlerts();}
+function renderInsights(){renderKpis();renderTrend();renderGradeMix();renderAmtDist();renderTopSig();renderChurn();renderPareto();renderFanTemp();renderNudge();renderOutreach();renderAnniv();applyInsightVisibility();setupInsSort();if(typeof renderAlerts==='function')renderAlerts();}
+/* ===== 인사이트 카드 드래그 정렬 ===== */
+function insSecList(){ const b=byId('insBoard'); return b?[...b.querySelectorAll(':scope > .panel')]:[]; }
+function saveInsOrder(){ if(!byId('insBoard'))return; DB.settings=DB.settings||{}; DB.settings.insOrder=insSecList().map(p=>p.dataset.insec); save(); }
+function applyInsOrder(){ const board=byId('insBoard'); if(!board)return; const order=(DB.settings&&DB.settings.insOrder); if(!order||!order.length)return;
+  const map={}; board.querySelectorAll(':scope > .panel').forEach(p=>map[p.dataset.insec]=p);
+  order.forEach(k=>{ if(map[k]) board.appendChild(map[k]); });
+  Object.keys(map).forEach(k=>{ if(!order.includes(k)) board.appendChild(map[k]); });
+}
+function setupInsSort(){
+  const board=byId('insBoard'); if(!board||board._sortInit)return; board._sortInit=true;
+  board.querySelectorAll(':scope > .panel').forEach(panel=>{
+    const head=panel.querySelector('.panel-head');
+    if(head && !head.querySelector('.ins-grip')){
+      const grip=document.createElement('button'); grip.type='button'; grip.className='ins-grip'; grip.title='드래그하여 순서 변경'; grip.setAttribute('aria-label','순서 변경'); grip.textContent='⠿';
+      grip.addEventListener('mousedown',()=>{panel.draggable=true;});
+      grip.addEventListener('touchstart',()=>{panel.draggable=true;},{passive:true});
+      grip.addEventListener('click',e=>e.preventDefault());
+      head.insertBefore(grip, head.firstChild);
+    }
+    panel.addEventListener('dragstart',e=>{ if(!panel.draggable){e.preventDefault();return;} panel.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; try{e.dataTransfer.setData('text/plain',panel.dataset.insec||'');}catch(_){} });
+    panel.addEventListener('dragend',()=>{ panel.classList.remove('dragging'); panel.draggable=false; saveInsOrder(); });
+  });
+  board.addEventListener('dragover',e=>{
+    e.preventDefault(); const dragging=board.querySelector('.panel.dragging'); if(!dragging)return;
+    const els=[...board.querySelectorAll(':scope > .panel:not(.dragging)')]; if(!els.length)return;
+    let target=null,best=Infinity;
+    for(const el of els){const r=el.getBoundingClientRect();const cx=r.left+r.width/2,cy=r.top+r.height/2;const d=(e.clientX-cx)**2+(e.clientY-cy)**2;if(d<best){best=d;target=el;}}
+    if(!target)return; const r=target.getBoundingClientRect();
+    const before=(e.clientY<r.top+r.height/2)||(Math.abs(e.clientY-(r.top+r.height/2))<r.height/2 && e.clientX<r.left+r.width/2);
+    if(before)board.insertBefore(dragging,target); else board.insertBefore(dragging,target.nextSibling);
+  });
+  board.addEventListener('drop',e=>e.preventDefault());
+  applyInsOrder();
+}
 
 /* ---------- 인사이트 표시 항목 커스텀 ---------- */
 const INSIGHT_SECTIONS=[
