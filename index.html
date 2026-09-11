@@ -1302,6 +1302,10 @@ tbody tr.blocked:hover{opacity:.72}
 .ae-icons{display:flex;flex-wrap:wrap;gap:6px}
 .ae-ic{width:38px;height:38px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);font-size:19px;cursor:pointer;display:grid;place-items:center;line-height:1}
 .ae-ic.on{border-color:var(--accent);background:var(--accent-soft)}
+.ae-ic.up{border-style:dashed;color:var(--accent);font-weight:800}
+.ae-ic.img{overflow:hidden;padding:0}
+.ae-ic.img img{width:100%;height:100%;object-fit:cover}
+.achv-card .ac-ic img{border-radius:8px}
 .al-list{display:flex;flex-direction:column}
 .al-row{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer}
 .al-row:last-child{border-bottom:none}
@@ -3490,7 +3494,7 @@ tbody tr.blocked:hover{opacity:.72}
     <div class="modal-head"><h2 id="achvEditTitle">새 업적</h2><div class="spacer"></div><button class="xbtn" id="achvEditClose">✕</button></div>
     <div class="modal-body">
       <div class="field"><label>업적 이름</label><input class="inp" id="aeName" maxlength="20" placeholder="예: 백만 클럽"></div>
-      <div class="field"><label>아이콘</label><div class="ae-icons" id="aeIcons"></div></div>
+      <div class="field"><label>아이콘 <span class="helper" style="display:inline;font-weight:500">· 이모지 또는 이미지 업로드</span></label><div class="ae-icons" id="aeIcons"></div><input type="file" id="aeIconFile" accept="image/*" hidden></div>
       <div class="field"><label>색상 · 희귀도</label><div class="st-sw-row" id="aeColors"></div></div>
       <div class="field"><label>설명</label><input class="inp" id="aeDesc" maxlength="40" placeholder="예: 누적 100만 캐시를 후원한 팬"></div>
       <div class="field"><label>획득 조건</label>
@@ -5983,7 +5987,7 @@ function openFanCard(id){
     ${gg.top
       ? `<div class="fc-grade-top">👑 최고 등급 달성 — 최고의 팬이에요!</div>`
       : `<div class="fc-next"><div class="fc-next-lb">다음 등급 <b>${gg.nx.name}</b>까지 <b>${won(gg.remaining)}원</b> · ${Math.round(gg.pct)}%</div><div class="fc-next-bar"><i style="width:${gg.pct}%"></i></div></div>`}
-    ${achv.length?`<div class="fc-achv">${achv.slice(0,8).map(a=>`<span class="fc-achv-b" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}" title="${a.name} · ${a.desc}">${a.icon} ${a.name}</span>`).join('')}</div>`:''}
+    ${achv.length?`<div class="fc-achv">${achv.slice(0,8).map(a=>`<span class="fc-achv-b" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}" title="${a.name} · ${a.desc}">${iconHTML(a.icon,14)} ${a.name}</span>`).join('')}</div>`:''}
     ${rank?`<div class="fc-rank">🏅 전체 팬 <b>${won(totalRanked)}명</b> 중 <b>${won(rank)}위</b></div>`:''}
     <div class="fc-foot">함께해줘서 고마워요 💛</div>`;
   byId('fanCardOverlay').classList.add('show');
@@ -6264,7 +6268,7 @@ function ruleCheck(r,d){ if(!r)return false;
 function allAchievements(){ return ACHIEVEMENTS.concat((DB.achvCustom||[]).map(a=>({...a,builtin:false,check:d=>ruleCheck(a.rule,d)}))); }
 function achvById(id){ return allAchievements().find(a=>a.id===id)||null; }
 function earnedAchv(d){ return allAchievements().filter(a=>{try{return a.check(d);}catch(e){return false;}}); }
-function achvBadge(a,earned){ return `<div class="achv ${earned?'on':'locked'}" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}" title="${a.name} · ${a.desc}"><div class="achv-ic">${a.icon}</div><div class="achv-nm">${a.name}</div></div>`; }
+function achvBadge(a,earned){ return `<div class="achv ${earned?'on':'locked'}" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}" title="${a.name} · ${a.desc}"><div class="achv-ic">${iconHTML(a.icon,22)}</div><div class="achv-nm">${a.name}</div></div>`; }
 /* 열혈업적 개요 페이지 */
 function renderAchv(){
   if(!byId('page-achv'))return;
@@ -6275,7 +6279,7 @@ function renderAchv(){
     const pct=members.length?Math.round(cnt/members.length*100):0;
     return `<div class="achv-card" data-achv="${a.id}" style="--ac:${ACHV_COLORS[a.c]||'#8b8fa3'}">
       ${a.builtin?'':`<button class="ac-edit" data-edit="${a.id}" title="업적 수정">✎</button>`}
-      <div class="ac-ic">${a.icon}</div>
+      <div class="ac-ic">${iconHTML(a.icon,34)}</div>
       <div class="ac-nm">${(a.name||'').replace(/</g,'&lt;')}</div>
       <div class="ac-desc">${(a.desc||'').replace(/</g,'&lt;')}</div>
       <div class="ac-stat"><b>${won(cnt)}</b>명 획득 · ${pct}%</div>
@@ -6300,8 +6304,7 @@ function openAchvEdit(id){ if(viewerGuard())return;
   achvEdit={id:id||null,icon:a?a.icon:'🏆',c:a?a.c:'gold'};
   byId('achvEditTitle').textContent=a?'업적 수정':'새 업적 만들기';
   byId('aeName').value=a?a.name:''; byId('aeDesc').value=a?a.desc:'';
-  byId('aeIcons').innerHTML=ACHV_ICONS.map(e=>`<button type="button" class="ae-ic ${e===achvEdit.icon?'on':''}" data-i="${e}">${e}</button>`).join('');
-  byId('aeIcons').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{achvEdit.icon=b.dataset.i;byId('aeIcons').querySelectorAll('.ae-ic').forEach(x=>x.classList.toggle('on',x.dataset.i===achvEdit.icon));});
+  renderAeIcons();
   byId('aeColors').innerHTML=Object.entries(ACHV_COLORS).map(([k,v])=>`<button type="button" class="st-sw ${k===achvEdit.c?'on':''}" data-c="${k}" style="background:${v}"></button>`).join('');
   byId('aeColors').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{achvEdit.c=b.dataset.c;byId('aeColors').querySelectorAll('.st-sw').forEach(x=>x.classList.toggle('on',x.dataset.c===achvEdit.c));});
   byId('aeRuleType').innerHTML=ACHV_RULES.map(r=>`<option value="${r.t}">${r.label}${r.unit?' ('+r.unit+')':''}</option>`).join('');
@@ -6320,6 +6323,27 @@ function updateAchvRuleUI(){
   byId('aeUnit').textContent=m?m.unit:'';
 }
 byId('aeRuleType').onchange=updateAchvRuleUI;
+function renderAeIcons(){
+  const box=byId('aeIcons'); let html='';
+  if(isImgIcon(achvEdit.icon)) html+=`<button type="button" class="ae-ic img on" data-imgsel="1" title="업로드한 이미지"><img src="${achvEdit.icon}" alt=""></button>`;
+  html+=ACHV_ICONS.map(e=>`<button type="button" class="ae-ic ${e===achvEdit.icon?'on':''}" data-i="${e}">${e}</button>`).join('');
+  html+=`<button type="button" class="ae-ic up" id="aeIconUp" title="이미지 업로드">＋</button>`;
+  box.innerHTML=html;
+  box.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{achvEdit.icon=b.dataset.i;renderAeIcons();});
+  byId('aeIconUp').onclick=()=>byId('aeIconFile').click();
+  const sel=box.querySelector('[data-imgsel]'); if(sel)sel.onclick=()=>byId('aeIconFile').click();
+}
+byId('aeIconFile').onchange=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f)return;
+  if(!/^image\//.test(f.type)){toast('이미지 파일만 업로드할 수 있어요','!');return;}
+  if(f.size>8*1024*1024){toast('8MB 이하 이미지만 업로드할 수 있어요','!');return;}
+  const reader=new FileReader();
+  reader.onload=()=>{ const img=new Image(); img.onload=()=>{ const max=128; const s=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+    const w=Math.round(img.naturalWidth*s), h=Math.round(img.naturalHeight*s);
+    const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
+    achvEdit.icon=c.toDataURL('image/png'); renderAeIcons(); toast('아이콘 이미지를 적용했어요 🖼️'); };
+    img.onerror=()=>toast('이미지를 불러오지 못했어요','!'); img.src=reader.result; };
+  reader.readAsDataURL(f);
+};
 byId('aeSave').onclick=()=>{
   const name=byId('aeName').value.trim(); if(!name)return toast('업적 이름을 입력하세요','!');
   const m=ACHV_RULES.find(x=>x.t===byId('aeRuleType').value), rule={t:m.t};
@@ -6341,7 +6365,7 @@ function openAchvList(id){ achvListId=id; achvListPage=1; renderAchvList(); byId
 function renderAchvList(){
   const a=achvById(achvListId); if(!a)return;
   const earned=(DB.donators||[]).filter(d=>!d.blocked).filter(d=>{try{return a.check(d);}catch(e){return false;}}).sort((x,y)=>(y.cash||0)-(x.cash||0));
-  byId('achvListTitle').innerHTML=`${a.icon} ${(a.name||'').replace(/</g,'&lt;')}`;
+  byId('achvListTitle').innerHTML=`${iconHTML(a.icon,20)} ${(a.name||'').replace(/</g,'&lt;')}`;
   byId('achvListSum').innerHTML=`${(a.desc||'').replace(/</g,'&lt;')} · 획득 <b>${won(earned.length)}명</b>`;
   const pages=Math.max(1,Math.ceil(earned.length/ACHV_LIST_PP)); if(achvListPage>pages)achvListPage=pages;
   const slice=earned.slice((achvListPage-1)*ACHV_LIST_PP,achvListPage*ACHV_LIST_PP);
