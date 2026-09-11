@@ -1577,7 +1577,7 @@ tbody tr.blocked:hover{opacity:.72}
 /* 알림 클릭 → 해당 영역 하이라이트 */
 .flash-focus{animation:flashFocus 1.7s ease-out}
 @keyframes flashFocus{0%{box-shadow:0 0 0 3px var(--accent),0 0 22px rgba(255,61,104,.4)}100%{box-shadow:0 0 0 3px rgba(255,61,104,0),0 0 22px rgba(255,61,104,0)}}
-/* 복귀 유도·넛지 성과 */
+/* 복귀 유도·승급톡 성과 */
 .or-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 @media(max-width:640px){.or-stats{grid-template-columns:1fr}}
 .or-card{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
@@ -1977,7 +1977,7 @@ tbody tr.blocked:hover{opacity:.72}
       <svg class="ws-caret" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
     </button>
     <div class="spacer"></div>
-    <button class="gnb-chip credit-chip" id="creditChip" title="복귀 유도·넛지 알림톡 잔여 발송 건수 · 클릭하여 충전">
+    <button class="gnb-chip credit-chip" id="creditChip" title="복귀 유도·승급톡 잔여 발송 건수 · 클릭하여 충전">
       <span class="cr-ic">✉️</span>
       <span class="cr-tx"><span class="cr-lbl">알림톡 잔여 </span><b id="creditBal">300</b><span class="cr-lbl">건</span></span>
       <span class="cr-plus">＋충전</span>
@@ -2122,7 +2122,7 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="panel" style="margin-bottom:16px" data-insec="nudge">
         <div class="panel-head">
           <h3>🎯 승급 임박 VIP</h3><span class="hint" id="nudgeHint"></span><div class="spacer"></div>
-          <label class="auto-toggle" title="90% 도달 시 자동으로 넛지 발송"><span>마일스톤 자동 넛지</span><div class="tgl" id="msNudge"></div></label>
+          <label class="auto-toggle" title="90% 도달 시 자동으로 승급톡 발송"><span>마일스톤 자동 승급톡</span><div class="tgl" id="msNudge"></div></label>
           <div class="seg" id="nudgeThresh" style="flex:none">
             <button data-n="30000">3만</button><button data-n="50000" class="on">5만</button><button data-n="100000">10만</button>
           </div>
@@ -2132,7 +2132,7 @@ tbody tr.blocked:hover{opacity:.72}
 
       <div class="panel" style="margin-bottom:16px" data-insec="outreach">
         <div class="panel-head">
-          <h3>📈 복귀 유도·넛지 성과</h3><button class="help-ic" data-help="outreach" aria-label="복귀 유도·넛지 성과 도움말" title="복귀 유도·넛지 성과란? · 사용법">?</button><span class="hint" id="outreachHint">발송 대비 전환 분석</span><div class="spacer"></div>
+          <h3>📈 복귀 유도·승급톡 성과</h3><button class="help-ic" data-help="outreach" aria-label="복귀 유도·승급톡 성과 도움말" title="복귀 유도·승급톡 성과란? · 사용법">?</button><span class="hint" id="outreachHint">발송 대비 전환 분석</span><div class="spacer"></div>
           <button class="btn ghost sm" id="outreachMore">전체 성과 보기 ▸</button>
         </div>
         <div class="panel-body">
@@ -2392,7 +2392,7 @@ tbody tr.blocked:hover{opacity:.72}
         <button class="btn ghost sm danger" id="bulkBlock">차단</button>
         <button class="btn ghost sm" id="bulkUnblock">차단 해제</button>
         <button class="btn ghost sm" id="bulkReengage">💤 복귀 유도</button>
-        <button class="btn ghost sm" id="bulkNudge">🎯 넛지</button>
+        <button class="btn ghost sm" id="bulkNudge">🎯 승급톡</button>
         <button class="btn ghost sm" id="bulkThanks">💌 감사 메시지</button>
         <button class="btn ghost sm" id="bulkCsv">선택 CSV</button>
         <div class="spacer"></div>
@@ -2938,7 +2938,7 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
 </div>
 
-<!-- ============ 복귀 유도 / 넛지 일괄 발송 ============ -->
+<!-- ============ 복귀 유도 / 승급톡 일괄 발송 ============ -->
 <div class="overlay" id="bulkSendOverlay">
   <div class="modal" style="max-width:500px">
     <div class="modal-head">
@@ -3050,7 +3050,7 @@ tbody tr.blocked:hover{opacity:.72}
         <div class="rc-total"><span>최종 결제 금액</span><b id="rcTotal">3,300원</b></div>
         <div class="rc-notes">
           · 결제 금액에는 부가세(VAT 10%)가 포함되어 있습니다.<br>
-          · 충전한 발송 건수는 복귀 유도·승급 넛지·감사 알림톡 발송 시 1건씩 차감됩니다.<br>
+          · 충전한 발송 건수는 복귀 유도·승급톡·감사 알림톡 발송 시 1건씩 차감됩니다.<br>
           · 잔여 건수는 워크스페이스별로 관리됩니다.
         </div>
         <button class="btn primary rc-submit" id="creditConfirm">충전하기</button>
@@ -3160,7 +3160,7 @@ tbody tr.blocked:hover{opacity:.72}
       <div class="set-sec" data-setsec="notify">
         <div class="set-h">🔔 알림 · 자동화 기본값</div>
         <label class="set-toggle"><div><div class="st-t">기념일 자동 축하</div><div class="st-s">가입 기념일에 자동으로 축하 메시지</div></div><div class="tgl" id="setAnniv"></div></label>
-        <label class="set-toggle"><div><div class="st-t">마일스톤 자동 넛지</div><div class="st-s">승급 90% 도달 시 자동 넛지 발송</div></div><div class="tgl" id="setMilestone"></div></label>
+        <label class="set-toggle"><div><div class="st-t">마일스톤 자동 승급톡</div><div class="st-s">승급 90% 도달 시 자동 승급톡 발송</div></div><div class="tgl" id="setMilestone"></div></label>
         <label class="set-toggle"><div><div class="st-t">투네톡 미답장 알림</div><div class="st-s">미응답 투네톡 하루 1회 알림</div></div><div class="tgl" id="setToonAlert"></div></label>
         <div class="set-row"><label>이탈 위험 기준</label><div class="seg" id="setChurn"><button data-d="14">14일</button><button data-d="30">30일</button><button data-d="60">60일</button></div></div>
         <div class="set-row"><label>승급 임박 기준</label><div class="seg" id="setNudge"><button data-n="30000">3만</button><button data-n="50000">5만</button><button data-n="100000">10만</button></div></div>
@@ -3285,16 +3285,16 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
 </div>
 
-<!-- ============ 복귀 유도·넛지 성과 분석 ============ -->
+<!-- ============ 복귀 유도·승급톡 성과 분석 ============ -->
 <div class="overlay" id="outreachOverlay">
   <div class="modal" style="max-width:600px">
     <div class="modal-head">
-      <h2>📈 복귀 유도·넛지 성과 분석</h2><div class="spacer"></div><button class="xbtn" id="outreachClose">✕</button>
+      <h2>📈 복귀 유도·승급톡 성과 분석</h2><div class="spacer"></div><button class="xbtn" id="outreachClose">✕</button>
     </div>
     <div class="modal-body">
       <div class="or-summary" id="orSummary"></div>
       <div class="or-filters">
-        <div class="seg" id="orTypeF" style="flex:none"><button data-t="all" class="on">전체</button><button data-t="reengage">💤 복귀 유도</button><button data-t="nudge">🎯 넛지</button></div>
+        <div class="seg" id="orTypeF" style="flex:none"><button data-t="all" class="on">전체</button><button data-t="reengage">💤 복귀 유도</button><button data-t="nudge">🎯 승급톡</button></div>
         <div class="seg" id="orResF" style="flex:none"><button data-r="all" class="on">전체</button><button data-r="converted">전환</button><button data-r="none">무응답</button><button data-r="pending">대기</button></div>
       </div>
       <div class="or-list" id="orFullList"></div>
@@ -3302,11 +3302,11 @@ tbody tr.blocked:hover{opacity:.72}
   </div>
 </div>
 
-<!-- ============ 승급 넛지 메시지 ============ -->
+<!-- ============ 승급톡 메시지 ============ -->
 <div class="overlay" id="nudgeOverlay">
   <div class="modal" style="max-width:480px">
     <div class="modal-head">
-      <h2>🎯 승급 넛지 메시지</h2><div class="spacer"></div><button class="xbtn" id="nudgeClose">✕</button>
+      <h2>🎯 승급톡 메시지</h2><div class="spacer"></div><button class="xbtn" id="nudgeClose">✕</button>
     </div>
     <div class="modal-body">
       <div class="re-target" id="nudgeTarget"></div>
@@ -3322,7 +3322,7 @@ tbody tr.blocked:hover{opacity:.72}
     <div class="modal-foot">
       <button class="btn ghost" id="nudgeCancel">취소</button>
       <div class="spacer"></div>
-      <button class="btn primary" id="nudgeSend">넛지 발송</button>
+      <button class="btn primary" id="nudgeSend">승급톡 발송</button>
     </div>
   </div>
 </div>
@@ -3874,7 +3874,7 @@ function renderGoalCard(d){
         ${MILESTONES.map(m=>`<span class="gg-tick ${g.pct>=m?'passed':''}" style="left:${m}%"></span>`).join('')}
       </div>
       <div class="goal-ms ${ms.cls}">${ms.icon} ${ms.msg}</div>
-      <button class="btn primary sm goal-nudge" ${d.nudged?'disabled':''}>${d.nudged?'✓ 넛지 발송됨':'🎯 승급 넛지 보내기'}</button>
+      <button class="btn primary sm goal-nudge" ${d.nudged?'disabled':''}>${d.nudged?'✓ 승급톡 발송됨':'🎯 승급톡 보내기'}</button>
     </div>`;
   const nb=box.querySelector('.goal-nudge'); if(nb&&!d.nudged) nb.onclick=()=>openNudge(d.id);
 }
@@ -4161,7 +4161,7 @@ const DON_VIEW_DESC={
   rank:'누적 후원 금액이 높은 순으로 도네이터를 정렬해 보여줍니다.',
   temp:'관계 온도(최근성·빈도·금액)가 높은 순으로 정렬합니다.',
   churn:'한동안 후원이 없어 이탈 위험이 있는 도네이터입니다. 복귀 유도를 보내보세요.',
-  promote:'다음 등급 승급이 눈앞인 도네이터입니다. 넛지로 마지막 한 걸음을 도와주세요.'
+  promote:'다음 등급 승급이 눈앞인 도네이터입니다. 승급톡으로 마지막 한 걸음을 도와주세요.'
 };
 byId('donSearch').addEventListener('input',e=>{donQuery=e.target.value.trim().toLowerCase();donPage=1;renderDonators();});
 byId('donView').querySelectorAll('button').forEach(b=>b.onclick=()=>{
@@ -4294,7 +4294,7 @@ function renderDonOutreach(){
     const sent=targets.filter(d=>d.nudged).length;
     const t=st.nudge, rate=st.nuRate;
     box.innerHTML=
-      `<div class="os-lead"><span class="os-ic">🎯</span><div>승급 넛지 성과<div class="os-sub">승급 임박 ${won(targets.length)}명 · 넛지 완료 ${won(sent)}명</div></div></div>`
+      `<div class="os-lead"><span class="os-ic">🎯</span><div>승급톡 성과<div class="os-sub">승급 임박 ${won(targets.length)}명 · 승급톡 완료 ${won(sent)}명</div></div></div>`
       +`<div class="os-tiles">`
       +tile('누적 발송',won(t.sent),'건')
       +tile('후원 전환',won(t.conv),'명','hl',rate,'var(--accent)')
@@ -4359,7 +4359,7 @@ function renderDonators(){
     const gMs=(gg.top||d.blocked)?null:milestoneOf(gg.pct);
     const gaugeHtml=(gg.top||d.blocked)?'':`<div class="goal-mini"><div class="gauge mini" title="다음 등급 ${gg.nx.name}까지 ${won(gg.remaining)}원 · 달성 ${Math.round(gg.pct)}%"><i style="width:${gg.pct}%;background:${gg.nx.color}"></i></div>${gMs.lv>=80?`<span class="ms-badge ${gMs.cls}" style="padding:1px 6px">${gMs.icon}${gMs.lv}</span>`:''}</div>`;
     if(d.blocked) tr.classList.add('blocked');
-    // 행 액션: 복귀 유도 / 넛지 (대상 + 알림톡 수신 동의 시에만 발송)
+    // 행 액션: 복귀 유도 / 승급톡 (대상 + 알림톡 수신 동의 시에만 발송)
     const acts=[];
     const targeted=isChurnTarget(d)||isNudgeTarget(d);
     if(targeted && !d.alimConsent){
@@ -4369,8 +4369,8 @@ function renderDonators(){
         ? `<button class="btn ghost xs act-re" title="마지막 복귀 유도 ${fmtAgo(d.reengagedAt)}">💤 다시 유도</button>`
         : `<button class="btn primary xs act-re">💤 복귀 유도</button>`);
       if(isNudgeTarget(d)) acts.push(d.nudged
-        ? `<span class="act-done">✓ 넛지 보냄</span>`
-        : `<button class="btn primary xs act-nudge">🎯 넛지</button>`);
+        ? `<span class="act-done">✓ 승급톡 보냄</span>`
+        : `<button class="btn primary xs act-nudge">🎯 승급톡</button>`);
     }
     const actHtml=acts.length?`<div class="act-wrap">${acts.join('')}</div>`:'<span class="act-none">—</span>';
     tr.innerHTML=`
@@ -5478,11 +5478,11 @@ const HELP_TIPS={
         <li>도네이터 이름을 클릭하면 프로필이 열립니다.</li>
         <li>도네이터 관리의 <em>관계 온도별</em> 탭에서 온도 범위로 필터할 수 있어요.</li>
       </ul>`},
-  outreach:{title:'📈 복귀 유도·넛지 성과',
-    html:`<p>복귀 유도·승급 넛지 알림톡을 보낸 뒤 실제 <b>후원(전환)으로 이어졌는지</b> 추적하는 지표예요. 발송 대비 전환율과 유도된 후원 금액을 보여줍니다.</p>
+  outreach:{title:'📈 복귀 유도·승급톡 성과',
+    html:`<p>복귀 유도·승급톡을 보낸 뒤 실제 <b>후원(전환)으로 이어졌는지</b> 추적하는 지표예요. 발송 대비 전환율과 유도된 후원 금액을 보여줍니다.</p>
       <div class="ht-sub">사용법</div>
       <ul>
-        <li>카드에서 <em>복귀 유도 / 승급 넛지</em>별 발송·전환·전환율·유도 후원을 확인해요.</li>
+        <li>카드에서 <em>복귀 유도 / 승급톡</em>별 발송·전환·전환율·유도 후원을 확인해요.</li>
         <li>아래 최근 발송 목록에서 대상·유형·결과를 볼 수 있고, 이름 클릭 시 프로필이 열립니다.</li>
         <li><em>전체 성과 보기</em>로 유형·결과별 필터와 전체 이력을 확인해요.</li>
         <li>전환은 발송 이후 일정 기간 내 후원이 발생하면 집계됩니다.</li>
@@ -5507,7 +5507,7 @@ window.addEventListener('scroll',closeHelpTip,true);
 window.addEventListener('resize',closeHelpTip);
 
 /* =========================================================
-   알림톡 발송 건수(크레딧) — 복귀 유도·넛지 공용 총량 제한
+   알림톡 발송 건수(크레딧) — 복귀 유도·승급톡 공용 총량 제한
    ========================================================= */
 function creditBalance(){return DB.msgCredit?DB.msgCredit.balance:0;}
 function renderCredit(){
@@ -5704,7 +5704,7 @@ byId('reSend').onclick=()=>{
   toast(`복귀 유도 알림톡을 발송했습니다 · 잔여 ${won(creditBalance())}건`);
 };
 
-/* --- 승급 임박 VIP (넛지) --- */
+/* --- 승급 임박 VIP (승급톡) --- */
 let nudgeThreshold=(DB.settings&&DB.settings.nudgeAmount)||50000;
 function nudgeData(maxRem){
   return DB.donators.filter(d=>isMember(d)&&!d.blocked).map(d=>({d,g:gaugeData(d)}))
@@ -5725,7 +5725,7 @@ function renderNudge(){
     const right = !d.alimConsent ? '<span class="act-blocked" title="알림톡 수신 미동의">🚫 수신 거부</span>'
       : d.nudged ? '<div class="done-badge">✓ 보냄</div>'
       : auto ? '<div class="done-badge" style="color:var(--muted)">🤖 자동 예약됨</div>'
-      : '<button class="btn primary sm nudge-btn">넛지 보내기</button>';
+      : '<button class="btn primary sm nudge-btn">승급톡 보내기</button>';
     const row=document.createElement('div');row.className='churn-row';
     row.innerHTML=`<div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
       <div class="meta"><div class="nm">${d.alias||d.name} ${gradeBadge(cur)} ${ms.lv?`<span class="ms-badge ${ms.cls}">${ms.icon} ${ms.lv}%</span>`:''}</div>
@@ -5738,7 +5738,7 @@ function renderNudge(){
   });
   if(rows.length>8){const m=document.createElement('button');m.className='more-link';m.textContent=`외 ${rows.length-8}명 더 있습니다 →`;m.onclick=()=>goDonView('promote');box.appendChild(m);}
 }
-byId('msNudge').onclick=()=>{DB.milestoneNudge=!DB.milestoneNudge;save();renderNudge();toast(DB.milestoneNudge?'마일스톤 자동 넛지를 켰습니다 (90% 도달 시 자동 발송)':'마일스톤 자동 넛지를 껐습니다');};
+byId('msNudge').onclick=()=>{DB.milestoneNudge=!DB.milestoneNudge;save();renderNudge();toast(DB.milestoneNudge?'마일스톤 자동 승급톡을 켰습니다 (90% 도달 시 자동 발송)':'마일스톤 자동 승급톡을 껐습니다');};
 byId('nudgeThresh').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   nudgeThreshold=+b.dataset.n;
   byId('nudgeThresh').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
@@ -5756,23 +5756,23 @@ function openNudge(id){
   renderMsgPicker('nudge','nudgeMsgPicker','nudgeMsg',nudgePrev);
   byId('nudgeOverlay').classList.add('show');
 }
-function nudgePrev(){const d=DB.donators.find(x=>x.id===nudgeId);byId('nudgePreview').innerHTML=`<div class="kakao"><div class="kt">🎯 승급 넛지 알림톡</div><div class="kb">${subMsg(byId('nudgeMsg').value,d)}</div><div class="kbtn">후원하러 가기</div></div>`;}
+function nudgePrev(){const d=DB.donators.find(x=>x.id===nudgeId);byId('nudgePreview').innerHTML=`<div class="kakao"><div class="kt">🎯 승급톡</div><div class="kb">${subMsg(byId('nudgeMsg').value,d)}</div><div class="kbtn">후원하러 가기</div></div>`;}
 byId('nudgeMsg').addEventListener('input',nudgePrev);
 byId('nudgeClose').onclick=byId('nudgeCancel').onclick=()=>byId('nudgeOverlay').classList.remove('show');
 byId('nudgeOverlay').onclick=e=>{if(e.target===byId('nudgeOverlay'))byId('nudgeOverlay').classList.remove('show');};
 byId('nudgeSend').onclick=()=>{
   const dc=DB.donators.find(x=>x.id===nudgeId);
   if(dc&&!dc.alimConsent){toast('알림톡 수신에 동의하지 않은 도네이터입니다');byId('nudgeOverlay').classList.remove('show');return;}
-  if(!spendCredit(`🎯 승급 넛지 · ${dc?dc.name:''}`,1,subMsg(byId('nudgeMsg').value,dc))){toast('잔여 발송 건수가 부족합니다. 충전해주세요');byId('nudgeOverlay').classList.remove('show');openRecharge();return;}
+  if(!spendCredit(`🎯 승급톡 · ${dc?dc.name:''}`,1,subMsg(byId('nudgeMsg').value,dc))){toast('잔여 발송 건수가 부족합니다. 충전해주세요');byId('nudgeOverlay').classList.remove('show');openRecharge();return;}
   const d=DB.donators.find(x=>x.id===nudgeId);if(d){d.nudged=true;logOutreach('nudge',d);save();}
   byId('nudgeOverlay').classList.remove('show');renderNudge();renderDonators();renderOutreach();
   // 프로필이 열려 있고 같은 도네이터면 목표 카드 갱신
   if(d && drId===d.id && byId('donDrawer').classList.contains('show')) renderGoalCard(d);
-  toast(`승급 넛지 알림톡을 발송했습니다 🎯 · 잔여 ${won(creditBalance())}건`);
+  toast(`승급톡을 발송했습니다 🎯 · 잔여 ${won(creditBalance())}건`);
 };
 
 /* =========================================================
-   복귀 유도·넛지 성과 분석 (전환 추적)
+   복귀 유도·승급톡 성과 분석 (전환 추적)
    ========================================================= */
 /* 발송 이력 시드: 결정적으로 과거 30일 발송·전환 데이터 생성 */
 function seedOutreach(){
@@ -5802,7 +5802,7 @@ function seedCreditLog(){
   src.forEach((o,i)=>{
     const d=(DB.donators||[]).find(x=>x.id===o.donatorId); const nm=d?d.name:'도네이터';
     const tpl=(MSG_SEED[o.type]||MSG_SEED.reengage);
-    events.push({ts:o.ts,type:'send',amount:1,label:o.type==='reengage'?`💤 복귀 유도 · ${nm}`:`🎯 승급 넛지 · ${nm}`,msg:subMsg(tpl[i%tpl.length],d)});
+    events.push({ts:o.ts,type:'send',amount:1,label:o.type==='reengage'?`💤 복귀 유도 · ${nm}`:`🎯 승급톡 · ${nm}`,msg:subMsg(tpl[i%tpl.length],d)});
     if(i===Math.floor(src.length*0.55)) events.push({ts:o.ts+36e5,type:'recharge',amount:300});
   });
   events.sort((a,b)=>a.ts-b.ts);
@@ -5830,7 +5830,7 @@ function orResBadge(o){
 function orRow(o){
   const d=DB.donators.find(x=>x.id===o.donatorId);if(!d)return '';
   const g=gradeForCash(d.cash);
-  const tb=o.type==='reengage'?'<span class="or-type re">💤 복귀 유도</span>':'<span class="or-type nu">🎯 넛지</span>';
+  const tb=o.type==='reengage'?'<span class="or-type re">💤 복귀 유도</span>':'<span class="or-type nu">🎯 승급톡</span>';
   return `<div class="or-row" data-don="${d.id}" style="cursor:pointer"><div class="ava" style="background:${avaColor(d.name)}">${d.name.slice(0,2)}${avaImg(d.name)}</div>
     <div class="or-nm">${d.alias||d.name} ${gradeBadge(g)}</div>${tb}<span class="or-when">${fmtAgo(o.ts)}</span>${orResBadge(o)}</div>`;
 }
@@ -5847,7 +5847,7 @@ function renderOutreach(){
     </div>`;
   byId('outreachStats').innerHTML=
     card('💤','복귀 유도',st.reengage,'복귀',st.reRate,'var(--yeol)')+
-    card('🎯','승급 넛지',st.nudge,'후원',st.nuRate,'var(--accent)');
+    card('🎯','승급톡',st.nudge,'후원',st.nuRate,'var(--accent)');
   const recent=(DB.outreach||[]).slice(0,5);
   byId('outreachRecent').innerHTML=recent.length?recent.map(orRow).join(''):'<div class="helper" style="padding:14px;text-align:center">발송 이력이 없습니다</div>';
   byId('outreachRecent').querySelectorAll('[data-don]').forEach(el=>el.onclick=()=>openDrawer(el.dataset.don));
@@ -6162,8 +6162,8 @@ const INSIGHT_SECTIONS=[
   {id:'churn',  label:'이탈 위험 VIP',       desc:'무후원 단골 목록'},
   {id:'pareto', label:'상위 후원자 기여도',  desc:'파레토 상위 기여'},
   {id:'fanTemp',label:'관계 온도',           desc:'팬 관계 건강도'},
-  {id:'nudge',  label:'승급 임박 VIP',       desc:'넛지 대상'},
-  {id:'outreach',label:'복귀 유도·넛지 성과',desc:'발송 대비 전환'},
+  {id:'nudge',  label:'승급 임박 VIP',       desc:'승급톡 대상'},
+  {id:'outreach',label:'복귀 유도·승급톡 성과',desc:'발송 대비 전환'},
   {id:'anniv',  label:'다가오는 기념일',     desc:'가입 기념일 임박'},
 ];
 function insightHidden(){ return (DB.settings&&DB.settings.insightHidden)||[]; }
@@ -6391,7 +6391,7 @@ function renderDrTitles(d){
 function renderDrConsent(d){
   byId('drConsent').innerHTML=`<div class="dr-consent ${d.alimConsent?'on':'off'}">
     <div class="dc-tx"><div class="dc-t">${d.alimConsent?'✅ 알림톡 수신 동의':'🚫 알림톡 수신 거부'}</div>
-      <div class="dc-s">${d.alimConsent?'복귀 유도·넛지·기념일 알림톡을 발송할 수 있어요':'동의 전까지 알림톡을 발송할 수 없습니다'}</div></div>
+      <div class="dc-s">${d.alimConsent?'복귀 유도·승급톡·기념일 알림톡을 발송할 수 있어요':'동의 전까지 알림톡을 발송할 수 없습니다'}</div></div>
     <div class="tgl ${d.alimConsent?'on':''}" id="drConsentTgl"></div></div>`;
   byId('drConsentTgl').onclick=()=>{d.alimConsent=!d.alimConsent;save();renderDrConsent(d);renderDonators();renderInsights();
     toast(d.alimConsent?'알림톡 수신 동의로 변경했습니다':'알림톡 수신 거부로 변경했습니다');};
@@ -7062,18 +7062,18 @@ function updateBulkBar(){
   const n=donSelected.size;
   byId('bulkBar').classList.toggle('hidden',n===0);
   byId('bulkCount').textContent=n;
-  // 복귀 유도는 '이탈 위험' 탭, 넛지는 '승급 임박' 탭에서만 노출
+  // 복귀 유도는 '이탈 위험' 탭, 승급톡은 '승급 임박' 탭에서만 노출
   byId('bulkReengage').classList.toggle('hidden', donView!=='churn');
   byId('bulkNudge').classList.toggle('hidden', donView!=='promote');
   const all=byId('selAll'); if(all){const vis=currentDonatorRows();all.checked=vis.length>0&&vis.every(d=>donSelected.has(d.id));}
 }
 function selectedList(){return DB.donators.filter(d=>donSelected.has(d.id));}
-/* 선택 도네이터 일괄 복귀 유도 / 승급 넛지 — 문구 선택 후 발송 */
+/* 선택 도네이터 일괄 복귀 유도 / 승급톡 — 문구 선택 후 발송 */
 let bulkSend={kind:null,targets:[]};
 function bulkOutreach(kind){
   if(viewerGuard())return;
   const isReeng=kind==='reengage';
-  const label=isReeng?'복귀 유도':'승급 넛지';
+  const label=isReeng?'복귀 유도':'승급톡';
   const cond=isReeng?isChurnTarget:isNudgeTarget;
   const need=isReeng?'이탈 위험':'승급 임박';
   const sel=selectedList();
@@ -7090,18 +7090,18 @@ function bulkOutreach(kind){
   byId('bulkSendOverlay').classList.add('show');
 }
 function bulkSendPrev(){
-  const d=bulkSend.targets[0]; const kt=bulkSend.kind==='reengage'?'💬 알림톡':'🎯 승급 넛지 알림톡';
+  const d=bulkSend.targets[0]; const kt=bulkSend.kind==='reengage'?'💬 알림톡':'🎯 승급톡';
   byId('bulkSendPreview').innerHTML=`<div class="kakao"><div class="kt">${kt}</div><div class="kb">${subMsg(byId('bulkSendMsg').value,d)}</div><div class="kbtn">${bulkSend.kind==='reengage'?'방송 보러가기':'후원하러 가기'}</div></div>`;
 }
 byId('bulkSendMsg').addEventListener('input',bulkSendPrev);
 byId('bulkSendClose').onclick=byId('bulkSendCancel').onclick=()=>byId('bulkSendOverlay').classList.remove('show');
 byId('bulkSendOverlay').onclick=e=>{if(e.target===byId('bulkSendOverlay'))byId('bulkSendOverlay').classList.remove('show');};
 byId('bulkSendConfirm').onclick=()=>{
-  const {kind,targets}=bulkSend; const isReeng=kind==='reengage'; const label=isReeng?'복귀 유도':'승급 넛지';
+  const {kind,targets}=bulkSend; const isReeng=kind==='reengage'; const label=isReeng?'복귀 유도':'승급톡';
   const msg=byId('bulkSendMsg').value;
   let sent=0;
   targets.forEach(d=>{
-    if(!spendCredit(`${isReeng?'💤 복귀 유도':'🎯 승급 넛지'} · ${d.name}`,1,subMsg(msg,d)))return;
+    if(!spendCredit(`${isReeng?'💤 복귀 유도':'🎯 승급톡'} · ${d.name}`,1,subMsg(msg,d)))return;
     if(isReeng){d.reengaged=true;d.reengagedAt=Date.now();} else {d.nudged=true;}
     logOutreach(kind,d); sent++;
   });
@@ -7744,7 +7744,7 @@ function renderTimeline(d){
     if(t.status==='done'&&t.respondedTs)ev.push({ts:t.respondedTs,cls:'toon',icon:'✅',t:'투네톡 답장 완료',s:t.reply});
   });
   if(d.blocked&&d.blockedAt)ev.push({ts:parseD(d.blockedAt),cls:'block',icon:'⛔',t:'차단됨',s:d.blockReason||''});
-  if(d.nudged)ev.push({ts:Date.now(),cls:'',icon:'🎯',t:'승급 넛지 발송'});
+  if(d.nudged)ev.push({ts:Date.now(),cls:'',icon:'🎯',t:'승급톡 발송'});
   if(d.celebrated)ev.push({ts:Date.now(),cls:'',icon:'🎂',t:'기념일 축하 발송'});
   ev.sort((a,b)=>b.ts-a.ts);
   byId('drTimeline').innerHTML=ev.map(e=>{const dt=new Date(e.ts);const ds=`${dt.getFullYear()}-${z2(dt.getMonth()+1)}-${z2(dt.getDate())}`;
